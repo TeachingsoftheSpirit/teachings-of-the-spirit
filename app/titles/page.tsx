@@ -5,16 +5,40 @@ import TitlesList from '@/components/TitlesList'
 export default async function TitlesPage() {
   const supabase = await createClient()
 
-  const { data: teachings, error } = await supabase
-    .from('teachings')
-    .select('teaching_number, title, year, date')
-    .order('teaching_number', { ascending: true })
+  // Fetch all teachings in batches (Supabase default limit is 1000)
+  const all: {
+    teaching_number: number
+    title: string
+    year: number | null
+    date: string | null
+  }[] = []
 
-  if (error) {
-    console.error(error)
+  const pageSize = 1000
+  let from = 0
+  let keepGoing = true
+
+  while (keepGoing) {
+    const { data, error } = await supabase
+      .from('teachings')
+      .select('teaching_number, title, year, date')
+      .order('teaching_number', { ascending: true })
+      .range(from, from + pageSize - 1)
+
+    if (error) {
+      console.error(error)
+      break
+    }
+
+    if (!data || data.length === 0) {
+      keepGoing = false
+    } else {
+      all.push(...data)
+      from += pageSize
+      if (data.length < pageSize) {
+        keepGoing = false
+      }
+    }
   }
-
-  const all = teachings || []
 
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
@@ -30,15 +54,28 @@ export default async function TitlesPage() {
             The full spine of the conversation
           </p>
           <nav className="flex flex-wrap justify-center items-center gap-5 text-sm">
-            <Link href="/" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Home</Link>
+            <Link href="/" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
+              Home
+            </Link>
             <span className="text-[#E5DFD5]">·</span>
-            <Link href="/quotes" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Quotes</Link>
+            <Link href="/quotes" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
+              Quotes
+            </Link>
             <span className="text-[#E5DFD5]">·</span>
-            <Link href="/search" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Search</Link>
+            <Link href="/search" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
+              Search
+            </Link>
             <span className="text-[#E5DFD5]">·</span>
-            <Link href="/browse" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Browse</Link>
+            <Link href="/browse" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
+              Browse
+            </Link>
             <span className="text-[#E5DFD5]">·</span>
-            <Link href="/titles" className="text-[#7A3E3E] font-medium drop-shadow-[0_0_8px_rgba(122,62,62,0.45)]">Titles</Link>
+            <Link
+              href="/titles"
+              className="text-[#7A3E3E] font-medium drop-shadow-[0_0_8px_rgba(122,62,62,0.45)]"
+            >
+              Titles
+            </Link>
           </nav>
         </header>
 
