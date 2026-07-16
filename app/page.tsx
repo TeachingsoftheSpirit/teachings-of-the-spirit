@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -14,7 +15,8 @@ export default async function HomePage() {
     <main className="min-h-screen bg-[#F7F4EF]">
       <div className="max-w-3xl mx-auto px-6 sm:px-10 py-16 sm:py-24">
 
-        <header className="mb-16 text-center">
+        {/* Stable header */}
+        <header className="mb-12 text-center">
           <div className="min-h-[4.5rem] sm:min-h-[5.25rem] flex items-center justify-center mb-3">
             <h1 className="text-4xl sm:text-5xl font-medium tracking-tight text-[#2C2522]">
               Teachings of the Spirit
@@ -45,6 +47,20 @@ export default async function HomePage() {
             </Link>
           </nav>
         </header>
+
+        {/* Hero image – Mirror / pool presence */}
+        <div className="mb-16 rounded-lg overflow-hidden border border-[#E5DFD5] shadow-sm">
+          <div className="relative aspect-[16/10] w-full">
+            <Image
+              src="/hero.jpg"
+              alt="A quiet vision of light and many rooms"
+              fill
+              className="object-cover"
+              priority
+              sizes="(max-width: 768px) 100vw, 768px"
+            />
+          </div>
+        </div>
 
         {/* Search */}
         <form action="/search" method="get" className="mb-20">
