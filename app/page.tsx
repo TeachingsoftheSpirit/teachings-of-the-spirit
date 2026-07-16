@@ -2,6 +2,33 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
 
+const gateways = [
+  {
+    href: '/teachings/86',
+    label: 'Death',
+    date: 'November 27, 1979',
+    text: 'Death is My other door. You move out of one of My realms at birth, and at death you pass through another door into another non-earthly existence. Life continues.',
+  },
+  {
+    href: '/teachings/117',
+    label: 'Grace',
+    date: 'August 10, 1980',
+    text: 'Grace is My given way. It is free access to Me, with no strings that I attach.',
+  },
+  {
+    href: '/teachings/74',
+    label: 'Rhythm',
+    date: 'May 22, 1979',
+    text: 'This time is important… the time of writing. Here is where the instruction comes. This is your school… and My School.',
+  },
+  {
+    href: '/teachings/796',
+    label: 'Spirit',
+    date: 'April 19, 1985',
+    text: 'I, the Holy Spirit, work in many ways. I interpret and reteach ways of living and believing that I offered as Jesus, but I am not limited to these.',
+  },
+]
+
 export default async function HomePage() {
   const supabase = await createClient()
 
@@ -15,7 +42,6 @@ export default async function HomePage() {
     <main className="min-h-screen bg-[#F7F4EF]">
       <div className="max-w-3xl mx-auto px-6 sm:px-10 py-16 sm:py-24">
 
-        {/* Stable header */}
         <header className="mb-12 text-center">
           <div className="min-h-[4.5rem] sm:min-h-[5.25rem] flex items-center justify-center mb-3">
             <h1 className="text-4xl sm:text-5xl font-medium tracking-tight text-[#2C2522]">
@@ -26,44 +52,35 @@ export default async function HomePage() {
             A private library of spiritual teachings received over many years.
           </p>
           <nav className="flex flex-wrap justify-center items-center gap-5 text-sm">
-            <Link href="/" className="text-[#7A3E3E] font-medium drop-shadow-[0_0_8px_rgba(122,62,62,0.45)]">
-              Home
-            </Link>
+            <Link href="/" className="text-[#7A3E3E] font-medium drop-shadow-[0_0_8px_rgba(122,62,62,0.45)]">Home</Link>
             <span className="text-[#E5DFD5]">·</span>
-            <Link href="/quotes" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-              Quotes
-            </Link>
+            <Link href="/quotes" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Quotes</Link>
             <span className="text-[#E5DFD5]">·</span>
-            <Link href="/search" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-              Search
-            </Link>
+            <Link href="/search" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Search</Link>
             <span className="text-[#E5DFD5]">·</span>
-            <Link href="/browse" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-              Browse
-            </Link>
+            <Link href="/browse" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Browse</Link>
             <span className="text-[#E5DFD5]">·</span>
-            <Link href="/titles" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-              Titles
-            </Link>
+            <Link href="/titles" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Titles</Link>
+            <span className="text-[#E5DFD5]">·</span>
+            <Link href="/about" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">About</Link>
           </nav>
         </header>
 
-        {/* Hero image – Mirror / pool presence */}
-        <div className="mb-16 rounded-lg overflow-hidden border border-[#E5DFD5] shadow-sm">
-          <div className="relative aspect-[16/10] w-full">
+        {/* Small accent — ~1/4 previous size */}
+        <div className="mb-14 flex justify-center">
+          <div className="relative w-48 sm:w-56 aspect-[16/10] rounded-lg overflow-hidden border border-[#E5DFD5] shadow-sm">
             <Image
-              src="/hero.jpg"
-              alt="A quiet vision of light and many rooms"
+              src="/home-hero.jpg"
+              alt=""
               fill
               className="object-cover"
+              sizes="224px"
               priority
-              sizes="(max-width: 768px) 100vw, 768px"
             />
           </div>
         </div>
 
-        {/* Search */}
-        <form action="/search" method="get" className="mb-20">
+        <form action="/search" method="get" className="mb-16">
           <input
             type="search"
             name="q"
@@ -72,52 +89,29 @@ export default async function HomePage() {
           />
         </form>
 
-        {/* Gateway teachings */}
         <section className="mb-20">
           <h2 className="text-xs uppercase tracking-widest text-[#6B5E54] mb-8 text-center">
             Begin here
           </h2>
-
-          <div className="space-y-10">
-            <Link href="/teachings/86" className="block group">
-              <p className="text-[#2C2522] text-xl leading-relaxed group-hover:text-[#7A3E3E] transition-colors">
-                “Death is My other door. You move out of one of My realms at birth, and at death you pass through another door into another non-earthly existence. Life continues.”
-              </p>
-              <p className="mt-3 text-sm text-[#6B5E54]">
-                Death · November 27, 1979
-              </p>
-            </Link>
-
-            <Link href="/teachings/117" className="block group">
-              <p className="text-[#2C2522] text-xl leading-relaxed group-hover:text-[#7A3E3E] transition-colors">
-                “Grace is My given way. It is free access to Me, with no strings that I attach.”
-              </p>
-              <p className="mt-3 text-sm text-[#6B5E54]">
-                Grace, Again · August 10, 1980
-              </p>
-            </Link>
-
-            <Link href="/teachings/74" className="block group">
-              <p className="text-[#2C2522] text-xl leading-relaxed group-hover:text-[#7A3E3E] transition-colors">
-                “This time is important… the time of writing. Here is where the instruction comes. This is your school… and My School.”
-              </p>
-              <p className="mt-3 text-sm text-[#6B5E54]">
-                Rhythm · May 22, 1979
-              </p>
-            </Link>
-
-            <Link href="/teachings/796" className="block group">
-              <p className="text-[#2C2522] text-xl leading-relaxed group-hover:text-[#7A3E3E] transition-colors">
-                “I, the Holy Spirit, work in many ways. I interpret and reteach ways of living and believing that I offered as Jesus, but I am not limited to these.”
-              </p>
-              <p className="mt-3 text-sm text-[#6B5E54]">
-                Christ, The Spirit · April 19, 1985
-              </p>
-            </Link>
+          <div className="grid sm:grid-cols-2 gap-8">
+            {gateways.map((g) => (
+              <Link
+                key={g.href}
+                href={g.href}
+                className="group block p-5 rounded-lg border border-[#E5DFD5] bg-white/40 hover:bg-[#EDE7DC] hover:border-[#6B5E54] transition-colors"
+              >
+                <p className="text-[0.7rem] uppercase tracking-widest text-[#7A3E3E] mb-3">
+                  {g.label}
+                </p>
+                <p className="text-[#2C2522] text-[1.05rem] leading-relaxed group-hover:text-[#7A3E3E] transition-colors">
+                  “{g.text}”
+                </p>
+                <p className="mt-4 text-sm text-[#6B5E54]">{g.date}</p>
+              </Link>
+            ))}
           </div>
         </section>
 
-        {/* Recent */}
         <section>
           <h2 className="text-xs uppercase tracking-widest text-[#6B5E54] mb-6">
             Recent in the archive

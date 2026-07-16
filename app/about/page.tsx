@@ -16,49 +16,44 @@ export default function AboutPage() {
             How the conversation began
           </p>
           <nav className="flex flex-wrap justify-center items-center gap-5 text-sm">
-            <Link href="/" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-              Home
-            </Link>
+            <Link href="/" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Home</Link>
             <span className="text-[#E5DFD5]">·</span>
-            <Link href="/quotes" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-              Quotes
-            </Link>
+            <Link href="/quotes" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Quotes</Link>
             <span className="text-[#E5DFD5]">·</span>
-            <Link href="/search" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-              Search
-            </Link>
+            <Link href="/search" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Search</Link>
             <span className="text-[#E5DFD5]">·</span>
-            <Link href="/browse" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-              Browse
-            </Link>
+            <Link href="/browse" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Browse</Link>
             <span className="text-[#E5DFD5]">·</span>
-            <Link href="/titles" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-              Titles
-            </Link>
+            <Link href="/titles" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Titles</Link>
             <span className="text-[#E5DFD5]">·</span>
-            <Link
-              href="/about"
-              className="text-[#7A3E3E] font-medium drop-shadow-[0_0_8px_rgba(122,62,62,0.45)]"
-            >
-              About
-            </Link>
+            <Link href="/about" className="text-[#7A3E3E] font-medium drop-shadow-[0_0_8px_rgba(122,62,62,0.45)]">About</Link>
           </nav>
         </header>
 
-        <div className="mb-14 flex justify-center">
-          <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full overflow-hidden border border-[#E5DFD5] shadow-sm">
-            <Image
-              src="/about-portrait.jpg"
-              alt="Bob Russell"
-              fill
-              className="object-cover object-top"
-              sizes="256px"
-              priority
-            />
-          </div>
+        {/* Across the years — four real photographs */}
+        <div className="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { src: '/bob-1-navy.jpg', label: 'Young officer' },
+            { src: '/bob-2-middle.jpg', label: 'Middle years' },
+            { src: '/bob-3-studio.jpg', label: 'Later years' },
+            { src: '/bob-4-laughing.jpg', label: 'Spirit' },
+          ].map((p) => (
+            <div key={p.src} className="text-center">
+              <div className="relative aspect-square rounded-lg overflow-hidden border border-[#E5DFD5] shadow-sm mb-2">
+                <Image
+                  src={p.src}
+                  alt={p.label}
+                  fill
+                  className="object-cover object-top"
+                  sizes="160px"
+                />
+              </div>
+              <p className="text-xs text-[#6B5E54]">{p.label}</p>
+            </div>
+          ))}
         </div>
 
-        <div className="text-center mb-14">
+        <div className="text-center mb-14 mt-8">
           <h2 className="text-2xl font-medium text-[#2C2522] mb-1">Bob Russell</h2>
           <p className="text-[#6B5E54] text-sm">
             University professor · Presbyterian elder · Gentleman farmer
@@ -66,7 +61,6 @@ export default function AboutPage() {
         </div>
 
         <article className="max-w-none text-[#2C2522] leading-[1.85] space-y-6 text-[1.05rem]">
-
           <p>
             On May 16, 1979, Bob Russell wrote a short explanation. He called it “For the Record”.
           </p>
@@ -138,28 +132,20 @@ export default function AboutPage() {
               <span className="text-[#7A3E3E] font-medium">Categories</span> — topic categories that the Spirit revisited time and time again.
             </li>
             <li>
-              <Link href="/titles" className="text-[#7A3E3E] font-medium hover:underline">
-                List of Titles
-              </Link>
-              {' '}— scroll through the titles by date. One of the most revealing ways to explore the Teachings; the breadth of the Spirit’s wisdom is already visible in the titles alone.
+              <Link href="/titles" className="text-[#7A3E3E] font-medium hover:underline">List of Titles</Link>
+              {' '}— scroll through the titles by date. One of the most revealing ways to explore the Teachings.
             </li>
             <li>
-              <Link href="/quotes" className="text-[#7A3E3E] font-medium hover:underline">
-                Quotes
-              </Link>
+              <Link href="/quotes" className="text-[#7A3E3E] font-medium hover:underline">Quotes</Link>
               {' '}— luminous one-liners drawn from the Teachings; click through to the full teaching.
             </li>
             <li>
-              <Link href="/search" className="text-[#7A3E3E] font-medium hover:underline">
-                Search
-              </Link>
+              <Link href="/search" className="text-[#7A3E3E] font-medium hover:underline">Search</Link>
               {' '}— type any word or phrase and see the teachings that contain it.
             </li>
           </ul>
 
-          <p className="pt-4">
-            Please read, and be inspired.
-          </p>
+          <p className="pt-4">Please read, and be inspired.</p>
 
           <p>
             Add comments, ask questions, tell your stories. There is a community here of people from all over the world who share a common friend in the Spirit.
