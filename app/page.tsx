@@ -34,6 +34,14 @@ export default async function HomePage() {
   <Link href="/search" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
     Search
   </Link>
+  <span className="text-[#E5DFD5]">·</span>
+  <Link href="/browse" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
+    Browse
+  </Link>
+  <span className="text-[#E5DFD5]">·</span>
+  <Link href="/titles" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
+    Titles
+  </Link>
 </div>
         </header>
         {/* Search */}

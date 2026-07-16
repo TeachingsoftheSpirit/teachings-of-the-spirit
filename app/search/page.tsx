@@ -29,13 +29,20 @@ export default async function SearchPage({ searchParams }: Props) {
       <div className="max-w-3xl mx-auto px-6 sm:px-8 py-12 sm:py-16">
 
         {/* Consistent navigation */}
-        <nav className="mb-10 flex items-center gap-4 text-sm text-[#6B5E54]">
-          <Link href="/" className="hover:text-[#2C2522] transition-colors">Home</Link>
-          <span className="text-[#E5DFD5]">·</span>
-          <Link href="/quotes" className="hover:text-[#2C2522] transition-colors">Quotes</Link>
-          <span className="text-[#E5DFD5]">·</span>
-          <Link href="/search" className="hover:text-[#2C2522] transition-colors">Search</Link>
-        </nav>
+        <nav className="mb-12 flex flex-wrap items-center justify-between gap-4 text-sm text-[#6B5E54]">
+  <div className="flex flex-wrap items-center gap-4">
+    <Link href="/" className="hover:text-[#2C2522] transition-colors">Home</Link>
+    <span className="text-[#E5DFD5]">·</span>
+    <Link href="/quotes" className="hover:text-[#2C2522] transition-colors">Quotes</Link>
+    <span className="text-[#E5DFD5]">·</span>
+    <Link href="/search" className="hover:text-[#2C2522] transition-colors">Search</Link>
+    <span className="text-[#E5DFD5]">·</span>
+    <Link href="/browse" className="hover:text-[#2C2522] transition-colors">Browse</Link>
+    <span className="text-[#E5DFD5]">·</span>
+    <Link href="/titles" className="hover:text-[#2C2522] transition-colors">Titles</Link>
+  </div>
+  <span>Teaching {teaching.teaching_number}</span>
+</nav>
 
         <h1 className="text-3xl font-medium tracking-tight text-[#2C2522] mb-8">
           Search
