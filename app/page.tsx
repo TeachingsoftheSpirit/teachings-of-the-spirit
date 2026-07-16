@@ -4,28 +4,24 @@ import Image from 'next/image'
 
 const gateways = [
   {
+    href: '/teachings/796',
+    image: '/gateway-spirit.jpg',
+    text: 'I, the Holy Spirit, work in many ways. I interpret and reteach ways of living and believing that I offered as Jesus, but I am not limited to these.',
+  },
+  {
     href: '/teachings/86',
-    label: 'Death',
-    date: 'November 27, 1979',
+    image: '/gateway-death.jpg',
     text: 'Death is My other door. You move out of one of My realms at birth, and at death you pass through another door into another non-earthly existence. Life continues.',
   },
   {
-    href: '/teachings/117',
-    label: 'Grace',
-    date: 'August 10, 1980',
-    text: 'Grace is My given way. It is free access to Me, with no strings that I attach.',
-  },
-  {
     href: '/teachings/74',
-    label: 'Rhythm',
-    date: 'May 22, 1979',
+    image: '/gateway-rhythm.jpg',
     text: 'This time is important… the time of writing. Here is where the instruction comes. This is your school… and My School.',
   },
   {
-    href: '/teachings/796',
-    label: 'Spirit',
-    date: 'April 19, 1985',
-    text: 'I, the Holy Spirit, work in many ways. I interpret and reteach ways of living and believing that I offered as Jesus, but I am not limited to these.',
+    href: '/teachings/117',
+    image: '/gateway-grace.jpg',
+    text: 'Grace is My given way. It is free access to Me, with no strings that I attach.',
   },
 ]
 
@@ -66,15 +62,15 @@ export default async function HomePage() {
           </nav>
         </header>
 
-        {/* Small accent — ~1/4 previous size */}
+        {/* Optional tiny landscape accent */}
         <div className="mb-14 flex justify-center">
-          <div className="relative w-48 sm:w-56 aspect-[16/10] rounded-lg overflow-hidden border border-[#E5DFD5] shadow-sm">
+          <div className="relative w-40 sm:w-48 aspect-[16/10] rounded-md overflow-hidden border border-[#E5DFD5]">
             <Image
               src="/home-hero.jpg"
               alt=""
               fill
               className="object-cover"
-              sizes="224px"
+              sizes="192px"
               priority
             />
           </div>
@@ -89,24 +85,23 @@ export default async function HomePage() {
           />
         </form>
 
+        {/* Image + one-liner gateways */}
         <section className="mb-20">
-          <h2 className="text-xs uppercase tracking-widest text-[#6B5E54] mb-8 text-center">
-            Begin here
-          </h2>
-          <div className="grid sm:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-12">
             {gateways.map((g) => (
-              <Link
-                key={g.href}
-                href={g.href}
-                className="group block p-5 rounded-lg border border-[#E5DFD5] bg-white/40 hover:bg-[#EDE7DC] hover:border-[#6B5E54] transition-colors"
-              >
-                <p className="text-[0.7rem] uppercase tracking-widest text-[#7A3E3E] mb-3">
-                  {g.label}
-                </p>
-                <p className="text-[#2C2522] text-[1.05rem] leading-relaxed group-hover:text-[#7A3E3E] transition-colors">
+              <Link key={g.href} href={g.href} className="group block text-center">
+                <div className="relative aspect-square w-full max-w-[280px] mx-auto mb-4 rounded-lg overflow-hidden shadow-md">
+                  <Image
+                    src={g.image}
+                    alt=""
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    sizes="280px"
+                  />
+                </div>
+                <p className="text-[#2C2522] text-[0.95rem] leading-relaxed px-2 group-hover:text-[#7A3E3E] transition-colors">
                   “{g.text}”
                 </p>
-                <p className="mt-4 text-sm text-[#6B5E54]">{g.date}</p>
               </Link>
             ))}
           </div>
