@@ -36,6 +36,7 @@ function getThemes(title: string): string[] {
 
 export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
   const [expanded, setExpanded] = useState<Record<number, boolean>>({})
+  const [hovered, setHovered] = useState<number | null>(null)
 
   const byTheme: Record<string, Teaching[]> = {}
   for (const t of teachings) {
@@ -43,6 +44,20 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
     for (const theme of themes) {
       if (!byTheme[theme]) byTheme[theme] = []
       byTheme[theme].push(t)
+    }
+  }
+
+  // Numbers that belong to the same family as the hovered title
+  const relatedToHovered = new Set<number>()
+  if (hovered !== null) {
+    const hoveredTeaching = teachings.find(t => t.teaching_number === hovered)
+    if (hoveredTeaching) {
+      const themes = getThemes(hoveredTeaching.title)
+      for (const theme of themes) {
+        for (const r of byTheme[theme] || []) {
+          relatedToHovered.add(r.teaching_number)
+        }
+      }
     }
   }
 
@@ -56,6 +71,7 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
         const themes = getThemes(t.title)
         const hasRelated = themes.some(theme => (byTheme[theme]?.length || 0) > 1)
         const isOpen = expanded[t.teaching_number]
+        const isDimmed = hovered !== null && !relatedToHovered.has(t.teaching_number)
 
         let related: Teaching[] = []
         if (isOpen && hasRelated) {
@@ -74,7 +90,10 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
         const dateLabel = t.date || (t.year ? String(t.year) : '')
 
         return (
-          <div key={t.teaching_number}>
+          <div
+            key={t.teaching_number}
+            className={`transition-opacity duration-300 ${isDimmed ? 'opacity-25' : 'opacity-100'}`}
+          >
             <div className="group flex items-baseline justify-between gap-3 py-2.5 px-2 -mx-2 rounded-md hover:bg-[#EDE7DC] transition-colors">
               <div className="flex items-baseline gap-4 min-w-0 flex-1">
                 <span className="text-[#6B5E54] text-sm tabular-nums w-12 shrink-0">
@@ -91,6 +110,8 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
                 {hasRelated && (
                   <button
                     onClick={() => toggle(t.teaching_number)}
+                    onMouseEnter={() => setHovered(t.teaching_number)}
+                    onMouseLeave={() => setHovered(null)}
                     className="ml-1 text-[#7A3E3E]/70 hover:text-[#7A3E3E] transition-colors text-sm leading-none"
                     title={isOpen ? 'Hide related teachings' : 'Show related teachings'}
                     aria-label={isOpen ? 'Collapse related' : 'Expand related'}

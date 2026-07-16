@@ -8,7 +8,7 @@ export default async function HomePage() {
     .from('teachings')
     .select('teaching_number, title, year')
     .order('teaching_number', { ascending: false })
-    .limit(8)
+    .limit(6)
 
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
@@ -46,7 +46,8 @@ export default async function HomePage() {
           </nav>
         </header>
 
-        <form action="/search" method="get" className="mb-16">
+        {/* Search */}
+        <form action="/search" method="get" className="mb-20">
           <input
             type="search"
             name="q"
@@ -55,9 +56,55 @@ export default async function HomePage() {
           />
         </form>
 
+        {/* Gateway teachings */}
+        <section className="mb-20">
+          <h2 className="text-xs uppercase tracking-widest text-[#6B5E54] mb-8 text-center">
+            Begin here
+          </h2>
+
+          <div className="space-y-10">
+            <Link href="/teachings/86" className="block group">
+              <p className="text-[#2C2522] text-xl leading-relaxed group-hover:text-[#7A3E3E] transition-colors">
+                “Death is My other door. You move out of one of My realms at birth, and at death you pass through another door into another non-earthly existence. Life continues.”
+              </p>
+              <p className="mt-3 text-sm text-[#6B5E54]">
+                Death · November 27, 1979
+              </p>
+            </Link>
+
+            <Link href="/teachings/117" className="block group">
+              <p className="text-[#2C2522] text-xl leading-relaxed group-hover:text-[#7A3E3E] transition-colors">
+                “Grace is My given way. It is free access to Me, with no strings that I attach.”
+              </p>
+              <p className="mt-3 text-sm text-[#6B5E54]">
+                Grace, Again · August 10, 1980
+              </p>
+            </Link>
+
+            <Link href="/teachings/74" className="block group">
+              <p className="text-[#2C2522] text-xl leading-relaxed group-hover:text-[#7A3E3E] transition-colors">
+                “This time is important… the time of writing. Here is where the instruction comes. This is your school… and My School.”
+              </p>
+              <p className="mt-3 text-sm text-[#6B5E54]">
+                Rhythm · May 22, 1979
+              </p>
+            </Link>
+
+            <Link href="/teachings/796" className="block group">
+              <p className="text-[#2C2522] text-xl leading-relaxed group-hover:text-[#7A3E3E] transition-colors">
+                “I, the Holy Spirit, work in many ways. I interpret and reteach ways of living and believing that I offered as Jesus, but I am not limited to these.”
+              </p>
+              <p className="mt-3 text-sm text-[#6B5E54]">
+                Christ, The Spirit · April 19, 1985
+              </p>
+            </Link>
+          </div>
+        </section>
+
+        {/* Recent */}
         <section>
           <h2 className="text-xs uppercase tracking-widest text-[#6B5E54] mb-6">
-            Recent Teachings
+            Recent in the archive
           </h2>
           <div className="space-y-1">
             {(recent || []).map((t) => (
