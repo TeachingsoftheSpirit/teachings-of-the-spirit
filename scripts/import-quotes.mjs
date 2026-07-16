@@ -15,76 +15,102 @@ const supabase = createClient(
 const RAW_FILE = path.resolve(__dirname, '../data/quotes-raw.txt')
 
 function parseQuotes(raw) {
-  // Normalize common encoding problems
+  // Normalize characters
   let text = raw
+    .replace(/\u201C/g, '"')
+    .replace(/\u201D/g, '"')
+    .replace(/\u2018/g, "'")
+    .replace(/\u2019/g, "'")
+    .replace(/\u2026/g, '...')
+    .replace(/\u2013/g, '-')
+    .replace(/\u2014/g, '-')
     .replace(/â€œ/g, '"')
     .replace(/â€/g, '"')
     .replace(/â€™/g, "'")
-    .replace(/â€¦/g, '…')
-    .replace(/â€“/g, '–')
-    .replace(/â€”/g, '—')
+    .replace(/â€¦/g, '...')
+    .replace(/â€“/g, '-')
+    .replace(/â€”/g, '-')
+    .replace(/\r\n/g, '\n')
 
-  // Split on lines that are just a dash / en-dash / em-dash
-  const blocks = text
-    .split(/\n\s*[–—-]\s*\n/)
-    .map(b => b.trim())
-    .filter(b => b.length > 30)
+  // Strategy: find every place that looks like:  " - Title - Year
+  // or  " - Title, Year   at the end of a quote
+  // We use a global regex to locate the attribution ends
 
   const results = []
-  let failed = 0
+  const pattern = /"\s*-\s*"?([^"\n]+?)"?\s*[-–,]\s*([A-Za-z0-9.,\s]*?(?:19|20)\d{2})\s*/g
 
-  for (const block of blocks) {
-    // Split on the last two dash-like separators
-    const parts = block.split(/\s*[–—-]\s*/)
+  let lastIndex = 0
+  let match
 
-    if (parts.length < 3) {
+  while ((match = pattern.exec(text)) !== null) {
+    const fullAttr = match[0]
+    const title = match[1].trim()
+    const date = match[2].trim()
+    const yearMatch = date.match(/\b((?:19|20)\d{2})\b/)
+    const year = yearMatch ? parseInt(yearMatch[1], 10) : null
+
+    // The quote text is everything from the previous match end to just before this attribution
+    let quote_text = text.slice(lastIndex, match.index).trim()
+
+    // Clean leading/trailing quotes and whitespace
+    quote_text = quote_text.replace(/^["'\s]+|["'\s]+$/g, '').trim()
+
+    if (quote_text.length > 20) {
       results.push({
-        quote_text: block.replace(/^["“]|["”]$/g, '').trim(),
-        title: 'Unknown',
-        date: null,
-        year: null,
+        quote_text,
+        title: title || 'Unknown',
+        date,
+        year,
         category: null,
       })
-      failed++
-      continue
     }
 
-    const datePart = parts[parts.length - 1].trim()
-    const titlePart = parts[parts.length - 2].trim().replace(/^["“]|["”]$/g, '')
-    const quotePart = parts.slice(0, -2).join(' – ').trim().replace(/^["“]|["”]$/g, '')
+    lastIndex = match.index + fullAttr.length
+  }
 
-    const yearMatch = datePart.match(/\b(19|20)\d{2}\b/)
-    const year = yearMatch ? parseInt(yearMatch[0], 10) : null
-
+  // Handle any remaining text after the last match (rare)
+  const remaining = text.slice(lastIndex).trim()
+  if (remaining.length > 40) {
     results.push({
-      quote_text: quotePart,
-      title: titlePart || 'Unknown',
-      date: datePart || null,
-      year,
+      quote_text: remaining.replace(/^["'\s]+|["'\s]+$/g, '').trim(),
+      title: 'Unknown',
+      date: null,
+      year: null,
       category: null,
     })
   }
 
-  return { results, failed }
+  return results
 }
 
 async function main() {
-  console.log('Reading raw quotes file...')
+  console.log('Reading cleaned file...')
   const raw = readFileSync(RAW_FILE, 'utf8')
 
   console.log('Parsing...')
-  const { results, failed } = parseQuotes(raw)
-  console.log(`Parsed ${results.length} quotes (${failed} used fallback parsing)`)
+  const results = parseQuotes(raw)
+  console.log(`Parsed ${results.length} quotes`)
 
-  if (results.length < 10) {
-    console.log('\nFirst block preview:')
-    console.log(results[0]?.quote_text?.slice(0, 200))
-    console.log('---')
-    console.log('Title:', results[0]?.title)
-    console.log('Date:', results[0]?.date)
+  if (results.length > 0) {
+    console.log('\nExample 1:')
+    console.log('Title:', results[0].title)
+    console.log('Year:', results[0].year)
+    console.log('Text:', results[0].quote_text.slice(0, 140) + '...')
+  }
+  if (results.length > 1) {
+    console.log('\nExample 2:')
+    console.log('Title:', results[1].title)
+    console.log('Year:', results[1].year)
+    console.log('Text:', results[1].quote_text.slice(0, 140) + '...')
+  }
+  if (results.length > 5) {
+    console.log('\nExample 6:')
+    console.log('Title:', results[5].title)
+    console.log('Year:', results[5].year)
+    console.log('Text:', results[5].quote_text.slice(0, 140) + '...')
   }
 
-  console.log('Clearing existing quotes table...')
+  console.log('\nClearing table...')
   await supabase.from('quotes').delete().neq('id', '00000000-0000-0000-0000-000000000000')
 
   const BATCH = 40
@@ -93,21 +119,19 @@ async function main() {
   for (let i = 0; i < results.length; i += BATCH) {
     const batch = results.slice(i, i + BATCH)
     const { error } = await supabase.from('quotes').insert(batch)
-
     if (error) {
-      console.error('Batch error:', error.message)
+      console.error('Error:', error.message)
       throw error
     }
-
     inserted += batch.length
     console.log(`Inserted ${inserted} / ${results.length}`)
   }
 
-  console.log('\n=== Quotes import finished ===')
+  console.log('\n=== Done ===')
   console.log(`Total inserted: ${inserted}`)
 }
 
 main().catch(err => {
-  console.error('Fatal:', err)
+  console.error(err)
   process.exit(1)
 })
