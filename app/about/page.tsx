@@ -6,7 +6,6 @@ export default function AboutPage() {
     <main className="min-h-screen bg-[#F7F4EF]">
       <div className="max-w-3xl mx-auto px-6 sm:px-10 py-16 sm:py-24">
 
-        {/* Stable header */}
         <header className="mb-16 text-center">
           <div className="min-h-[4.5rem] sm:min-h-[5.25rem] flex items-center justify-center mb-3">
             <h1 className="text-4xl sm:text-5xl font-medium tracking-tight text-[#2C2522]">
@@ -46,7 +45,6 @@ export default function AboutPage() {
           </nav>
         </header>
 
-        {/* Portrait */}
         <div className="mb-14 flex justify-center">
           <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full overflow-hidden border border-[#E5DFD5] shadow-sm">
             <Image
@@ -67,14 +65,13 @@ export default function AboutPage() {
           </p>
         </div>
 
-        {/* Body */}
-        <article className="prose prose-lg max-w-none text-[#2C2522] leading-[1.85] space-y-6">
+        <article className="max-w-none text-[#2C2522] leading-[1.85] space-y-6 text-[1.05rem]">
 
           <p>
             On May 16, 1979, Bob Russell wrote a short explanation. He called it “For the Record”.
           </p>
 
-          <blockquote className="border-l-2 border-[#E5DFD5] pl-6 my-10 text-[1.05rem] text-[#2C2522] italic space-y-4">
+          <blockquote className="border-l-2 border-[#E5DFD5] pl-6 my-10 space-y-4 italic">
             <p>
               For the record I must tell how this time of commitment commenced. The Lord, the Spirit (God Himself, perhaps) has a “game” that He plays with me. Even though I know that the Lord watches over me and that there really are no dangers in these “everlasting arms” I sometimes find myself afraid of or for something. Usually it has to do with the safety of one of the boys or of Lenore, but this time, on May 10, 1979, it, the fear, focused in a lost manuscript. Neither at home nor at the office could I find the folder with the two chapters I (presumably… who can be sure now?) had written for the little book on Death for Scott Foresman. Finally, after searching through everything at home I determined that it was at the office. So on that Thursday I rushed to the office, and found it not. Despite other responsibilities I was distraught and knew I couldn’t do anything else, with any quality, until I found that folder. So I started driving home.
             </p>
@@ -98,7 +95,7 @@ export default function AboutPage() {
             Four days later, at 5:50 am on a Sunday morning, Bob sat down… but someone else picked up the pen: the Holy Spirit of God. And the Spirit wrote an essay titled “Read The Messages”. Here is how it began:
           </p>
 
-          <blockquote className="border-l-2 border-[#7A3E3E]/40 pl-6 my-10 text-[1.05rem] text-[#2C2522] space-y-4">
+          <blockquote className="border-l-2 border-[#7A3E3E]/40 pl-6 my-10 space-y-4">
             <p>
               Instruction is for your edification and for the building up of your self and spirit. They must be reviewed and studied, and their meanings must be applied to life as it is lived. You do other kinds of writing, and you review and polish it. Alike and different. You are not to edit nor to polish these lines, for they come as they are meant to be. But you are to digest and assimilate them, and expose your soul to their truths… and walk accordingly.
             </p>
@@ -111,25 +108,23 @@ export default function AboutPage() {
             Bob finished his 30 day commitment, with the Holy Spirit authoring for the final 20 days. The Spirit asked for another 30 day commitment of “the first hour of the morning”, which Bob gave willingly, and the Spirit penned another 30 consecutive days. By now, Bob was hooked. For the next 25 years, Bob and the Spirit would meet in this comfortable arrangement, and together they penned thousands of these Teachings. They would get together 3 or 4 times a week for an hour each session, and the result was always 3 handwritten pages, exactly.
           </p>
 
-          <p>
-           
-  The Teachings were not edited for clarity or punctuation or to fit in three pages. But they were always penned as finished products.
-</p>
+          <div className="my-12 rounded-lg overflow-hidden border border-[#E5DFD5] shadow-sm">
+            <div className="relative aspect-[4/3] w-full bg-[#F7F4EF]">
+              <Image
+                src="/three-pages.jpg"
+                alt="Three handwritten pages — the typical result of a morning session"
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 768px"
+              />
+            </div>
+            <p className="text-center text-sm text-[#6B5E54] py-3 border-t border-[#E5DFD5]">
+              Three handwritten pages — the typical result of a morning session
+            </p>
+          </div>
 
-<div className="my-12 rounded-lg overflow-hidden border border-[#E5DFD5] shadow-sm">
-  <div className="relative aspect-[4/3] w-full">
-    <Image
-      src="/three-pages.jpg"
-      alt="Three handwritten pages — the typical result of a morning session"
-      fill
-      className="object-contain bg-[#F7F4EF]"
-      sizes="(max-width: 768px) 100vw, 768px"
-    />
-  </div>
-  <p className="text-center text-sm text-[#6B5E54] py-3 border-t border-[#E5DFD5]">
-    Three handwritten pages — the typical result of a morning session
-  </p>
-</div>
+          <p>
+            The Teachings were not edited for clarity or punctuation or to fit in three pages. But they were always penned as finished products.
           </p>
 
           <p>
