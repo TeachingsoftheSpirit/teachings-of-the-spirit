@@ -4,95 +4,94 @@ import Link from 'next/link'
 export default async function HomePage() {
   const supabase = await createClient()
 
-  const { data: teachings } = await supabase
+  const { data: recent } = await supabase
     .from('teachings')
     .select('teaching_number, title, year')
     .order('teaching_number', { ascending: false })
-    .limit(24)
+    .limit(8)
 
   return (
-    <main className="min-h-screen">
-      <div className="max-w-3xl mx-auto px-6 sm:px-10 py-20 sm:py-28">
+    <main className="min-h-screen bg-[#F7F4EF]">
+      <div className="max-w-3xl mx-auto px-6 sm:px-10 py-16 sm:py-24">
 
-               {/* Header */}
-        <header className="mb-20 text-center">
-          <h1 className="text-4xl sm:text-5xl font-medium tracking-tight text-[#2C2522] mb-5">
-            Teachings of the Spirit
-          </h1>
-          <p className="text-[#6B5E54] text-lg leading-relaxed max-w-lg mx-auto mb-8">
+        {/* Positionally stable header */}
+        <header className="mb-16 text-center">
+          {/* Reserved title band – same height on every page */}
+          <div className="min-h-[4.5rem] sm:min-h-[5.25rem] flex items-center justify-center mb-3">
+            <h1 className="text-4xl sm:text-5xl font-medium tracking-tight text-[#2C2522]">
+              Teachings of the Spirit
+            </h1>
+          </div>
+
+          {/* Subtitle – always the same vertical position */}
+          <p className="text-[#6B5E54] text-lg italic mb-8 min-h-[1.75rem]">
             A private library of spiritual teachings received over many years.
           </p>
-          <div className="flex justify-center gap-6 text-sm mt-6">
-  <Link href="/" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-    Home
-  </Link>
-  <span className="text-[#E5DFD5]">·</span>
-  <Link href="/quotes" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-    Quotes
-  </Link>
-  <span className="text-[#E5DFD5]">·</span>
-  <Link href="/search" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-    Search
-  </Link>
-  <span className="text-[#E5DFD5]">·</span>
-  <Link href="/browse" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-    Browse
-  </Link>
-  <span className="text-[#E5DFD5]">·</span>
-  <Link href="/titles" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-    Titles
-  </Link>
-</div>
-        </header>
-        {/* Search */}
-        <div className="mb-20">
-          <form action="/search" method="get">
-            <input
-              type="search"
-              name="q"
-              placeholder="Search the teachings..."
-              className="w-full px-5 py-4 bg-[#F0EBE3] border border-[#E5DFD5] rounded-md text-[#2C2522] placeholder:text-[#6B5E54] focus:outline-none focus:ring-1 focus:ring-[#7A3E3E] focus:border-[#7A3E3E] text-lg"
-            />
-          </form>
-        </div>
 
-        {/* Recent Teachings */}
+          {/* Navigation – never moves */}
+          <nav className="flex flex-wrap justify-center items-center gap-5 text-sm">
+            <Link href="/" className="text-[#7A3E3E] font-medium">
+              Home
+            </Link>
+            <span className="text-[#E5DFD5]">·</span>
+            <Link href="/quotes" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
+              Quotes
+            </Link>
+            <span className="text-[#E5DFD5]">·</span>
+            <Link href="/search" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
+              Search
+            </Link>
+            <span className="text-[#E5DFD5]">·</span>
+            <Link href="/browse" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
+              Browse
+            </Link>
+            <span className="text-[#E5DFD5]">·</span>
+            <Link href="/titles" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
+              Titles
+            </Link>
+          </nav>
+        </header>
+
+        {/* Search entry */}
+        <form action="/search" method="get" className="mb-16">
+          <input
+            type="search"
+            name="q"
+            placeholder="Search the teachings..."
+            className="w-full px-5 py-3.5 rounded-lg border border-[#E5DFD5] bg-white text-[#2C2522] placeholder:text-[#6B5E54] focus:outline-none focus:ring-1 focus:ring-[#7A3E3E] focus:border-[#7A3E3E] text-lg"
+          />
+        </form>
+
+        {/* Recent teachings */}
         <section>
-          <h2 className="text-xs uppercase tracking-[0.2em] text-[#6B5E54] mb-8">
+          <h2 className="text-xs uppercase tracking-widest text-[#6B5E54] mb-6">
             Recent Teachings
           </h2>
 
           <div className="space-y-1">
-            {teachings?.map((teaching) => (
+            {(recent || []).map((t) => (
               <Link
-                key={teaching.teaching_number}
-                href={`/teachings/${teaching.teaching_number}`}
-                className="group flex items-baseline justify-between py-3.5 px-3 -mx-3 rounded hover:bg-[#EDE7DC] transition-colors"
+                key={t.teaching_number}
+                href={`/teachings/${t.teaching_number}`}
+                className="group flex items-baseline justify-between gap-4 py-3 px-2 -mx-2 rounded-md hover:bg-[#EDE7DC] transition-colors"
               >
-                <div className="flex items-baseline gap-5 min-w-0">
-                  <span className="text-[#6B5E54] text-sm tabular-nums w-8 shrink-0">
-                    {teaching.teaching_number}
+                <div className="flex items-baseline gap-4 min-w-0">
+                  <span className="text-[#6B5E54] text-sm tabular-nums w-12 shrink-0">
+                    {t.teaching_number}
                   </span>
-                  <span className="text-[#2C2522] group-hover:text-[#7A3E3E] text-lg transition-colors truncate">
-                    {teaching.title}
+                  <span className="text-[#2C2522] group-hover:text-[#7A3E3E] text-lg">
+                    {t.title}
                   </span>
                 </div>
-                {teaching.year && (
-                  <span className="text-[#6B5E54] text-sm ml-6 shrink-0">
-                    {teaching.year}
+                {t.year && (
+                  <span className="text-[#6B5E54] text-sm shrink-0">
+                    {t.year}
                   </span>
                 )}
               </Link>
             ))}
           </div>
         </section>
-
-        {/* Footer */}
-        <footer className="mt-24 pt-10 border-t border-[#E5DFD5] text-center text-sm text-[#6B5E54]">
-          {teachings?.length
-            ? `Showing ${teachings.length} of 3,298 teachings`
-            : ''}
-        </footer>
       </div>
     </main>
   )
