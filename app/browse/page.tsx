@@ -21,28 +21,37 @@ export default async function BrowsePage() {
     .map(Number)
     .sort((a, b) => a - b)
 
+  const total = Object.values(yearCounts).reduce((a, b) => a + b, 0)
+
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
       <div className="max-w-3xl mx-auto px-6 sm:px-10 py-16 sm:py-24">
 
-        <nav className="mb-10 flex items-center gap-4 text-sm text-[#6B5E54]">
-          <Link href="/" className="hover:text-[#2C2522] transition-colors">Home</Link>
-          <span className="text-[#E5DFD5]">·</span>
-          <Link href="/quotes" className="hover:text-[#2C2522] transition-colors">Quotes</Link>
-          <span className="text-[#E5DFD5]">·</span>
-          <Link href="/search" className="hover:text-[#2C2522] transition-colors">Search</Link>
-          <span className="text-[#E5DFD5]">·</span>
-          <Link href="/browse" className="hover:text-[#2C2522] transition-colors">Browse</Link>
-        </nav>
-
-        <header className="mb-14 text-center">
-          <h1 className="text-3xl sm:text-4xl font-medium tracking-tight text-[#2C2522] mb-3">
-            Browse by Year
-          </h1>
-          <p className="text-[#6B5E54]">
-            {years.length} years · {Object.values(yearCounts).reduce((a, b) => a + b, 0)} teachings
+        <header className="mb-16 text-center">
+          <div className="min-h-[4.5rem] sm:min-h-[5.25rem] flex items-center justify-center mb-3">
+            <h1 className="text-4xl sm:text-5xl font-medium tracking-tight text-[#2C2522]">
+              Browse
+            </h1>
+          </div>
+          <p className="text-[#6B5E54] text-lg italic mb-8 min-h-[1.75rem]">
+            Walk the years of the conversation
           </p>
+          <nav className="flex flex-wrap justify-center items-center gap-5 text-sm">
+            <Link href="/" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Home</Link>
+            <span className="text-[#E5DFD5]">·</span>
+            <Link href="/quotes" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Quotes</Link>
+            <span className="text-[#E5DFD5]">·</span>
+            <Link href="/search" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Search</Link>
+            <span className="text-[#E5DFD5]">·</span>
+            <Link href="/browse" className="text-[#7A3E3E] font-medium drop-shadow-[0_0_8px_rgba(122,62,62,0.45)]">Browse</Link>
+            <span className="text-[#E5DFD5]">·</span>
+            <Link href="/titles" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Titles</Link>
+          </nav>
         </header>
+
+        <p className="text-center text-[#6B5E54] mb-10">
+          {years.length} years · {total.toLocaleString()} teachings
+        </p>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {years.map((year) => (

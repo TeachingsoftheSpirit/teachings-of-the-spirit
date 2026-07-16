@@ -14,23 +14,17 @@ export default async function HomePage() {
     <main className="min-h-screen bg-[#F7F4EF]">
       <div className="max-w-3xl mx-auto px-6 sm:px-10 py-16 sm:py-24">
 
-        {/* Positionally stable header */}
         <header className="mb-16 text-center">
-          {/* Reserved title band – same height on every page */}
           <div className="min-h-[4.5rem] sm:min-h-[5.25rem] flex items-center justify-center mb-3">
             <h1 className="text-4xl sm:text-5xl font-medium tracking-tight text-[#2C2522]">
               Teachings of the Spirit
             </h1>
           </div>
-
-          {/* Subtitle – always the same vertical position */}
           <p className="text-[#6B5E54] text-lg italic mb-8 min-h-[1.75rem]">
             A private library of spiritual teachings received over many years.
           </p>
-
-          {/* Navigation – never moves */}
           <nav className="flex flex-wrap justify-center items-center gap-5 text-sm">
-            <Link href="/" className="text-[#7A3E3E] font-medium">
+            <Link href="/" className="text-[#7A3E3E] font-medium drop-shadow-[0_0_8px_rgba(122,62,62,0.45)]">
               Home
             </Link>
             <span className="text-[#E5DFD5]">·</span>
@@ -52,7 +46,6 @@ export default async function HomePage() {
           </nav>
         </header>
 
-        {/* Search entry */}
         <form action="/search" method="get" className="mb-16">
           <input
             type="search"
@@ -62,12 +55,10 @@ export default async function HomePage() {
           />
         </form>
 
-        {/* Recent teachings */}
         <section>
           <h2 className="text-xs uppercase tracking-widest text-[#6B5E54] mb-6">
             Recent Teachings
           </h2>
-
           <div className="space-y-1">
             {(recent || []).map((t) => (
               <Link
@@ -84,9 +75,7 @@ export default async function HomePage() {
                   </span>
                 </div>
                 {t.year && (
-                  <span className="text-[#6B5E54] text-sm shrink-0">
-                    {t.year}
-                  </span>
+                  <span className="text-[#6B5E54] text-sm shrink-0">{t.year}</span>
                 )}
               </Link>
             ))}

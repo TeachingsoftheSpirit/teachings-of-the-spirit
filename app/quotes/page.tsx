@@ -274,7 +274,7 @@ export default async function QuotesPage({ searchParams }: Props) {
   <nav className="flex flex-wrap justify-center items-center gap-5 text-sm">
     <Link href="/" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Home</Link>
     <span className="text-[#E5DFD5]">·</span>
-    <Link href="/quotes" className="text-[#7A3E3E] font-medium">Quotes</Link>
+    <Link href="/quotes" className="text-[#7A3E3E] font-medium drop-shadow-[0_0_8px_rgba(122,62,62,0.45)]">Quotes</Link>
     <span className="text-[#E5DFD5]">·</span>
     <Link href="/search" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">Search</Link>
     <span className="text-[#E5DFD5]">·</span>
