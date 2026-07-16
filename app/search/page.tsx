@@ -26,24 +26,39 @@ export default async function SearchPage({ searchParams }: Props) {
 
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
-      <div className="max-w-3xl mx-auto px-6 sm:px-8 py-12 sm:py-16">
+      <div className="max-w-3xl mx-auto px-6 sm:px-10 py-16 sm:py-24">
 
-        {/* Consistent navigation */}
-        <nav className="mb-10 flex flex-wrap items-center gap-4 text-sm text-[#6B5E54]">
-  <Link href="/" className="hover:text-[#2C2522] transition-colors">Home</Link>
-  <span className="text-[#E5DFD5]">·</span>
-  <Link href="/quotes" className="hover:text-[#2C2522] transition-colors">Quotes</Link>
-  <span className="text-[#E5DFD5]">·</span>
-  <Link href="/search" className="hover:text-[#2C2522] transition-colors">Search</Link>
-  <span className="text-[#E5DFD5]">·</span>
-  <Link href="/browse" className="hover:text-[#2C2522] transition-colors">Browse</Link>
-  <span className="text-[#E5DFD5]">·</span>
-  <Link href="/titles" className="hover:text-[#2C2522] transition-colors">Titles</Link>
-</nav>
+        {/* Consistent site header */}
+        <header className="mb-16 text-center">
+          <h1 className="text-4xl sm:text-5xl font-medium tracking-tight text-[#2C2522] mb-3">
+            Search
+          </h1>
+          <p className="text-[#6B5E54] text-lg italic mb-8">
+            Find a word, a phrase, or a thread of thought
+          </p>
 
-        <h1 className="text-3xl font-medium tracking-tight text-[#2C2522] mb-8">
-          Search
-        </h1>
+          <nav className="flex flex-wrap justify-center items-center gap-5 text-sm">
+            <Link href="/" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
+              Home
+            </Link>
+            <span className="text-[#E5DFD5]">·</span>
+            <Link href="/quotes" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
+              Quotes
+            </Link>
+            <span className="text-[#E5DFD5]">·</span>
+            <Link href="/search" className="text-[#7A3E3E] font-medium">
+              Search
+            </Link>
+            <span className="text-[#E5DFD5]">·</span>
+            <Link href="/browse" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
+              Browse
+            </Link>
+            <span className="text-[#E5DFD5]">·</span>
+            <Link href="/titles" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
+              Titles
+            </Link>
+          </nav>
+        </header>
 
         {/* Search form */}
         <form action="/search" method="get" className="mb-12">
@@ -97,7 +112,7 @@ export default async function SearchPage({ searchParams }: Props) {
             )}
           </div>
         ) : (
-          <p className="text-[#6B5E54]">
+          <p className="text-[#6B5E54] text-center">
             Type a word or phrase above to search the teachings.
           </p>
         )}
