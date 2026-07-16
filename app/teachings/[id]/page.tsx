@@ -65,7 +65,7 @@ export default async function TeachingPage({ params }: Props) {
         </nav>
 
         {/* Classic three-column header */}
-        <header className="mb-14">
+        <header className="mb-10">
           <div className="grid grid-cols-[1fr_auto_1fr] gap-6 items-start">
             {/* Left: Date + Start Time */}
             <div className="text-sm text-[#6B5E54] text-left pt-1">
