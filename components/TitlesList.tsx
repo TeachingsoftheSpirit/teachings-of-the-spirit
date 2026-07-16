@@ -71,9 +71,10 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
           related.sort((a, b) => a.teaching_number - b.teaching_number)
         }
 
+        const dateLabel = t.date || (t.year ? String(t.year) : '')
+
         return (
           <div key={t.teaching_number}>
-            {/* Primary title row */}
             <div className="group flex items-baseline justify-between gap-3 py-2.5 px-2 -mx-2 rounded-md hover:bg-[#EDE7DC] transition-colors">
               <div className="flex items-baseline gap-4 min-w-0 flex-1">
                 <span className="text-[#6B5E54] text-sm tabular-nums w-12 shrink-0">
@@ -87,7 +88,6 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
                   {t.title}
                 </Link>
 
-                {/* Elvish / contemplative indicator on the right of the title */}
                 {hasRelated && (
                   <button
                     onClick={() => toggle(t.teaching_number)}
@@ -100,14 +100,13 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
                 )}
               </div>
 
-              {t.year && (
+              {dateLabel && (
                 <span className="text-[#6B5E54] text-sm shrink-0 tabular-nums">
-                  {t.year}
+                  {dateLabel}
                 </span>
               )}
             </div>
 
-            {/* Child / related titles – smaller, indented, subordinate */}
             {isOpen && related.length > 0 && (
               <div className="ml-16 pl-4 border-l border-[#E5DFD5]/80 mb-2 mt-0.5 space-y-0">
                 {related.map((r) => (
@@ -122,9 +121,9 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
                       </span>
                       <span className="leading-snug">{r.title}</span>
                     </div>
-                    {r.year && (
+                    {(r.date || r.year) && (
                       <span className="text-[#6B5E54]/80 text-xs shrink-0 tabular-nums">
-                        {r.year}
+                        {r.date || r.year}
                       </span>
                     )}
                   </Link>
