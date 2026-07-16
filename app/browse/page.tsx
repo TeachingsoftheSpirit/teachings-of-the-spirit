@@ -27,11 +27,11 @@ export default async function BrowsePage() {
 
         <nav className="mb-10 flex items-center gap-4 text-sm text-[#6B5E54]">
           <Link href="/" className="hover:text-[#2C2522] transition-colors">Home</Link>
-          <span className="text-[#E5DFD5]">·</span>
+          <span className="text-[#E5DFD5]">Â·</span>
           <Link href="/quotes" className="hover:text-[#2C2522] transition-colors">Quotes</Link>
-          <span className="text-[#E5DFD5]">·</span>
+          <span className="text-[#E5DFD5]">Â·</span>
           <Link href="/search" className="hover:text-[#2C2522] transition-colors">Search</Link>
-          <span className="text-[#E5DFD5]">·</span>
+          <span className="text-[#E5DFD5]">Â·</span>
           <Link href="/browse" className="hover:text-[#2C2522] transition-colors">Browse</Link>
         </nav>
 
@@ -40,7 +40,7 @@ export default async function BrowsePage() {
             Browse by Year
           </h1>
           <p className="text-[#6B5E54]">
-            {years.length} years · {Object.values(yearCounts).reduce((a, b) => a + b, 0)} teachings
+            {years.length} years Â· {Object.values(yearCounts).reduce((a, b) => a + b, 0)} teachings
           </p>
         </header>
 
