@@ -1,0 +1,145 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+
+type Teaching = {
+  teaching_number: number
+  title: string
+  year: number | null
+  date: string | null
+}
+
+// Simple theme detection based on title keywords
+const THEMES: { name: string; keywords: string[] }[] = [
+  { name: 'Death', keywords: ['death', 'dying', 'die'] },
+  { name: 'Grace', keywords: ['grace'] },
+  { name: 'Easter', keywords: ['easter', 'resurrection', 'hallelujah'] },
+  { name: 'Christmas', keywords: ['christmas', 'nativity', 'incarnation'] },
+  { name: 'Rhythm', keywords: ['rhythm'] },
+  { name: 'Faith', keywords: ['faith', 'faithfulness'] },
+  { name: 'Spirit', keywords: ['spirit', 'holy spirit'] },
+  { name: 'Love', keywords: ['love'] },
+  { name: 'Forgiveness', keywords: ['forgive', 'forgiveness'] },
+  { name: 'Health', keywords: ['health', 'healing', 'ill-health'] },
+  { name: 'Prayer', keywords: ['prayer', 'pray'] },
+  { name: 'Scripture', keywords: ['scripture', 'bible'] },
+  { name: 'Eternal Life', keywords: ['eternal', 'everlasting', 'immortal'] },
+  { name: 'Pearl Harbor', keywords: ['pearl harbor'] },
+]
+
+function getThemes(title: string): string[] {
+  const lower = title.toLowerCase()
+  return THEMES
+    .filter(t => t.keywords.some(k => lower.includes(k)))
+    .map(t => t.name)
+}
+
+export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({})
+
+  // Pre-compute related groups by theme
+  const byTheme: Record<string, Teaching[]> = {}
+  for (const t of teachings) {
+    const themes = getThemes(t.title)
+    for (const theme of themes) {
+      if (!byTheme[theme]) byTheme[theme] = []
+      byTheme[theme].push(t)
+    }
+  }
+
+  function toggle(num: number) {
+    setExpanded(prev => ({ ...prev, [num]: !prev[num] }))
+  }
+
+  return (
+    <div className="space-y-0.5">
+      {teachings.map((t) => {
+        const themes = getThemes(t.title)
+        const hasRelated = themes.some(theme => (byTheme[theme]?.length || 0) > 1)
+        const isOpen = expanded[t.teaching_number]
+
+        // Collect related teachings (same theme, excluding self)
+        let related: Teaching[] = []
+        if (isOpen && hasRelated) {
+          const seen = new Set<number>()
+          for (const theme of themes) {
+            for (const r of byTheme[theme] || []) {
+              if (r.teaching_number !== t.teaching_number && !seen.has(r.teaching_number)) {
+                seen.add(r.teaching_number)
+                related.push(r)
+              }
+            }
+          }
+          related.sort((a, b) => a.teaching_number - b.teaching_number)
+        }
+
+        return (
+          <div key={t.teaching_number}>
+            <div className="group flex items-baseline justify-between gap-3 py-2.5 px-2 -mx-2 rounded-md hover:bg-[#EDE7DC] transition-colors">
+              <div className="flex items-baseline gap-3 min-w-0 flex-1">
+                {/* Expand control */}
+                {hasRelated ? (
+                  <button
+                    onClick={() => toggle(t.teaching_number)}
+                    className="text-[#6B5E54] hover:text-[#7A3E3E] w-5 shrink-0 text-left transition-colors"
+                    aria-label={isOpen ? 'Collapse related' : 'Expand related'}
+                  >
+                    {isOpen ? '▾' : '▸'}
+                  </button>
+                ) : (
+                  <span className="w-5 shrink-0" />
+                )}
+
+                <span className="text-[#6B5E54] text-sm tabular-nums w-12 shrink-0">
+                  {t.teaching_number}
+                </span>
+
+                <Link
+                  href={`/teachings/${t.teaching_number}`}
+                  className="text-[#2C2522] group-hover:text-[#7A3E3E] text-[1.05rem] leading-snug"
+                >
+                  {t.title}
+                </Link>
+              </div>
+
+              {t.year && (
+                <span className="text-[#6B5E54] text-sm shrink-0 tabular-nums">
+                  {t.year}
+                </span>
+              )}
+            </div>
+
+            {/* Expanded related titles */}
+            {isOpen && related.length > 0 && (
+              <div className="ml-8 border-l border-[#E5DFD5] pl-4 mb-3 mt-1 space-y-0.5">
+                <div className="text-xs uppercase tracking-wider text-[#6B5E54] mb-2 pt-1">
+                  Related · {themes.join(', ')}
+                </div>
+                {related.map((r) => (
+                  <Link
+                    key={r.teaching_number}
+                    href={`/teachings/${r.teaching_number}`}
+                    className="flex items-baseline justify-between gap-4 py-1.5 text-[0.95rem] text-[#2C2522] hover:text-[#7A3E3E] transition-colors"
+                  >
+                    <div className="flex items-baseline gap-3 min-w-0">
+                      <span className="text-[#6B5E54] text-sm tabular-nums w-10 shrink-0">
+                        {r.teaching_number}
+                      </span>
+                      <span className="leading-snug">{r.title}</span>
+                    </div>
+                    {r.year && (
+                      <span className="text-[#6B5E54] text-sm shrink-0 tabular-nums">
+                        {r.year}
+                      </span>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}

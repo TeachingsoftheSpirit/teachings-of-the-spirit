@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import TitlesList from '@/components/TitlesList'
 
 export default async function TitlesPage() {
   const supabase = await createClient()
@@ -36,33 +37,11 @@ export default async function TitlesPage() {
             All Titles
           </h1>
           <p className="text-[#6B5E54]">
-            {all.length.toLocaleString()} teachings
+            {all.length.toLocaleString()} teachings · click ▸ to see related
           </p>
         </header>
 
-        <div className="space-y-0.5">
-          {all.map((t) => (
-            <Link
-              key={t.teaching_number}
-              href={`/teachings/${t.teaching_number}`}
-              className="group flex items-baseline justify-between gap-4 py-2.5 px-2 -mx-2 rounded-md hover:bg-[#EDE7DC] transition-colors"
-            >
-              <div className="flex items-baseline gap-4 min-w-0">
-                <span className="text-[#6B5E54] text-sm tabular-nums w-12 shrink-0">
-                  {t.teaching_number}
-                </span>
-                <span className="text-[#2C2522] group-hover:text-[#7A3E3E] text-[1.05rem] leading-snug">
-                  {t.title}
-                </span>
-              </div>
-              {t.year && (
-                <span className="text-[#6B5E54] text-sm shrink-0 tabular-nums">
-                  {t.year}
-                </span>
-              )}
-            </Link>
-          ))}
-        </div>
+        <TitlesList teachings={all} />
       </div>
     </main>
   )
