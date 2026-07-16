@@ -10,7 +10,7 @@ export default async function BrowsePage() {
     .not('year', 'is', null)
     .order('year', { ascending: true })
 
-  const yearCounts = {}
+  const yearCounts: Record<number, number> = {}
   for (const row of yearsData || []) {
     if (row.year) {
       yearCounts[row.year] = (yearCounts[row.year] || 0) + 1
