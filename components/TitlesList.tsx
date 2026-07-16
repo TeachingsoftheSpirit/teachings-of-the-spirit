@@ -10,7 +10,6 @@ type Teaching = {
   date: string | null
 }
 
-// Simple theme detection based on title keywords
 const THEMES: { name: string; keywords: string[] }[] = [
   { name: 'Death', keywords: ['death', 'dying', 'die'] },
   { name: 'Grace', keywords: ['grace'] },
@@ -38,7 +37,6 @@ function getThemes(title: string): string[] {
 export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
   const [expanded, setExpanded] = useState<Record<number, boolean>>({})
 
-  // Pre-compute related groups by theme
   const byTheme: Record<string, Teaching[]> = {}
   for (const t of teachings) {
     const themes = getThemes(t.title)
@@ -59,7 +57,6 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
         const hasRelated = themes.some(theme => (byTheme[theme]?.length || 0) > 1)
         const isOpen = expanded[t.teaching_number]
 
-        // Collect related teachings (same theme, excluding self)
         let related: Teaching[] = []
         if (isOpen && hasRelated) {
           const seen = new Set<number>()
@@ -76,21 +73,9 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
 
         return (
           <div key={t.teaching_number}>
+            {/* Primary title row */}
             <div className="group flex items-baseline justify-between gap-3 py-2.5 px-2 -mx-2 rounded-md hover:bg-[#EDE7DC] transition-colors">
-              <div className="flex items-baseline gap-3 min-w-0 flex-1">
-                {/* Expand control */}
-                {hasRelated ? (
-                  <button
-                    onClick={() => toggle(t.teaching_number)}
-                    className="text-[#6B5E54] hover:text-[#7A3E3E] w-5 shrink-0 text-left transition-colors"
-                    aria-label={isOpen ? 'Collapse related' : 'Expand related'}
-                  >
-                    {isOpen ? '▾' : '▸'}
-                  </button>
-                ) : (
-                  <span className="w-5 shrink-0" />
-                )}
-
+              <div className="flex items-baseline gap-4 min-w-0 flex-1">
                 <span className="text-[#6B5E54] text-sm tabular-nums w-12 shrink-0">
                   {t.teaching_number}
                 </span>
@@ -101,6 +86,18 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
                 >
                   {t.title}
                 </Link>
+
+                {/* Elvish / contemplative indicator on the right of the title */}
+                {hasRelated && (
+                  <button
+                    onClick={() => toggle(t.teaching_number)}
+                    className="ml-1 text-[#7A3E3E]/70 hover:text-[#7A3E3E] transition-colors text-sm leading-none"
+                    title={isOpen ? 'Hide related teachings' : 'Show related teachings'}
+                    aria-label={isOpen ? 'Collapse related' : 'Expand related'}
+                  >
+                    {isOpen ? '❖' : '✦'}
+                  </button>
+                )}
               </div>
 
               {t.year && (
@@ -110,26 +107,23 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
               )}
             </div>
 
-            {/* Expanded related titles */}
+            {/* Child / related titles – smaller, indented, subordinate */}
             {isOpen && related.length > 0 && (
-              <div className="ml-8 border-l border-[#E5DFD5] pl-4 mb-3 mt-1 space-y-0.5">
-                <div className="text-xs uppercase tracking-wider text-[#6B5E54] mb-2 pt-1">
-                  Related · {themes.join(', ')}
-                </div>
+              <div className="ml-16 pl-4 border-l border-[#E5DFD5]/80 mb-2 mt-0.5 space-y-0">
                 {related.map((r) => (
                   <Link
                     key={r.teaching_number}
                     href={`/teachings/${r.teaching_number}`}
-                    className="flex items-baseline justify-between gap-4 py-1.5 text-[0.95rem] text-[#2C2522] hover:text-[#7A3E3E] transition-colors"
+                    className="flex items-baseline justify-between gap-4 py-1 text-[0.9rem] text-[#5C534A] hover:text-[#7A3E3E] transition-colors"
                   >
                     <div className="flex items-baseline gap-3 min-w-0">
-                      <span className="text-[#6B5E54] text-sm tabular-nums w-10 shrink-0">
+                      <span className="text-[#6B5E54]/80 text-xs tabular-nums w-10 shrink-0">
                         {r.teaching_number}
                       </span>
                       <span className="leading-snug">{r.title}</span>
                     </div>
                     {r.year && (
-                      <span className="text-[#6B5E54] text-sm shrink-0 tabular-nums">
+                      <span className="text-[#6B5E54]/80 text-xs shrink-0 tabular-nums">
                         {r.year}
                       </span>
                     )}
