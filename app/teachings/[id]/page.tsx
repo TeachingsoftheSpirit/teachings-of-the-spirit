@@ -89,9 +89,9 @@ export default async function TeachingPage({ params }: Props) {
         {/* Body with real paragraphs */}
         <article>
           <div className="text-[#2C2522] leading-[1.9] text-[1.12rem] space-y-5">
-  {teaching.full_text.split(/\n\n+/).map((para, i) => (
-    <p key={i}>{para}</p>
-  ))}
+  {teaching.full_text.split(/\n\n+/).map((para: string, i: number) => (
+  <p key={i}>{para}</p>
+))}
 </div>
         </article>
 
