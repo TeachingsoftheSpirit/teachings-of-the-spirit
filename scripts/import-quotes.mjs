@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+﻿import { createClient } from '@supabase/supabase-js'
 import { readFileSync } from 'fs'
 import dotenv from 'dotenv'
 import path from 'path'
@@ -12,80 +12,60 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 )
 
-const RAW_FILE = path.resolve(__dirname, '../data/quotes-raw.txt')
+const CONVERTED_FILE = path.resolve(__dirname, '../data/quotes-converted.txt')
 
 function parseQuotes(raw) {
-  // Normalize characters
-  let text = raw
-    .replace(/\u201C/g, '"')
-    .replace(/\u201D/g, '"')
-    .replace(/\u2018/g, "'")
-    .replace(/\u2019/g, "'")
-    .replace(/\u2026/g, '...')
-    .replace(/\u2013/g, '-')
-    .replace(/\u2014/g, '-')
-    .replace(/â€œ/g, '"')
-    .replace(/â€/g, '"')
-    .replace(/â€™/g, "'")
-    .replace(/â€¦/g, '...')
-    .replace(/â€“/g, '-')
-    .replace(/â€”/g, '-')
-    .replace(/\r\n/g, '\n')
-
-  // Strategy: find every place that looks like:  " - Title - Year
-  // or  " - Title, Year   at the end of a quote
-  // We use a global regex to locate the attribution ends
-
+  const parts = raw.split('|||').map(p => p.trim()).filter(p => p.length > 0)
   const results = []
-  const pattern = /"\s*-\s*"?([^"\n]+?)"?\s*[-–,]\s*([A-Za-z0-9.,\s]*?(?:19|20)\d{2})\s*/g
 
-  let lastIndex = 0
-  let match
+  let i = 0
+  while (i < parts.length) {
+    // Expect: quote_text , title , date(+possible next quote start)
+    let quote_text = parts[i] || ''
+    let title = parts[i + 1] || 'Unknown'
+    let datePart = parts[i + 2] || ''
 
-  while ((match = pattern.exec(text)) !== null) {
-    const fullAttr = match[0]
-    const title = match[1].trim()
-    const date = match[2].trim()
-    const yearMatch = date.match(/\b((?:19|20)\d{2})\b/)
-    const year = yearMatch ? parseInt(yearMatch[1], 10) : null
-
-    // The quote text is everything from the previous match end to just before this attribution
-    let quote_text = text.slice(lastIndex, match.index).trim()
-
-    // Clean leading/trailing quotes and whitespace
+    // Clean
     quote_text = quote_text.replace(/^["'\s]+|["'\s]+$/g, '').trim()
+    title = title.replace(/^["'\s]+|["'\s]+$/g, '').trim()
 
-    if (quote_text.length > 20) {
+    // Extract year/date from the beginning of datePart
+    const dateMatch = datePart.match(/^([A-Za-z]{3,9}\.?\s+\d{1,2},?\s+)?((?:19|20)\d{2})/)
+    let date = null
+    let year = null
+
+    if (dateMatch) {
+      date = (dateMatch[1] || '') + dateMatch[2]
+      date = date.trim()
+      year = parseInt(dateMatch[2], 10)
+    } else {
+      // fallback – look for any year
+      const y = datePart.match(/\b((?:19|20)\d{2})\b/)
+      if (y) {
+        year = parseInt(y[1], 10)
+        date = String(year)
+      }
+    }
+
+    if (quote_text.length > 25 && title.length > 2) {
       results.push({
         quote_text,
-        title: title || 'Unknown',
+        title,
         date,
         year,
         category: null,
       })
     }
 
-    lastIndex = match.index + fullAttr.length
-  }
-
-  // Handle any remaining text after the last match (rare)
-  const remaining = text.slice(lastIndex).trim()
-  if (remaining.length > 40) {
-    results.push({
-      quote_text: remaining.replace(/^["'\s]+|["'\s]+$/g, '').trim(),
-      title: 'Unknown',
-      date: null,
-      year: null,
-      category: null,
-    })
+    i += 3
   }
 
   return results
 }
 
 async function main() {
-  console.log('Reading cleaned file...')
-  const raw = readFileSync(RAW_FILE, 'utf8')
+  console.log('Reading converted file...')
+  const raw = readFileSync(CONVERTED_FILE, 'utf8')
 
   console.log('Parsing...')
   const results = parseQuotes(raw)
@@ -95,19 +75,19 @@ async function main() {
     console.log('\nExample 1:')
     console.log('Title:', results[0].title)
     console.log('Year:', results[0].year)
-    console.log('Text:', results[0].quote_text.slice(0, 140) + '...')
+    console.log('Text:', results[0].quote_text.slice(0, 120) + '...')
   }
   if (results.length > 1) {
     console.log('\nExample 2:')
     console.log('Title:', results[1].title)
     console.log('Year:', results[1].year)
-    console.log('Text:', results[1].quote_text.slice(0, 140) + '...')
+    console.log('Text:', results[1].quote_text.slice(0, 120) + '...')
   }
-  if (results.length > 5) {
-    console.log('\nExample 6:')
-    console.log('Title:', results[5].title)
-    console.log('Year:', results[5].year)
-    console.log('Text:', results[5].quote_text.slice(0, 140) + '...')
+  if (results.length > 4) {
+    console.log('\nExample 5:')
+    console.log('Title:', results[4].title)
+    console.log('Year:', results[4].year)
+    console.log('Text:', results[4].quote_text.slice(0, 120) + '...')
   }
 
   console.log('\nClearing table...')
