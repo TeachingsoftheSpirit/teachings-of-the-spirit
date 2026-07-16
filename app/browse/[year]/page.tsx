@@ -32,9 +32,9 @@ export default async function YearPage({ params }: Props) {
 
         <nav className="mb-10 flex items-center gap-4 text-sm text-[#6B5E54]">
           <Link href="/" className="hover:text-[#2C2522] transition-colors">Home</Link>
-          <span className="text-[#E5DFD5]">·</span>
+          <span className="text-[#E5DFD5]">Â·</span>
           <Link href="/browse" className="hover:text-[#2C2522] transition-colors">Browse</Link>
-          <span className="text-[#E5DFD5]">·</span>
+          <span className="text-[#E5DFD5]">Â·</span>
           <span>{year}</span>
         </nav>
 
