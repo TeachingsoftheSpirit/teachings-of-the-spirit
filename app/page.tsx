@@ -22,8 +22,8 @@ export default function Home() {
           A private library of spiritual teachings received over many years
         </p>
 
-        {/* Search bar - redirects to Search page */}
-        <form action="/search" method="GET" className="max-w-md mx-auto mb-12">
+        {/* Search bar */}
+        <form action="/search" method="GET" className="max-w-md mx-auto mb-8">
           <input
             type="text"
             name="q"
@@ -31,9 +31,20 @@ export default function Home() {
             className="w-full px-5 py-3 rounded-full border border-[#C9BEB0] bg-white/70 text-[#2C2522] placeholder-[#6B5E54] focus:outline-none focus:border-[#7A3E3E] transition-colors text-base"
           />
         </form>
+
+        {/* Temporary Test Button for Welcome Email */}
+        <div className="mb-12">
+          <a
+            href="/api/test-welcome-email"
+            className="inline-block px-6 py-2 text-sm border border-[#C9BEB0] rounded-full hover:bg-[#EDE7DC] transition-colors"
+          >
+            Test Welcome Email (A Day’s Advice)
+          </a>
+          <p className="text-xs text-[#6B5E54] mt-2">(Temporary testing button)</p>
+        </div>
       </div>
 
-      {/* Evocative Titles - Clean list, no boxes */}
+      {/* Evocative Titles */}
       <div className="max-w-3xl mx-auto px-6 pb-10">
         <div className="space-y-1 mb-4">
           {evocativeTitles.map((t) => (
@@ -54,7 +65,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Small evocative images (placeholder) */}
+      {/* Small image circles */}
       <div className="max-w-4xl mx-auto px-6 pb-16">
         <div className="flex justify-center gap-8">
           <div className="w-20 h-20 rounded-full bg-[#EDE7DC]"></div>
