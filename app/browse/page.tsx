@@ -1,104 +1,53 @@
-import { createClient } from '@/lib/supabase/server'
+import Header from '@/components/Header'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
 
 export default async function BrowsePage() {
   const supabase = await createClient()
 
-  // Fetch all years in batches (Supabase default limit is 1000)
-  const yearCounts: Record<number, number> = {}
-  const pageSize = 1000
-  let from = 0
-  let keepGoing = true
+  const { data: years } = await supabase
+    .from('teachings')
+    .select('year')
+    .not('year', 'is', null)
 
-  while (keepGoing) {
-    const { data, error } = await supabase
-      .from('teachings')
-      .select('year')
-      .not('year', 'is', null)
-      .order('teaching_number', { ascending: true })
-      .range(from, from + pageSize - 1)
-
-    if (error) {
-      console.error(error)
-      break
+  // Get unique years with count
+  const yearCounts: { [key: number]: number } = {}
+  years?.forEach((t) => {
+    if (t.year) {
+      yearCounts[t.year] = (yearCounts[t.year] || 0) + 1
     }
+  })
 
-    if (!data || data.length === 0) {
-      keepGoing = false
-    } else {
-      for (const row of data) {
-        if (row.year) {
-          yearCounts[row.year] = (yearCounts[row.year] || 0) + 1
-        }
-      }
-      from += pageSize
-      if (data.length < pageSize) {
-        keepGoing = false
-      }
-    }
-  }
-
-  const years = Object.keys(yearCounts)
-    .map(Number)
-    .sort((a, b) => a - b)
-
-  const total = Object.values(yearCounts).reduce((a, b) => a + b, 0)
+  const sortedYears = Object.entries(yearCounts)
+    .map(([year, count]) => ({ year: parseInt(year), count }))
+    .sort((a, b) => b.year - a.year)
 
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
-      <div className="max-w-3xl mx-auto px-6 sm:px-10 py-16 sm:py-24">
+      <Header active="browse" />
 
-        <header className="mb-16 text-center">
-          <div className="min-h-[4.5rem] sm:min-h-[5.25rem] flex items-center justify-center mb-3">
-            <h1 className="text-4xl sm:text-5xl font-medium tracking-tight text-[#2C2522]">
-              Browse
-            </h1>
-          </div>
-          <p className="text-[#6B5E54] text-lg italic mb-8 min-h-[1.75rem]">
-            Walk the years of the conversation
-          </p>
-          <nav className="flex flex-wrap justify-center items-center gap-5 text-sm">
-            <Link href="/" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-              Home
-            </Link>
-            <span className="text-[#E5DFD5]">·</span>
-            <Link href="/quotes" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-              Quotes
-            </Link>
-            <span className="text-[#E5DFD5]">·</span>
-            <Link href="/search" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-              Search
-            </Link>
-            <span className="text-[#E5DFD5]">·</span>
-            <Link
-              href="/browse"
-              className="text-[#7A3E3E] font-medium drop-shadow-[0_0_8px_rgba(122,62,62,0.45)]"
-            >
-              Browse
-            </Link>
-            <span className="text-[#E5DFD5]">·</span>
-            <Link href="/titles" className="text-[#6B5E54] hover:text-[#7A3E3E] transition-colors">
-              Titles
-            </Link>
-          </nav>
-        </header>
-
-        <p className="text-center text-[#6B5E54] mb-10">
-          {years.length} years · {total.toLocaleString()} teachings
+      <div className="max-w-3xl mx-auto px-6 pt-8 pb-6 text-center">
+        <h1 className="text-4xl font-medium tracking-tight text-[#2C2522]">
+          Browse by Year
+        </h1>
+        <p className="mt-2 text-lg text-[#6B5E54] italic">
+          Explore the teachings year by year
         </p>
+      </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-          {years.map((year) => (
+      <div className="max-w-4xl mx-auto px-6 pb-16 content-area rounded-xl p-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {sortedYears.map(({ year, count }) => (
             <Link
               key={year}
               href={`/browse/${year}`}
-              className="group block p-5 rounded-lg border border-[#E5DFD5] bg-white/50 hover:bg-[#EDE7DC] hover:border-[#6B5E54] transition-colors text-center"
+              className="group p-5 rounded-xl border border-[#C9BEB0] hover:border-[#7A3E3E] transition-all bg-white/60 hover:bg-white"
             >
-              <div className="text-2xl font-medium text-[#2C2522] group-hover:text-[#7A3E3E] transition-colors">
+              <div className="text-2xl font-medium text-[#2C2522] group-hover:text-[#7A3E3E]">
                 {year}
               </div>
               <div className="text-sm text-[#6B5E54] mt-1">
-                {yearCounts[year]} teaching{yearCounts[year] !== 1 ? 's' : ''}
+                {count} teaching{count !== 1 ? 's' : ''}
               </div>
             </Link>
           ))}

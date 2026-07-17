@@ -1,12 +1,9 @@
+import Header from '@/components/Header'
 import { createClient } from '@/lib/supabase/server'
-import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 
-type Props = {
-  params: Promise<{ year: string }>
-}
-
-export default async function YearPage({ params }: Props) {
+export default async function YearPage({ params }: { params: Promise<{ year: string }> }) {
   const { year: yearParam } = await params
   const year = parseInt(yearParam, 10)
 
@@ -16,49 +13,42 @@ export default async function YearPage({ params }: Props) {
 
   const supabase = await createClient()
 
-  const { data: teachings, error } = await supabase
+  const { data: teachings } = await supabase
     .from('teachings')
-    .select('teaching_number, title, date, start_time')
+    .select('teaching_number, title, date')
     .eq('year', year)
     .order('teaching_number', { ascending: true })
 
-  if (error || !teachings) {
+  if (!teachings || teachings.length === 0) {
     notFound()
   }
 
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
-      <div className="max-w-3xl mx-auto px-6 sm:px-10 py-16 sm:py-24">
+      <Header active="browse" />
 
-        <nav className="mb-10 flex items-center gap-4 text-sm text-[#6B5E54]">
-          <Link href="/" className="hover:text-[#2C2522] transition-colors">Home</Link>
-          <span className="text-[#E5DFD5]">·</span>
-          <Link href="/browse" className="hover:text-[#2C2522] transition-colors">Browse</Link>
-          <span className="text-[#E5DFD5]">·</span>
-          <span>{year}</span>
-        </nav>
+      <div className="max-w-3xl mx-auto px-6 pt-8 pb-6 text-center">
+        <h1 className="text-4xl font-medium tracking-tight text-[#2C2522]">
+          {year}
+        </h1>
+        <p className="mt-2 text-lg text-[#6B5E54] italic">
+          {teachings.length} teaching{teachings.length !== 1 ? 's' : ''} from {year}
+        </p>
+      </div>
 
-        <header className="mb-12">
-          <h1 className="text-3xl sm:text-4xl font-medium tracking-tight text-[#2C2522] mb-2">
-            {year}
-          </h1>
-          <p className="text-[#6B5E54]">
-            {teachings.length} teaching{teachings.length !== 1 ? 's' : ''}
-          </p>
-        </header>
-
-        <div className="space-y-1">
+      <div className="max-w-3xl mx-auto px-6 pb-16 content-area rounded-xl p-8">
+        <div className="space-y-3">
           {teachings.map((t) => (
             <Link
               key={t.teaching_number}
               href={`/teachings/${t.teaching_number}`}
-              className="group flex items-baseline justify-between gap-4 py-3 px-2 -mx-2 rounded-md hover:bg-[#EDE7DC] transition-colors"
+              className="flex justify-between items-baseline p-4 rounded-xl border border-[#C9BEB0] hover:border-[#7A3E3E] transition-colors bg-white/60 hover:bg-white group"
             >
-              <div className="flex items-baseline gap-4 min-w-0">
-                <span className="text-[#6B5E54] text-sm tabular-nums w-10 shrink-0">
+              <div className="flex items-baseline gap-4">
+                <span className="text-[#6B5E54] text-sm tabular-nums w-12">
                   {t.teaching_number}
                 </span>
-                <span className="text-[#2C2522] group-hover:text-[#7A3E3E] text-lg">
+                <span className="text-[#2C2522] group-hover:text-[#7A3E3E]">
                   {t.title}
                 </span>
               </div>
