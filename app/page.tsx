@@ -2,7 +2,6 @@ import Header from '@/components/Header'
 import Link from 'next/link'
 
 export default function Home() {
-  // These can later be made random/dynamic
   const evocativeTitles = [
     { number: 1, title: "HERE BEGINNETH", date: "May 11, 1979" },
     { number: 86, title: "DEATH", date: "Nov. 27, 1979" },
@@ -15,7 +14,6 @@ export default function Home() {
     <main className="min-h-screen bg-[#F7F4EF]">
       <Header active="home" />
 
-      {/* Hero */}
       <div className="max-w-3xl mx-auto px-6 pt-10 pb-8 text-center">
         <h1 className="text-4xl font-medium tracking-tight text-[#2C2522] mb-3">
           Teachings of the Spirit
@@ -34,7 +32,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Evocative Titles - Clean, no boxes */}
+      {/* Evocative Titles - Clean list, no boxes */}
       <div className="max-w-3xl mx-auto px-6 pb-10">
         <div className="space-y-1 mb-4">
           {evocativeTitles.map((t) => (
@@ -55,7 +53,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Small evocative images (placeholder) */}
+      {/* Small evocative images (placeholder for now) */}
       <div className="max-w-4xl mx-auto px-6 pb-16">
         <div className="flex justify-center gap-8">
           <div className="w-20 h-20 rounded-full bg-[#EDE7DC]"></div>
