@@ -44,6 +44,8 @@ export default async function TeachingPage({ params }: Props) {
     .limit(1)
     .single()
 
+  const paragraphs = teaching.full_text.split(/\n\n+/);
+
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
       <Header active="home" />
@@ -55,15 +57,15 @@ export default async function TeachingPage({ params }: Props) {
 
         {/* Header block */}
         <div className="mb-10">
-          {/* Row 1: Date (left) + Time under it | Location 1 (right) + Location 2 under it */}
+          {/* Row 1: Date (left) | Location 1 (right) */}
           <div className="flex justify-between text-sm text-[#6B5E54]">
-            {/* Left column: Date + Time */}
+            {/* Left: Date + Time under it */}
             <div>
               <div>{teaching.date}</div>
               <div className="mt-0.5">{teaching.time}</div>
             </div>
 
-            {/* Right column: Location 1 + Location 2 */}
+            {/* Right: Location 1 + Location 2 */}
             <div className="text-right">
               <div>{teaching.location1}</div>
               <div className="mt-0.5">{teaching.location2}</div>
@@ -82,16 +84,22 @@ export default async function TeachingPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Body */}
+        {/* Body - last paragraph (valediction) is right-justified */}
         <article className="max-w-none text-[#2C2522] leading-[1.85] space-y-5 text-[1.05rem]">
-          {teaching.full_text.split(/\n\n+/).map((para: string, i: number) => (
-            <p key={i}>{para}</p>
-          ))}
+          {paragraphs.map((para: string, i: number) => {
+            const isValediction = i === paragraphs.length - 1;
+            return (
+              <p key={i} className={isValediction ? 'text-right' : ''}>
+                {para}
+              </p>
+            );
+          })}
         </article>
 
-        {/* Bottom section: Navigation (left/right) + Closing time under it (right justified) */}
+        {/* Bottom section */}
         <div className="mt-16 border-t border-[#E5DFD5] pt-6">
-          <div className="flex justify-between text-sm">
+          {/* Navigation: Previous left, Next right */}
+          <div className="flex justify-between text-sm mb-2">
             {prev && (
               <Link href={`/teachings/${prev.teaching_number}`} className="hover:text-[#7A3E3E]">
                 ← {prev.title}
@@ -104,9 +112,9 @@ export default async function TeachingPage({ params }: Props) {
             )}
           </div>
 
-          {/* Closing / End time - right justified under the navigation */}
+          {/* Ending time - right justified, directly under valediction */}
           {teaching.end_time && (
-            <div className="mt-1 text-right text-sm text-[#6B5E54]">
+            <div className="text-right text-sm text-[#6B5E54]">
               {teaching.end_time}
             </div>
           )}
