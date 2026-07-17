@@ -1,3 +1,4 @@
+import BackLink from '@/components/BackLink'
 import Link from 'next/link'
 import Image from 'next/image'
 
