@@ -8,14 +8,14 @@ export default function AboutPage() {
 
       <div className="max-w-3xl mx-auto px-6 pt-8 pb-6 text-center">
         <h1 className="text-4xl font-medium tracking-tight text-[#2C2522]">
-          About
+          About the Teachings
         </h1>
       </div>
 
       <div className="max-w-3xl mx-auto px-6 pb-16 content-area rounded-2xl p-8">
         <div className="prose prose-lg max-w-none text-[#2C2522]">
 
-          <p>
+          <p className="text-center font-semibold text-xl">
             The Author of these Teachings is the Holy Spirit of God.
           </p>
           <p>
@@ -91,7 +91,7 @@ export default function AboutPage() {
           <h2>The Sanctuary</h2>
 
           <p>
-            This acceptance of the guidance of God in his life, and his commitment to live his life “In the Spirit” began to permeate his life. He was in earnest correspondence with Mabel, telling of his struggles and his aspirations, and requesting words from God to help him along the way.
+            This acceptance of the guidance of God in his life, and his commitment to live his life “In the Spirit” began to permeate his life. He was in earnest correspondence with Mabel, telling of his struggles and his aspirations, and requesting words from God to help him along the way. Not once… not twice. He asked frequently. He listened intently. He acted on what he heard, and his life had a zeal that was infectious to all.
           </p>
 
           <p>
@@ -149,12 +149,8 @@ export default function AboutPage() {
           </p>
 
           <p>
-            But ten days later, things took an unexpected turn. On May 20th at 5:50 am… when he sat down to begin the ritual… the words he wrote were not his own. He “heard” a voice coming from within his own soul, and the voice dictated a title, “Read the Messages.” The voice continued to dictate an entire essay, which contained, among other things:
+            But ten days later, things took an unexpected turn. On May 20th at 5:50 am… when he sat down to begin the ritual… the words he wrote were not his own. He “heard” a voice coming from within his own soul, and the voice dictated a title, “Read the Messages.” The voice continued to dictate an entire essay.
           </p>
-
-          <blockquote className="border-l-4 border-[#C9BEB0] pl-4 italic">
-            “Instruction is for your edification and for the building up of your self and spirit. You are not to edit nor to polish these lines, for they come as they are meant to be. This is new and fresh, my son… an update of the Lord’s thoughts… a new quickening of the Holy Spirit.”
-          </blockquote>
 
           <p>
             And so it began. Bob finished the remaining 20 day commitment to God, with each day being one of listening and writing what was being spoken to him. He then committed to 30 days more, and on each of those days the Spirit spoke and Bob wrote. By the time these 60 days were complete, this most unique Spirit-to-spirit liturgy had been established, and it lasted the rest of Bob Russell’s life.
@@ -175,23 +171,11 @@ export default function AboutPage() {
           </p>
 
           <p>
-            The Curriculum Vitae of that career is 44 pages long. It begins with a record of his Classes and Teaching, which says a lot: the most important things always go first on a CV.
+            The Curriculum Vitae of that career is 44 pages long. It begins with a record of his Classes and Teaching. It then notes that he directed 67 Master’s theses and 78 Ph.D. dissertations.
           </p>
 
           <p>
-            It then notes that he directed 67 Master’s theses and 78 Ph.D. dissertations.
-          </p>
-
-          <p>
-            Then come many pages of personal interaction: consultancies, workshops, conference presentations, editorial evaluations.
-          </p>
-
-          <p>
-            Finally, after 33 pages – in the last section of the CV – comes the list of the academic work: 11 books, scores of articles, book chapters, reviews.
-          </p>
-
-          <p>
-            Not listed in the CV are the 3349 Teachings he wrote from 1979 through 2003, or the 70 essays titled “Russell’s Ruminations”.
+            Not listed in the CV are the 3349 Teachings he wrote from 1979 through 2003.
           </p>
 
           <p>
@@ -204,6 +188,10 @@ export default function AboutPage() {
 
           <p className="mt-6 text-center italic text-[#6B5E54]">
             He recommends a deep-dive into the Teachings themselves.
+          </p>
+
+          <p className="mt-10 text-sm text-[#6B5E54] italic text-center">
+            Like C.S. Lewis, Dr. Russell kept a photograph of the Shroud of Turin on his wall for most of his adult life — a quiet reminder of the face of Christ.
           </p>
 
         </div>
