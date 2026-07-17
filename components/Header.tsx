@@ -11,7 +11,7 @@ export default function Header({ active = 'home' }: { active?: string }) {
   ]
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-[#E5DFD5] bg-[#F7F4EF] py-4">
+    <nav className="sticky top-0 z-50 sticky-nav py-4">
       <div className="max-w-3xl mx-auto px-6 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm">
         {links.map((link) => (
           <Link
@@ -19,7 +19,7 @@ export default function Header({ active = 'home' }: { active?: string }) {
             href={link.href}
             className={
               active === link.key
-                ? 'text-[#7A3E3E] font-medium drop-shadow-[0_0_6px_rgba(122,62,62,0.3)]'
+                ? 'text-[#7A3E3E] font-medium drop-shadow-[0_0_6px_rgba(122,62,62,0.25)]'
                 : 'text-[#6B5E54] hover:text-[#7A3E3E] transition-colors'
             }
           >
