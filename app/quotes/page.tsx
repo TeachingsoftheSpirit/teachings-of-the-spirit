@@ -10,6 +10,21 @@ export default async function QuotesPage() {
     .select('*')
     .order('created_at', { ascending: false })
 
+  // Clean leading dates and extra whitespace from quote text
+  const cleanQuotes = quotes?.map((quote) => {
+    let text = quote.quote_text || ""
+
+    // Remove common leading date patterns at the start of the quote
+    text = text.replace(/^\s*["']?\d{4}["']?\s*/, "")           // removes "1997" or '2000' at start
+    text = text.replace(/^\s*["']?[A-Za-z]+\.?\s+\d{1,2},?\s+\d{4}["']?\s*/, "") // removes "May 6, 1997" style
+    text = text.trim()
+
+    return {
+      ...quote,
+      quote_text: text,
+    }
+  })
+
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
       <Header active="quotes" />
@@ -24,15 +39,14 @@ export default async function QuotesPage() {
       </div>
 
       <div className="max-w-3xl mx-auto px-6 pb-16 content-area rounded-xl p-8">
-        {quotes && quotes.length > 0 ? (
-          <div className="space-y-16">
-            {quotes.map((quote) => (
+        {cleanQuotes && cleanQuotes.length > 0 ? (
+          <div className="space-y-12">
+            {cleanQuotes.map((quote) => (
               <blockquote key={quote.id} className="border-none">
-                <p className="text-[#2C2522] text-lg leading-[1.85] whitespace-pre-wrap mb-4">
+                <p className="text-[#2C2522] text-lg leading-[1.85] whitespace-pre-wrap mb-3">
                   “{quote.quote_text}”
                 </p>
 
-                {/* Clickable footer - goes to the teaching */}
                 <footer>
                   {quote.teaching_number ? (
                     <Link
