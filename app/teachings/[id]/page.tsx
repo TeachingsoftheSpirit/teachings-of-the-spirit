@@ -53,34 +53,30 @@ export default async function TeachingPage({ params }: Props) {
           <BackLink fallback="/" />
         </div>
 
-        {/* Header block */}
+        {/* Header block - new layout */}
         <div className="mb-10">
-          {/* Teaching number + Year (left / right) */}
-          <div className="flex justify-between text-sm text-[#6B5E54] mb-1">
-            <span>Teaching {teaching.teaching_number}</span>
-            {teaching.year && <span>{teaching.year}</span>}
+          {/* Top row: Date (left) | Location Line 1 (right) */}
+          <div className="flex justify-between text-sm text-[#6B5E54] mb-0.5">
+            <span>{teaching.date}</span>
+            <span>{teaching.location1}</span>
           </div>
 
-          {/* Title (centered) */}
+          {/* Second row: Time (left) | Location Line 2 (right) */}
+          <div className="flex justify-between text-sm text-[#6B5E54] mb-4">
+            <span>{teaching.time}</span>
+            <span>{teaching.location2}</span>
+          </div>
+
+          {/* Centered Title */}
           <h1 className="text-4xl font-medium tracking-tight text-[#2C2522] mb-4 text-center">
             {teaching.title}
           </h1>
 
-          {/* Date/Time + Location (left / right) */}
-          {(teaching.date || teaching.time || teaching.location1 || teaching.location2) && (
-            <div className="flex justify-between text-sm text-[#6B5E54]">
-              <span>
-                {teaching.date}
-                {teaching.time && ` • ${teaching.time}`}
-              </span>
-              {(teaching.location1 || teaching.location2) && (
-                <span>
-                  {teaching.location1}
-                  {teaching.location2 && ` • ${teaching.location2}`}
-                </span>
-              )}
-            </div>
-          )}
+          {/* Bottom row: Teaching number (left) | Year (right) */}
+          <div className="flex justify-between text-sm text-[#6B5E54]">
+            <span>Teaching {teaching.teaching_number}</span>
+            {teaching.year && <span>{teaching.year}</span>}
+          </div>
         </div>
 
         {/* Body */}
