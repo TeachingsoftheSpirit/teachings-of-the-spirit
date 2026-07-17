@@ -2,11 +2,20 @@ import Header from '@/components/Header'
 import Link from 'next/link'
 
 export default function Home() {
+  // These can be made dynamic later (random selection from evocative titles)
+  const evocativeTitles = [
+    { number: 1, title: "HERE BEGINNETH", date: "May 11, 1979" },
+    { number: 86, title: "DEATH", date: "Nov. 27, 1979" },
+    { number: 796, title: "CHRIST, THE SPIRIT", date: "Apr. 19, 1985" },
+    { number: 1247, title: "THE FACE OF GOD", date: "Mar. 12, 1992" },
+    { number: 2873, title: "I HAVE BEEN WAITING…", date: "Oct. 4, 2003" },
+  ]
+
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
       <Header active="home" />
 
-      {/* Hero / Title Section */}
+      {/* Hero Section */}
       <div className="max-w-3xl mx-auto px-6 pt-10 pb-8 text-center">
         <h1 className="text-4xl font-medium tracking-tight text-[#2C2522] mb-3">
           Teachings of the Spirit
@@ -25,53 +34,51 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Quick Access Cards */}
-      <div className="max-w-4xl mx-auto px-6 pb-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Quotes Card */}
-          <Link href="/quotes" className="group block p-6 rounded-2xl border border-[#C9BEB0] hover:border-[#7A3E3E] transition-all bg-white/60 hover:bg-white">
-            <div className="text-xl font-medium text-[#2C2522] group-hover:text-[#7A3E3E] mb-2">
-              Quotes
-            </div>
-            <p className="text-[#6B5E54] text-sm">
-              Powerful one-liners pulled from the teachings
-            </p>
-          </Link>
-
-          {/* Browse by Year Card */}
-          <Link href="/browse" className="group block p-6 rounded-2xl border border-[#C9BEB0] hover:border-[#7A3E3E] transition-all bg-white/60 hover:bg-white">
-            <div className="text-xl font-medium text-[#2C2522] group-hover:text-[#7A3E3E] mb-2">
-              Browse by Year
-            </div>
-            <p className="text-[#6B5E54] text-sm">
-              Explore teachings from 1979 to 2003
-            </p>
-          </Link>
-
-          {/* All Titles Card */}
-          <Link href="/titles" className="group block p-6 rounded-2xl border border-[#C9BEB0] hover:border-[#7A3E3E] transition-all bg-white/60 hover:bg-white">
-            <div className="text-xl font-medium text-[#2C2522] group-hover:text-[#7A3E3E] mb-2">
-              All Titles
-            </div>
-            <p className="text-[#6B5E54] text-sm">
-              Scroll through every teaching title
-            </p>
+      {/* Evocative Titles Section */}
+      <div className="max-w-3xl mx-auto px-6 pb-12">
+        <h2 className="text-xl font-medium text-[#2C2522] mb-4 text-center">
+          A few titles that stand out
+        </h2>
+        <div className="space-y-2">
+          {evocativeTitles.map((t) => (
+            <Link
+              key={t.number}
+              href={`/teachings/${t.number}`}
+              className="flex justify-between items-baseline p-4 rounded-xl border border-[#C9BEB0] hover:border-[#7A3E3E] transition-colors bg-white/60 hover:bg-white group"
+            >
+              <div className="flex items-baseline gap-4">
+                <span className="text-[#6B5E54] text-sm tabular-nums w-12">
+                  {t.number}
+                </span>
+                <span className="text-[#2C2522] group-hover:text-[#7A3E3E]">
+                  {t.title}
+                </span>
+              </div>
+              <span className="text-[#6B5E54] text-sm hidden sm:inline">
+                {t.date}
+              </span>
+            </Link>
+          ))}
+        </div>
+        <div className="text-center mt-4">
+          <Link href="/titles" className="text-sm text-[#6B5E54] hover:text-[#7A3E3E]">
+            See all titles →
           </Link>
         </div>
       </div>
 
-      {/* Welcome Text */}
-      <div className="max-w-3xl mx-auto px-6 pb-16">
-        <div className="content-area rounded-2xl p-8">
-          <div className="prose prose-lg max-w-none text-[#2C2522]">
-            <p>
-              Welcome to a quiet library of teachings received over many years.
-              These words were given in the early morning hours, recorded as they came.
-            </p>
-            <p>
-              You may explore them by searching, browsing by year, reading curated quotes,
-              or simply scrolling through the titles — many of which are profound in themselves.
-            </p>
+      {/* Small evocative images section (placeholder for now) */}
+      <div className="max-w-4xl mx-auto px-6 pb-16">
+        <div className="flex flex-wrap justify-center gap-6">
+          {/* These will be small, beautiful images later */}
+          <div className="w-28 h-28 bg-[#EDE7DC] rounded-full flex items-center justify-center text-[#6B5E54] text-xs text-center">
+            Image 1
+          </div>
+          <div className="w-28 h-28 bg-[#EDE7DC] rounded-full flex items-center justify-center text-[#6B5E54] text-xs text-center">
+            Image 2
+          </div>
+          <div className="w-28 h-28 bg-[#EDE7DC] rounded-full flex items-center justify-center text-[#6B5E54] text-xs text-center">
+            Image 3
           </div>
         </div>
       </div>
