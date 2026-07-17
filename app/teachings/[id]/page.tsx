@@ -28,7 +28,6 @@ export default async function TeachingPage({ params }: Props) {
     notFound()
   }
 
-  // Get previous and next teaching
   const { data: prev } = await supabase
     .from('teachings')
     .select('teaching_number, title')
@@ -50,7 +49,6 @@ export default async function TeachingPage({ params }: Props) {
       <Header active="home" />
 
       <div className="max-w-3xl mx-auto px-6 py-8">
-        {/* Back button */}
         <div className="mb-6">
           <BackLink fallback="/" />
         </div>
@@ -83,14 +81,12 @@ export default async function TeachingPage({ params }: Props) {
           )}
         </div>
 
-        {/* Body */}
         <article className="prose prose-lg max-w-none text-[#2C2522] leading-[1.85]">
           {teaching.full_text.split(/\n\n+/).map((para: string, i: number) => (
             <p key={i}>{para}</p>
           ))}
         </article>
 
-        {/* Previous / Next navigation */}
         <div className="mt-16 flex justify-between text-sm border-t border-[#E5DFD5] pt-6">
           {prev ? (
             <Link href={`/teachings/${prev.teaching_number}`} className="hover:text-[#7A3E3E]">

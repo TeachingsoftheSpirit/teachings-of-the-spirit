@@ -11,7 +11,7 @@ export default function Header({ active = 'home' }: { active?: string }) {
   ]
 
   return (
-    <nav className="border-b border-[#E5DFD5] py-4 bg-[#F7F4EF]">
+    <nav className="sticky top-0 z-50 border-b border-[#E5DFD5] bg-[#F7F4EF] py-4">
       <div className="max-w-3xl mx-auto px-6 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm">
         {links.map((link) => (
           <Link
