@@ -31,18 +31,23 @@ export default async function QuotesPage() {
                 <p className="text-[#2C2522] text-lg leading-[1.85] whitespace-pre-wrap mb-4">
                   “{quote.quote_text}”
                 </p>
-                <footer className="text-sm text-[#6B5E54]">
+
+                {/* Clickable footer - goes to the teaching */}
+                <footer>
                   {quote.teaching_number ? (
                     <Link
                       href={`/teachings/${quote.teaching_number}`}
-                      className="hover:text-[#7A3E3E] transition-colors"
+                      className="text-sm text-[#6B5E54] hover:text-[#7A3E3E] transition-colors"
                     >
                       — {quote.title}
+                      {quote.date && <span> · {quote.date}</span>}
                     </Link>
                   ) : (
-                    <span>— {quote.title}</span>
+                    <span className="text-sm text-[#6B5E54]">
+                      — {quote.title}
+                      {quote.date && <span> · {quote.date}</span>}
+                    </span>
                   )}
-                  {quote.date && <span> · {quote.date}</span>}
                 </footer>
               </blockquote>
             ))}
