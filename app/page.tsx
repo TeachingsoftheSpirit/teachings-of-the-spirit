@@ -2,7 +2,7 @@ import Header from '@/components/Header'
 import Link from 'next/link'
 
 export default function Home() {
-  // These can be made dynamic later (random selection from evocative titles)
+  // These can later be made random/dynamic
   const evocativeTitles = [
     { number: 1, title: "HERE BEGINNETH", date: "May 11, 1979" },
     { number: 86, title: "DEATH", date: "Nov. 27, 1979" },
@@ -15,7 +15,7 @@ export default function Home() {
     <main className="min-h-screen bg-[#F7F4EF]">
       <Header active="home" />
 
-      {/* Hero Section */}
+      {/* Hero */}
       <div className="max-w-3xl mx-auto px-6 pt-10 pb-8 text-center">
         <h1 className="text-4xl font-medium tracking-tight text-[#2C2522] mb-3">
           Teachings of the Spirit
@@ -34,52 +34,33 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Evocative Titles Section */}
-      <div className="max-w-3xl mx-auto px-6 pb-12">
-        <h2 className="text-xl font-medium text-[#2C2522] mb-4 text-center">
-          A few titles that stand out
-        </h2>
-        <div className="space-y-2">
+      {/* Evocative Titles - Clean, no boxes */}
+      <div className="max-w-3xl mx-auto px-6 pb-10">
+        <div className="space-y-1 mb-4">
           {evocativeTitles.map((t) => (
             <Link
               key={t.number}
               href={`/teachings/${t.number}`}
-              className="flex justify-between items-baseline p-4 rounded-xl border border-[#C9BEB0] hover:border-[#7A3E3E] transition-colors bg-white/60 hover:bg-white group"
+              className="block py-2 text-xl text-[#2C2522] hover:text-[#7A3E3E] transition-colors"
             >
-              <div className="flex items-baseline gap-4">
-                <span className="text-[#6B5E54] text-sm tabular-nums w-12">
-                  {t.number}
-                </span>
-                <span className="text-[#2C2522] group-hover:text-[#7A3E3E]">
-                  {t.title}
-                </span>
-              </div>
-              <span className="text-[#6B5E54] text-sm hidden sm:inline">
-                {t.date}
-              </span>
+              {t.title} <span className="text-base text-[#6B5E54]">— {t.date}</span>
             </Link>
           ))}
         </div>
-        <div className="text-center mt-4">
+
+        <div className="text-center">
           <Link href="/titles" className="text-sm text-[#6B5E54] hover:text-[#7A3E3E]">
             See all titles →
           </Link>
         </div>
       </div>
 
-      {/* Small evocative images section (placeholder for now) */}
+      {/* Small evocative images (placeholder) */}
       <div className="max-w-4xl mx-auto px-6 pb-16">
-        <div className="flex flex-wrap justify-center gap-6">
-          {/* These will be small, beautiful images later */}
-          <div className="w-28 h-28 bg-[#EDE7DC] rounded-full flex items-center justify-center text-[#6B5E54] text-xs text-center">
-            Image 1
-          </div>
-          <div className="w-28 h-28 bg-[#EDE7DC] rounded-full flex items-center justify-center text-[#6B5E54] text-xs text-center">
-            Image 2
-          </div>
-          <div className="w-28 h-28 bg-[#EDE7DC] rounded-full flex items-center justify-center text-[#6B5E54] text-xs text-center">
-            Image 3
-          </div>
+        <div className="flex justify-center gap-8">
+          <div className="w-20 h-20 rounded-full bg-[#EDE7DC]"></div>
+          <div className="w-20 h-20 rounded-full bg-[#EDE7DC]"></div>
+          <div className="w-20 h-20 rounded-full bg-[#EDE7DC]"></div>
         </div>
       </div>
     </main>
