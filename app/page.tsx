@@ -22,14 +22,15 @@ export default function Home() {
           A private library of spiritual teachings received over many years
         </p>
 
-        {/* Search bar */}
-        <div className="max-w-md mx-auto mb-12">
+        {/* Search bar - redirects to Search page */}
+        <form action="/search" method="GET" className="max-w-md mx-auto mb-12">
           <input
             type="text"
+            name="q"
             placeholder="Search the teachings..."
             className="w-full px-5 py-3 rounded-full border border-[#C9BEB0] bg-white/70 text-[#2C2522] placeholder-[#6B5E54] focus:outline-none focus:border-[#7A3E3E] transition-colors text-base"
           />
-        </div>
+        </form>
       </div>
 
       {/* Evocative Titles - Clean list, no boxes */}
@@ -53,7 +54,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Small evocative images (placeholder for now) */}
+      {/* Small evocative images (placeholder) */}
       <div className="max-w-4xl mx-auto px-6 pb-16">
         <div className="flex justify-center gap-8">
           <div className="w-20 h-20 rounded-full bg-[#EDE7DC]"></div>
