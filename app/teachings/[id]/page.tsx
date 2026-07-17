@@ -53,15 +53,15 @@ export default async function TeachingPage({ params }: Props) {
           <BackLink fallback="/" />
         </div>
 
-        {/* Header block - new layout */}
+        {/* Header block */}
         <div className="mb-10">
-          {/* Top row: Date (left) | Location Line 1 (right) */}
+          {/* Row 1: Date (left) | Location 1 (right) */}
           <div className="flex justify-between text-sm text-[#6B5E54] mb-0.5">
             <span>{teaching.date}</span>
             <span>{teaching.location1}</span>
           </div>
 
-          {/* Second row: Time (left) | Location Line 2 (right) */}
+          {/* Row 2: Time (left) | Location 2 (right) */}
           <div className="flex justify-between text-sm text-[#6B5E54] mb-4">
             <span>{teaching.time}</span>
             <span>{teaching.location2}</span>
@@ -72,7 +72,7 @@ export default async function TeachingPage({ params }: Props) {
             {teaching.title}
           </h1>
 
-          {/* Bottom row: Teaching number (left) | Year (right) */}
+          {/* Row 3: Teaching number (left) | Year (right) */}
           <div className="flex justify-between text-sm text-[#6B5E54]">
             <span>Teaching {teaching.teaching_number}</span>
             {teaching.year && <span>{teaching.year}</span>}
@@ -86,17 +86,26 @@ export default async function TeachingPage({ params }: Props) {
           ))}
         </article>
 
-        {/* Previous / Next - right justified */}
-        <div className="mt-16 flex justify-end text-sm border-t border-[#E5DFD5] pt-6">
-          {prev && (
-            <Link href={`/teachings/${prev.teaching_number}`} className="hover:text-[#7A3E3E] mr-8">
-              ← {prev.title}
-            </Link>
-          )}
-          {next && (
-            <Link href={`/teachings/${next.teaching_number}`} className="hover:text-[#7A3E3E]">
-              {next.title} →
-            </Link>
+        {/* Bottom navigation - right aligned + end time below it */}
+        <div className="mt-16 flex flex-col items-end text-sm border-t border-[#E5DFD5] pt-6">
+          <div className="flex gap-8">
+            {prev && (
+              <Link href={`/teachings/${prev.teaching_number}`} className="hover:text-[#7A3E3E]">
+                ← {prev.title}
+              </Link>
+            )}
+            {next && (
+              <Link href={`/teachings/${next.teaching_number}`} className="hover:text-[#7A3E3E]">
+                {next.title} →
+              </Link>
+            )}
+          </div>
+
+          {/* End / Closing time */}
+          {teaching.end_time && (
+            <span className="mt-1 text-[#6B5E54] text-sm">
+              {teaching.end_time}
+            </span>
           )}
         </div>
       </div>
