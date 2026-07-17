@@ -55,24 +55,27 @@ export default async function TeachingPage({ params }: Props) {
 
         {/* Header block */}
         <div className="mb-10">
-          {/* Row 1: Date (left) | Location 1 (right) */}
-          <div className="flex justify-between text-sm text-[#6B5E54] mb-0.5">
-            <span>{teaching.date}</span>
-            <span>{teaching.location1}</span>
-          </div>
+          {/* Row 1: Date (left) + Time under it | Location 1 (right) + Location 2 under it */}
+          <div className="flex justify-between text-sm text-[#6B5E54]">
+            {/* Left column: Date + Time */}
+            <div>
+              <div>{teaching.date}</div>
+              <div className="mt-0.5">{teaching.time}</div>
+            </div>
 
-          {/* Row 2: Time (left) | Location 2 (right) */}
-          <div className="flex justify-between text-sm text-[#6B5E54] mb-4">
-            <span>{teaching.time}</span>
-            <span>{teaching.location2}</span>
+            {/* Right column: Location 1 + Location 2 */}
+            <div className="text-right">
+              <div>{teaching.location1}</div>
+              <div className="mt-0.5">{teaching.location2}</div>
+            </div>
           </div>
 
           {/* Centered Title */}
-          <h1 className="text-4xl font-medium tracking-tight text-[#2C2522] mb-4 text-center">
+          <h1 className="text-4xl font-medium tracking-tight text-[#2C2522] my-5 text-center">
             {teaching.title}
           </h1>
 
-          {/* Row 3: Teaching number (left) | Year (right) */}
+          {/* Row below title: Teaching number (left) | Year (right) */}
           <div className="flex justify-between text-sm text-[#6B5E54]">
             <span>Teaching {teaching.teaching_number}</span>
             {teaching.year && <span>{teaching.year}</span>}
@@ -86,9 +89,9 @@ export default async function TeachingPage({ params }: Props) {
           ))}
         </article>
 
-        {/* Bottom navigation - right aligned + end time below it */}
-        <div className="mt-16 flex flex-col items-end text-sm border-t border-[#E5DFD5] pt-6">
-          <div className="flex gap-8">
+        {/* Bottom section: Navigation (left/right) + Closing time under it (right justified) */}
+        <div className="mt-16 border-t border-[#E5DFD5] pt-6">
+          <div className="flex justify-between text-sm">
             {prev && (
               <Link href={`/teachings/${prev.teaching_number}`} className="hover:text-[#7A3E3E]">
                 ← {prev.title}
@@ -101,11 +104,11 @@ export default async function TeachingPage({ params }: Props) {
             )}
           </div>
 
-          {/* End / Closing time */}
+          {/* Closing / End time - right justified under the navigation */}
           {teaching.end_time && (
-            <span className="mt-1 text-[#6B5E54] text-sm">
+            <div className="mt-1 text-right text-sm text-[#6B5E54]">
               {teaching.end_time}
-            </span>
+            </div>
           )}
         </div>
       </div>
