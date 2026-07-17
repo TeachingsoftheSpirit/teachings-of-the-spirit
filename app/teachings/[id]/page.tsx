@@ -44,14 +44,14 @@ export default async function TeachingPage({ params }: Props) {
     .limit(1)
     .single()
 
-  const paragraphs = teaching.full_text.split(/\n\n+/);
+  const paragraphs = teaching.full_text.split(/\n\n+/)
 
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
       <Header active="home" />
 
       <div className="max-w-3xl mx-auto px-6 py-8">
-        {/* Top bar: Back (left) + Next (right) */}
+        {/* Top bar: Back + Next */}
         <div className="flex justify-between items-center mb-6">
           <BackLink fallback="/" />
           {next && (
@@ -66,7 +66,7 @@ export default async function TeachingPage({ params }: Props) {
 
         {/* Header block */}
         <div className="mb-10">
-          {/* Row 1: Date + Time (left) | Location 1 + Location 2 (right) */}
+          {/* Date + Time (left) | Location 1 + Location 2 (right) */}
           <div className="flex justify-between text-sm text-[#6B5E54]">
             {/* Left column */}
             <div>
@@ -86,22 +86,22 @@ export default async function TeachingPage({ params }: Props) {
             {teaching.title}
           </h1>
 
-          {/* Row below title: Teaching number (left) | Year (right) */}
+          {/* Teaching number (left) | Year (right) */}
           <div className="flex justify-between text-sm text-[#6B5E54]">
             <span>Teaching {teaching.teaching_number}</span>
             {teaching.year && <span>{teaching.year}</span>}
           </div>
         </div>
 
-        {/* Body - valediction (last paragraph) is right-justified */}
+        {/* Body - valediction is right-justified */}
         <article className="max-w-none text-[#2C2522] leading-[1.85] space-y-5 text-[1.05rem]">
           {paragraphs.map((para: string, i: number) => {
-            const isValediction = i === paragraphs.length - 1;
+            const isValediction = i === paragraphs.length - 1
             return (
               <p key={i} className={isValediction ? 'text-right' : ''}>
                 {para}
               </p>
-            );
+            )
           })}
         </article>
 
@@ -121,7 +121,7 @@ export default async function TeachingPage({ params }: Props) {
             )}
           </div>
 
-          {/* Ending time - immediately under valediction, right justified */}
+          {/* Ending time - right justified, directly under valediction */}
           {teaching.end_time && (
             <div className="text-right text-sm text-[#6B5E54]">
               {teaching.end_time}
