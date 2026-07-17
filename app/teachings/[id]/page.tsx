@@ -68,13 +68,10 @@ export default async function TeachingPage({ params }: Props) {
         <div className="mb-10">
           {/* Date + Time (left) | Location 1 + Location 2 (right) */}
           <div className="flex justify-between text-sm text-[#6B5E54]">
-            {/* Left column */}
             <div>
               <div>{teaching.date}</div>
               <div className="mt-0.5">{teaching.time}</div>
             </div>
-
-            {/* Right column */}
             <div className="text-right">
               <div>{teaching.location1}</div>
               <div className="mt-0.5">{teaching.location2}</div>
@@ -93,7 +90,7 @@ export default async function TeachingPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Body - valediction is right-justified */}
+        {/* Body - last paragraph (valediction) is right-justified */}
         <article className="max-w-none text-[#2C2522] leading-[1.85] space-y-5 text-[1.05rem]">
           {paragraphs.map((para: string, i: number) => {
             const isValediction = i === paragraphs.length - 1
