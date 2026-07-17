@@ -51,21 +51,30 @@ export default async function TeachingPage({ params }: Props) {
       <Header active="home" />
 
       <div className="max-w-3xl mx-auto px-6 py-8">
-        <div className="mb-6">
+        {/* Top bar: Back (left) + Next (right) */}
+        <div className="flex justify-between items-center mb-6">
           <BackLink fallback="/" />
+          {next && (
+            <Link
+              href={`/teachings/${next.teaching_number}`}
+              className="text-sm text-[#6B5E54] hover:text-[#7A3E3E] transition-colors"
+            >
+              Next →
+            </Link>
+          )}
         </div>
 
         {/* Header block */}
         <div className="mb-10">
-          {/* Row 1: Date (left) | Location 1 (right) */}
+          {/* Row 1: Date + Time (left) | Location 1 + Location 2 (right) */}
           <div className="flex justify-between text-sm text-[#6B5E54]">
-            {/* Left: Date + Time under it */}
+            {/* Left column */}
             <div>
               <div>{teaching.date}</div>
               <div className="mt-0.5">{teaching.time}</div>
             </div>
 
-            {/* Right: Location 1 + Location 2 */}
+            {/* Right column */}
             <div className="text-right">
               <div>{teaching.location1}</div>
               <div className="mt-0.5">{teaching.location2}</div>
@@ -84,7 +93,7 @@ export default async function TeachingPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Body - last paragraph (valediction) is right-justified */}
+        {/* Body - valediction (last paragraph) is right-justified */}
         <article className="max-w-none text-[#2C2522] leading-[1.85] space-y-5 text-[1.05rem]">
           {paragraphs.map((para: string, i: number) => {
             const isValediction = i === paragraphs.length - 1;
@@ -112,7 +121,7 @@ export default async function TeachingPage({ params }: Props) {
             )}
           </div>
 
-          {/* Ending time - right justified, directly under valediction */}
+          {/* Ending time - immediately under valediction, right justified */}
           {teaching.end_time && (
             <div className="text-right text-sm text-[#6B5E54]">
               {teaching.end_time}
