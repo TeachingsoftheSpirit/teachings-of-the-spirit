@@ -1,7 +1,10 @@
 @import "tailwindcss";
 
+/* ============================================
+   Teachings of the Spirit - Aesthetic
+   ============================================ */
+
 :root {
-  /* Core Colors - Lewis's Rooms Aesthetic */
   --bg-main: #F7F4EF;
   --bg-secondary: #F0E9DF;
   --text-primary: #2C2522;
@@ -10,37 +13,35 @@
   --accent-hover: #5C2E2E;
   --nav-bg: #EDE7DC;
   --border-warm: #C9BEB0;
-  --highlight: #A68B5B;
 }
 
-/* Subtle texture for main background */
 body {
+  font-family: var(--font-garamond), Georgia, serif;
   background-color: var(--bg-main);
-  background-image: 
-    linear-gradient(rgba(247, 244, 239, 0.95), rgba(247, 244, 239, 0.95)),
-    url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%27 height=%27100%27 fill=%27none%27%3E%3Cpath fill-rule=%27evenodd%27 clip-rule=%27evenodd%27 d=%27M0 0h100v100H0V0zm50 50c5.523 0 10-4.477 10-10s-4.477-10-10-10-10 4.477-10 10 4.477 10 10 10z%27 fill=%27%23EDE7DC%27 fill-opacity=%270.08%27/%3E%3C/svg%27');
-  background-size: 100px 100px;
   color: var(--text-primary);
 }
 
 /* Subtle texture for content areas */
 .content-area {
   background-color: var(--bg-secondary);
-  background-image: 
-    linear-gradient(rgba(240, 233, 223, 0.92), rgba(240, 233, 223, 0.92)),
-    url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27120%27 height=%27120%27 fill=%27none%27%3E%3Cpath fill-rule=%27evenodd%27 clip-rule=%27evenodd%27 d=%27M0 0h120v120H0V0zm60 60c6.627 0 12-5.373 12-12s-5.373-12-12-12-12 5.373-12 12 5.373 12 12 12z%27 fill=%27%23C9BEB0%27 fill-opacity=%270.06%27/%3E%3C/svg%27');
-  background-size: 120px 120px;
+  border: 1px solid var(--border-warm);
 }
 
-/* Sticky Navigation - richer treatment */
+/* Sticky Navigation */
 nav.sticky-nav {
   background-color: var(--nav-bg);
   border-top: 1px solid var(--border-warm);
   border-bottom: 1px solid var(--border-warm);
-  box-shadow: 0 2px 8px rgba(44, 37, 34, 0.06);
+  box-shadow: 0 2px 10px rgba(44, 37, 34, 0.07);
 }
 
-/* Accent links */
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-garamond), Georgia, serif;
+  font-weight: 500;
+}
+
+/* Links */
 a {
   color: var(--accent);
   transition: color 0.2s ease;
@@ -48,10 +49,4 @@ a {
 
 a:hover {
   color: var(--accent-hover);
-}
-
-/* Subtle card styling */
-.card {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-warm);
 }
