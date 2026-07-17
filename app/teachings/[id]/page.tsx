@@ -83,7 +83,7 @@ export default async function TeachingPage({ params }: Props) {
           )}
         </div>
 
-        {/* Body with refined paragraph spacing */}
+        {/* Body */}
         <article className="max-w-none text-[#2C2522] leading-[1.85] space-y-5 text-[1.05rem]">
           {teaching.full_text.split(/\n\n+/).map((para: string, i: number) => (
             <p key={i}>{para}</p>
