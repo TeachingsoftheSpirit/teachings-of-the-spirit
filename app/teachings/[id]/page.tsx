@@ -53,21 +53,26 @@ export default async function TeachingPage({ params }: Props) {
           <BackLink fallback="/" />
         </div>
 
-        {/* Centered header block */}
-        <div className="mb-10 text-center">
-          <div className="flex justify-center items-baseline gap-4 mb-2 text-sm text-[#6B5E54]">
+        {/* Header block */}
+        <div className="mb-10">
+          {/* Teaching number + Year (left / right) */}
+          <div className="flex justify-between text-sm text-[#6B5E54] mb-1">
             <span>Teaching {teaching.teaching_number}</span>
             {teaching.year && <span>{teaching.year}</span>}
           </div>
 
-          <h1 className="text-4xl font-medium tracking-tight text-[#2C2522] mb-4">
+          {/* Title (centered) */}
+          <h1 className="text-4xl font-medium tracking-tight text-[#2C2522] mb-4 text-center">
             {teaching.title}
           </h1>
 
+          {/* Date/Time + Location (left / right) */}
           {(teaching.date || teaching.time || teaching.location1 || teaching.location2) && (
-            <div className="flex flex-wrap justify-center gap-x-6 text-sm text-[#6B5E54]">
-              {teaching.date && <span>{teaching.date}</span>}
-              {teaching.time && <span>{teaching.time}</span>}
+            <div className="flex justify-between text-sm text-[#6B5E54]">
+              <span>
+                {teaching.date}
+                {teaching.time && ` • ${teaching.time}`}
+              </span>
               {(teaching.location1 || teaching.location2) && (
                 <span>
                   {teaching.location1}
@@ -78,28 +83,24 @@ export default async function TeachingPage({ params }: Props) {
           )}
         </div>
 
-        {/* Body with better paragraph spacing */}
-        <article className="max-w-none text-[#2C2522] leading-[1.85] space-y-6 text-[1.05rem]">
+        {/* Body with refined paragraph spacing */}
+        <article className="max-w-none text-[#2C2522] leading-[1.85] space-y-5 text-[1.05rem]">
           {teaching.full_text.split(/\n\n+/).map((para: string, i: number) => (
             <p key={i}>{para}</p>
           ))}
         </article>
 
-        {/* Previous / Next */}
-        <div className="mt-16 flex justify-between text-sm border-t border-[#E5DFD5] pt-6">
-          {prev ? (
-            <Link href={`/teachings/${prev.teaching_number}`} className="hover:text-[#7A3E3E]">
+        {/* Previous / Next - right justified */}
+        <div className="mt-16 flex justify-end text-sm border-t border-[#E5DFD5] pt-6">
+          {prev && (
+            <Link href={`/teachings/${prev.teaching_number}`} className="hover:text-[#7A3E3E] mr-8">
               ← {prev.title}
             </Link>
-          ) : (
-            <span />
           )}
-          {next ? (
-            <Link href={`/teachings/${next.teaching_number}`} className="hover:text-[#7A3E3E] text-right">
+          {next && (
+            <Link href={`/teachings/${next.teaching_number}`} className="hover:text-[#7A3E3E]">
               {next.title} →
             </Link>
-          ) : (
-            <span />
           )}
         </div>
       </div>
