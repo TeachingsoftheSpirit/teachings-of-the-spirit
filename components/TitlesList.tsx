@@ -29,7 +29,6 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
       const dateB = b.date ? new Date(b.date).getTime() : 0
       return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA
     } else {
-      // title sort
       const titleA = a.title.toLowerCase()
       const titleB = b.title.toLowerCase()
       if (titleA < titleB) return sortConfig.direction === 'asc' ? -1 : 1
@@ -55,7 +54,7 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
     return sortConfig.direction === 'asc' ? ' ↑' : ' ↓'
   }
 
-  // Theme clustering logic (kept from before)
+  // Theme logic (kept from before)
   const THEMES = [
     { name: 'Death', keywords: ['death', 'dying', 'die'] },
     { name: 'Grace', keywords: ['grace'] },
@@ -63,7 +62,6 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
     { name: 'Rhythm', keywords: ['rhythm'] },
     { name: 'Faith', keywords: ['faith'] },
     { name: 'Spirit', keywords: ['spirit', 'holy spirit'] },
-    // add more themes as needed
   ]
 
   function getThemes(title: string): string[] {
@@ -88,19 +86,19 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
 
   return (
     <div>
-      {/* Sortable headers */}
+      {/* Sortable headers - now correctly aligned */}
       <div className="flex justify-between text-xs uppercase tracking-widest text-[#6B5E54] mb-4 px-2">
-        <button
-          onClick={() => requestSort('date')}
-          className="hover:text-[#7A3E3E] transition-colors flex items-center gap-1"
-        >
-          Date{getSortIndicator('date')}
-        </button>
         <button
           onClick={() => requestSort('title')}
           className="hover:text-[#7A3E3E] transition-colors flex items-center gap-1"
         >
           Title{getSortIndicator('title')}
+        </button>
+        <button
+          onClick={() => requestSort('date')}
+          className="hover:text-[#7A3E3E] transition-colors flex items-center gap-1"
+        >
+          Date{getSortIndicator('date')}
         </button>
       </div>
 
