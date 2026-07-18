@@ -10,14 +10,6 @@ export default function Home() {
     { number: 2873, title: "I HAVE BEEN WAITING…", date: "Oct. 4, 2003" },
   ]
 
-  const mysticalCircles = [
-    { theme: "Balance", link: "/titles?theme=balance" },
-    { theme: "Death", link: "/titles?theme=death" },
-    { theme: "Grace", link: "/titles?theme=grace" },
-    { theme: "Rhythm", link: "/titles?theme=rhythm" },
-    { theme: "Awareness", link: "/titles?theme=awareness" },
-  ]
-
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
       <Header active="home" />
@@ -61,27 +53,29 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 5 Mystical Circles - Smile shape, strong sun aura, mirror effect */}
+      {/* 5 Circles on smile-shaped vortex path with glow and mirror */}
       <div className="max-w-4xl mx-auto px-6 pb-16">
-        <div className="flex justify-center items-end gap-12 relative h-40">
-          {mysticalCircles.map((circle, index) => (
-            <Link
-              key={index}
-              href={circle.link}
-              className="group relative flex flex-col items-center"
-            >
-              {/* Mirror reflection effect */}
-              <div className="relative">
-                <div className="w-24 h-24 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-[0_0_40px_rgba(212,201,184,0.9)] group-hover:shadow-[0_0_60px_rgba(212,201,184,1)] transition-all duration-300 group-hover:scale-110"></div>
-                {/* Reflection */}
-                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-20 h-8 bg-gradient-to-b from-white/30 to-transparent rounded-full blur-sm opacity-60 group-hover:opacity-80 transition-all"></div>
-              </div>
-              {/* Theme label */}
-              <div className="text-xs text-[#6B5E54] mt-4 tracking-wider text-center w-24">
-                {circle.theme}
-              </div>
-            </Link>
-          ))}
+        <div className="flex justify-center items-end gap-10 relative h-40">
+          <div className="relative">
+            <div className="w-16 h-16 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-[0_0_30px_rgba(212,201,184,0.8)] hover:shadow-[0_0_50px_rgba(212,201,184,1)] transition-all duration-300 hover:scale-110 translate-y-8 -rotate-12"></div>
+            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-12 h-6 bg-gradient-to-b from-white/40 to-transparent rounded-full blur-sm opacity-70"></div>
+          </div>
+          <div className="relative">
+            <div className="w-20 h-20 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-[0_0_30px_rgba(212,201,184,0.8)] hover:shadow-[0_0_50px_rgba(212,201,184,1)] transition-all duration-300 hover:scale-110 translate-y-4 -rotate-6"></div>
+            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-16 h-6 bg-gradient-to-b from-white/40 to-transparent rounded-full blur-sm opacity-70"></div>
+          </div>
+          <div className="relative">
+            <div className="w-28 h-28 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-[0_0_40px_rgba(212,201,184,0.9)] hover:shadow-[0_0_60px_rgba(212,201,184,1)] transition-all duration-300 hover:scale-110"></div>
+            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-20 h-8 bg-gradient-to-b from-white/40 to-transparent rounded-full blur-sm opacity-70"></div>
+          </div>
+          <div className="relative">
+            <div className="w-20 h-20 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-[0_0_30px_rgba(212,201,184,0.8)] hover:shadow-[0_0_50px_rgba(212,201,184,1)] transition-all duration-300 hover:scale-110 translate-y-4 rotate-6"></div>
+            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-16 h-6 bg-gradient-to-b from-white/40 to-transparent rounded-full blur-sm opacity-70"></div>
+          </div>
+          <div className="relative">
+            <div className="w-16 h-16 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-[0_0_30px_rgba(212,201,184,0.8)] hover:shadow-[0_0_50px_rgba(212,201,184,1)] transition-all duration-300 hover:scale-110 translate-y-8 rotate-12"></div>
+            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-12 h-6 bg-gradient-to-b from-white/40 to-transparent rounded-full blur-sm opacity-70"></div>
+          </div>
         </div>
       </div>
     </main>
