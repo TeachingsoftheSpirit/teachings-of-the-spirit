@@ -10,6 +10,14 @@ export default function Home() {
     { number: 2873, title: "I HAVE BEEN WAITING…", date: "Oct. 4, 2003" },
   ]
 
+  const mysticalCircles = [
+    { theme: "Balance", link: "/titles?theme=balance" },
+    { theme: "Death", link: "/titles?theme=death" },
+    { theme: "Grace", link: "/titles?theme=grace" },
+    { theme: "Rhythm", link: "/titles?theme=rhythm" },
+    { theme: "Awareness", link: "/titles?theme=awareness" },
+  ]
+
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
       <Header active="home" />
@@ -53,14 +61,26 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 5 Circles on smile-shaped vortex path */}
+      {/* 5 Mystical Circles on smile-shaped vortex path */}
       <div className="max-w-4xl mx-auto px-6 pb-16">
         <div className="flex justify-center items-end gap-10 relative h-40">
-          <div className="w-16 h-16 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-[-2rem] -rotate-12"></div>
-          <div className="w-20 h-20 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-[-1rem] -rotate-6"></div>
-          <div className="w-28 h-28 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md"></div>
-          <div className="w-20 h-20 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-[-1rem] rotate-6"></div>
-          <div className="w-16 h-16 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-[-2rem] rotate-12"></div>
+          {mysticalCircles.map((circle, index) => (
+            <Link
+              key={index}
+              href={circle.link}
+              className="group relative flex flex-col items-center"
+            >
+              {/* Glowing orb with mirror reflection */}
+              <div className="relative">
+                <div className="w-24 h-24 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-[0_0_40px_rgba(212,201,184,0.9)] group-hover:shadow-[0_0_60px_rgba(212,201,184,1)] transition-all duration-300 group-hover:scale-110"></div>
+                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-20 h-8 bg-gradient-to-b from-white/40 to-transparent rounded-full blur-sm opacity-70"></div>
+              </div>
+              {/* Theme label - positioned under circle */}
+              <div className="text-xs text-[#6B5E54] mt-4 tracking-wider text-center w-24">
+                {circle.theme}
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     </main>
