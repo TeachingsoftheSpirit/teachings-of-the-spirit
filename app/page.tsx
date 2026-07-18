@@ -31,36 +31,36 @@ export default function Home() {
             className="w-full px-5 py-3 rounded-full border border-[#C9BEB0] bg-white/70 text-[#2C2522] placeholder-[#6B5E54] focus:outline-none focus:border-[#7A3E3E] transition-colors text-base"
           />
         </form>
+      </div>
 
-        {/* 5 Evocative Titles - Center justified */}
-        <div className="max-w-md mx-auto mb-12">
-          <div className="space-y-1">
-            {evocativeTitles.map((t) => (
-              <Link
-                key={t.number}
-                href={`/teachings/${t.number}`}
-                className="block py-2 text-xl text-[#2C2522] hover:text-[#7A3E3E] transition-colors text-center"
-              >
-                {t.title} <span className="text-base text-[#6B5E54]">— {t.date}</span>
-              </Link>
-            ))}
-          </div>
-          <div className="text-center mt-4">
-            <Link href="/titles" className="text-sm text-[#6B5E54] hover:text-[#7A3E3E]">
-              See all titles →
+      {/* 5 Evocative Titles - Left justified */}
+      <div className="max-w-3xl mx-auto px-6 pb-10">
+        <div className="max-w-md mx-auto space-y-1 mb-4 text-left">
+          {evocativeTitles.map((t) => (
+            <Link
+              key={t.number}
+              href={`/teachings/${t.number}`}
+              className="block py-2 text-xl text-[#2C2522] hover:text-[#7A3E3E] transition-colors"
+            >
+              {t.title} <span className="text-base text-[#6B5E54]">— {t.date}</span>
             </Link>
-          </div>
+          ))}
+        </div>
+        <div className="text-center">
+          <Link href="/titles" className="text-sm text-[#6B5E54] hover:text-[#7A3E3E]">
+            See all titles →
+          </Link>
         </div>
       </div>
 
-      {/* 5 Circles on cylindrical/sliver moon path */}
+      {/* 5 Circles on smile-shaped cylindrical path */}
       <div className="max-w-4xl mx-auto px-6 pb-16">
-        <div className="flex justify-center items-end gap-6 relative h-28">
-          <div className="w-16 h-16 rounded-full bg-[#EDE7DC] -rotate-12 shadow-md"></div>
-          <div className="w-20 h-20 rounded-full bg-[#EDE7DC] -rotate-6 shadow-md"></div>
+        <div className="flex justify-center items-end gap-10 relative h-32">
+          <div className="w-16 h-16 rounded-full bg-[#EDE7DC] -rotate-12 shadow-md translate-y-4"></div>
+          <div className="w-20 h-20 rounded-full bg-[#EDE7DC] -rotate-6 shadow-md translate-y-2"></div>
           <div className="w-24 h-24 rounded-full bg-[#EDE7DC] shadow-md"></div>
-          <div className="w-20 h-20 rounded-full bg-[#EDE7DC] rotate-6 shadow-md"></div>
-          <div className="w-16 h-16 rounded-full bg-[#EDE7DC] rotate-12 shadow-md"></div>
+          <div className="w-20 h-20 rounded-full bg-[#EDE7DC] rotate-6 shadow-md translate-y-2"></div>
+          <div className="w-16 h-16 rounded-full bg-[#EDE7DC] rotate-12 shadow-md translate-y-4"></div>
         </div>
       </div>
     </main>
