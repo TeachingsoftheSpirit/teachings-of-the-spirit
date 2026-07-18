@@ -22,7 +22,6 @@ export default async function QuotesPage() {
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
       <Header active="quotes" />
-
       <div className="max-w-3xl mx-auto px-6 pt-10 pb-8">
         <h1 className="text-4xl font-medium tracking-tight text-[#2C2522] mb-3 text-center">
           Quotes
