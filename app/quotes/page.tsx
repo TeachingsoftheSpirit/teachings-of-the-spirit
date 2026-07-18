@@ -7,19 +7,25 @@ function cleanQuoteText(text: string, title?: string): string {
   
   let cleaned = text.trim()
   
-  // Remove leading quote + optional year/date + quote
-  cleaned = cleaned.replace(/^["'“”]?\s*\d{4}.*?["'“”]?\s*/, '')
+  // Remove leading quote + full date (e.g. November 21, 1979 or 1982) + optional quote
+  cleaned = cleaned.replace(
+    /^["'“”]?\s*(?:[A-Za-z]+\.?\s+\d{1,2},\s+\d{4}|\d{4})\s*["'“”]?\s*/,
+    ''
+  )
   
-  // Remove stray leading quote marks
-  cleaned = cleaned.replace(/^["'“”]+/, '')
+  // Remove any remaining leading quotation marks or dashes
+  cleaned = cleaned.replace(/^["'“”\-\s]+/, '')
   
-  // Remove trailing title if it repeats at the end of the quote text
+  // Remove trailing title if it repeats at the end
   if (title) {
-    const titleRegex = new RegExp(`\\s*[-–—]?\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`, 'i')
+    const titleRegex = new RegExp(
+      `\\s*[-–—]?\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`,
+      'i'
+    )
     cleaned = cleaned.replace(titleRegex, '')
   }
   
-  // Final trim and remove any remaining leading/trailing quotes or dashes
+  // Final cleanup of quotes/dashes
   cleaned = cleaned.replace(/^["'“”\-\s]+|["'“”\-\s]+$/g, '').trim()
   
   return cleaned
