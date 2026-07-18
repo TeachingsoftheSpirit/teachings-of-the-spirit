@@ -61,7 +61,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 5 Mystical Circles - Glowing orb, hover enlarge, half-circle text */}
+      {/* 5 Mystical Circles - Smile shape, strong sun aura, mirror effect */}
       <div className="max-w-4xl mx-auto px-6 pb-16">
         <div className="flex justify-center items-end gap-12 relative h-40">
           {mysticalCircles.map((circle, index) => (
@@ -70,10 +70,14 @@ export default function Home() {
               href={circle.link}
               className="group relative flex flex-col items-center"
             >
-              {/* Glowing orb */}
-              <div className="w-24 h-24 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-[0_0_30px_rgba(212,201,184,0.8)] group-hover:shadow-[0_0_45px_rgba(212,201,184,1)] transition-all duration-300 group-hover:scale-110"></div>
-              {/* Half-circle text */}
-              <div className="text-xs text-[#6B5E54] mt-3 tracking-wider text-center w-24">
+              {/* Mirror reflection effect */}
+              <div className="relative">
+                <div className="w-24 h-24 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-[0_0_40px_rgba(212,201,184,0.9)] group-hover:shadow-[0_0_60px_rgba(212,201,184,1)] transition-all duration-300 group-hover:scale-110"></div>
+                {/* Reflection */}
+                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-20 h-8 bg-gradient-to-b from-white/30 to-transparent rounded-full blur-sm opacity-60 group-hover:opacity-80 transition-all"></div>
+              </div>
+              {/* Theme label */}
+              <div className="text-xs text-[#6B5E54] mt-4 tracking-wider text-center w-24">
                 {circle.theme}
               </div>
             </Link>
