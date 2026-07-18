@@ -1,23 +1,22 @@
-'use client'
+import Link from 'next/link'
 
-import { useRouter } from 'next/navigation'
+interface BackLinkProps {
+  href: string
+  label?: string
+}
 
-export default function BackLink({ fallback = '/' }: { fallback?: string }) {
-  const router = useRouter()
+export default function BackLink({ href, label = '← Back' }: BackLinkProps) {
+  // Safety check
+  if (!href) {
+    return null
+  }
 
   return (
-    <button
-      type="button"
-      onClick={() => {
-        if (typeof window !== 'undefined' && window.history.length > 1) {
-          router.back()
-        } else {
-          router.push(fallback)
-        }
-      }}
-      className="text-sm text-[#6B5E54] hover:text-[#7A3E3E] transition-colors"
+    <Link 
+      href={href} 
+      className="inline-flex items-center text-sm text-[#6B5E54] hover:text-[#7A3E3E] transition-colors mb-6"
     >
-      ← Back
-    </button>
+      {label}
+    </Link>
   )
 }
