@@ -55,12 +55,12 @@ export default function Home() {
 
       {/* 5 Circles on smile-shaped cylindrical path */}
       <div className="max-w-4xl mx-auto px-6 pb-16">
-        <div className="flex justify-center items-end gap-10 relative h-32">
-          <div className="w-16 h-16 rounded-full bg-[#EDE7DC] -rotate-12 shadow-md translate-y-4"></div>
-          <div className="w-20 h-20 rounded-full bg-[#EDE7DC] -rotate-6 shadow-md translate-y-2"></div>
-          <div className="w-24 h-24 rounded-full bg-[#EDE7DC] shadow-md"></div>
-          <div className="w-20 h-20 rounded-full bg-[#EDE7DC] rotate-6 shadow-md translate-y-2"></div>
-          <div className="w-16 h-16 rounded-full bg-[#EDE7DC] rotate-12 shadow-md translate-y-4"></div>
+        <div className="flex justify-center items-end gap-12 relative h-32">
+          <div className="w-16 h-16 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-6 -rotate-12"></div>
+          <div className="w-20 h-20 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-3 -rotate-6"></div>
+          <div className="w-24 h-24 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md"></div>
+          <div className="w-20 h-20 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-3 rotate-6"></div>
+          <div className="w-16 h-16 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-6 rotate-12"></div>
         </div>
       </div>
     </main>
