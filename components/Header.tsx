@@ -1,32 +1,34 @@
+'use client'
+
 import Link from 'next/link'
 
 export default function Header({ active = 'home' }: { active?: string }) {
-  const links = [
-    { href: '/', label: 'Home', key: 'home' },
-    { href: '/quotes', label: 'Quotes', key: 'quotes' },
-    { href: '/search', label: 'Search', key: 'search' },
-    { href: '/browse', label: 'Browse', key: 'browse' },
-    { href: '/titles', label: 'Titles', key: 'titles' },
-    { href: '/about', label: 'About', key: 'about' },
-  ]
-
   return (
-    <nav className="sticky top-0 z-50 sticky-nav py-4">
-      <div className="max-w-3xl mx-auto px-6 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm">
-        {links.map((link) => (
-          <Link
-            key={link.key}
-            href={link.href}
-            className={
-              active === link.key
-                ? 'text-[#7A3E3E] font-medium drop-shadow-[0_0_6px_rgba(122,62,62,0.25)]'
-                : 'text-[#6B5E54] hover:text-[#7A3E3E] transition-colors'
-            }
-          >
-            {link.label}
-          </Link>
-        ))}
+    <header className="sticky top-0 bg-[#F7F4EF] border-b border-[#C9BEB0] z-50">
+      <div className="max-w-5xl mx-auto px-6">
+        <nav className="flex items-center justify-between h-16">
+          <div className="flex items-center gap-8 text-sm uppercase tracking-widest text-[#6B5E54]">
+            <Link href="/" className={`hover:text-[#2C2522] transition-colors ${active === 'home' ? 'text-[#2C2522] font-medium' : ''}`}>
+              Home
+            </Link>
+            <Link href="/quotes" className={`hover:text-[#2C2522] transition-colors ${active === 'quotes' ? 'text-[#2C2522] font-medium' : ''}`}>
+              Quotes
+            </Link>
+            <Link href="/search" className={`hover:text-[#2C2522] transition-colors ${active === 'search' ? 'text-[#2C2522] font-medium' : ''}`}>
+              Search
+            </Link>
+            <Link href="/titles" className={`hover:text-[#2C2522] transition-colors ${active === 'titles' ? 'text-[#2C2522] font-medium' : ''}`}>
+              Titles
+            </Link>
+            <Link href="/browse" className={`hover:text-[#2C2522] transition-colors ${active === 'browse' ? 'text-[#2C2522] font-medium' : ''}`}>
+              Browse
+            </Link>
+            <Link href="/about" className={`hover:text-[#2C2522] transition-colors ${active === 'about' ? 'text-[#2C2522] font-medium' : ''}`}>
+              About
+            </Link>
+          </div>
+        </nav>
       </div>
-    </nav>
+    </header>
   )
 }
