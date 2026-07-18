@@ -35,7 +35,7 @@ export default function Home() {
 
       {/* 5 Evocative Titles - Left justified */}
       <div className="max-w-3xl mx-auto px-6 pb-10">
-        <div className="max-w-md mx-auto space-y-1 mb-4 text-left">
+        <div className="max-w-md mx-auto space-y-1 mb-4 text-left pl-8">
           {evocativeTitles.map((t) => (
             <Link
               key={t.number}
