@@ -2,6 +2,11 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
 
+function cleanQuoteText(text: string): string {
+  // Remove leading "YYYY" or "YYYY " at the start of quote text
+  return text.replace(/^\s*["']?\d{4}["']?\s*/, '').trim()
+}
+
 export default async function QuotesPage() {
   const supabase = await createClient()
   
@@ -28,26 +33,29 @@ export default async function QuotesPage() {
 
         {quotes && quotes.length > 0 ? (
           <div className="space-y-12">
-            {quotes.map((quote) => (
-              <div key={quote.id} className="border-l-4 border-[#7A3E3E] pl-6">
-                <p className="text-[#2C2522] text-lg leading-[1.85] mb-4">
-                  “{quote.quote_text}”
-                </p>
-                <div className="text-sm text-[#6B5E54]">
-                  {quote.teaching_number ? (
-                    <Link 
-                      href={`/teachings/${quote.teaching_number}`} 
-                      className="hover:text-[#7A3E3E] transition-colors font-medium"
-                    >
-                      — {quote.title}
-                    </Link>
-                  ) : (
-                    <span>— {quote.title}</span>
-                  )}
-                  {quote.date && <span> · {quote.date}</span>}
+            {quotes.map((quote) => {
+              const cleanText = cleanQuoteText(quote.quote_text || '')
+              return (
+                <div key={quote.id} className="border-l-4 border-[#7A3E3E] pl-6">
+                  <p className="text-[#2C2522] text-lg leading-[1.85] mb-4">
+                    “{cleanText}”
+                  </p>
+                  <div className="text-sm text-[#6B5E54]">
+                    {quote.teaching_number ? (
+                      <Link 
+                        href={`/teachings/${quote.teaching_number}`} 
+                        className="hover:text-[#7A3E3E] transition-colors font-medium"
+                      >
+                        — {quote.title}
+                      </Link>
+                    ) : (
+                      <span>— {quote.title}</span>
+                    )}
+                    {quote.date && <span> · {quote.date}</span>}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         ) : (
           <p className="text-center text-[#6B5E54]">
