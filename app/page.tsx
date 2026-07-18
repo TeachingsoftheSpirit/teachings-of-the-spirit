@@ -10,6 +10,14 @@ export default function Home() {
     { number: 2873, title: "I HAVE BEEN WAITING…", date: "Oct. 4, 2003" },
   ]
 
+  const mysticalCircles = [
+    { theme: "Balance", color: "#D4C9B8", link: "/titles?theme=balance" },
+    { theme: "Death", color: "#A8B5A2", link: "/titles?theme=death" },
+    { theme: "Grace", color: "#C9BEB0", link: "/titles?theme=grace" },
+    { theme: "Rhythm", color: "#D4C9B8", link: "/titles?theme=rhythm" },
+    { theme: "Awareness", color: "#A8B5A2", link: "/titles?theme=awareness" },
+  ]
+
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
       <Header active="home" />
@@ -33,7 +41,7 @@ export default function Home() {
         </form>
       </div>
 
-      {/* 5 Evocative Titles - Stronger left justification */}
+      {/* 5 Evocative Titles - Left justified */}
       <div className="max-w-3xl mx-auto px-6 pb-10">
         <div className="max-w-md mx-auto space-y-1 mb-4 text-left pl-12">
           {evocativeTitles.map((t) => (
@@ -53,14 +61,21 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 5 Circles on smile-shaped cylindrical path */}
+      {/* 5 Mystical Circles - Ethereal Narnia-like pools */}
       <div className="max-w-4xl mx-auto px-6 pb-16">
-        <div className="flex justify-center items-end gap-14 relative h-32">
-          <div className="w-16 h-16 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-8 -rotate-12"></div>
-          <div className="w-20 h-20 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-4 -rotate-6"></div>
-          <div className="w-24 h-24 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md"></div>
-          <div className="w-20 h-20 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-4 rotate-6"></div>
-          <div className="w-16 h-16 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-8 rotate-12"></div>
+        <div className="flex justify-center items-end gap-12 relative h-32">
+          {mysticalCircles.map((circle, index) => (
+            <Link
+              key={index}
+              href={circle.link}
+              className="group"
+            >
+              <div 
+                className="w-20 h-20 rounded-full border border-[#C9BEB0]/50 shadow-[0_0_25px_rgba(212,201,184,0.6)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_35px_rgba(212,201,184,0.8)]"
+                style={{ backgroundColor: circle.color, opacity: 0.85 }}
+              ></div>
+            </Link>
+          ))}
         </div>
       </div>
     </main>
