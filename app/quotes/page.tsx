@@ -7,16 +7,16 @@ function cleanQuoteText(text: string, title?: string): string {
   
   let cleaned = text.trim()
   
-  // Remove leading quote + full date (e.g. November 21, 1979 or 1982) + optional quote
+  // Remove leading quote + date (handles "November 21, 1979", "May 24, 1979", "1982", etc.)
   cleaned = cleaned.replace(
-    /^["'“”]?\s*(?:[A-Za-z]+\.?\s+\d{1,2},\s+\d{4}|\d{4})\s*["'“”]?\s*/,
+    /^["'“”]?\s*(?:[A-Za-z]+\.?\s+\d{1,2},?\s*\d{4}|\d{4})\s*["'“”]?\s*/,
     ''
   )
   
-  // Remove any remaining leading quotation marks or dashes
+  // Remove any remaining leading quotes or dashes
   cleaned = cleaned.replace(/^["'“”\-\s]+/, '')
   
-  // Remove trailing title if it repeats at the end
+  // Remove trailing repeated title
   if (title) {
     const titleRegex = new RegExp(
       `\\s*[-–—]?\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`,
@@ -25,7 +25,7 @@ function cleanQuoteText(text: string, title?: string): string {
     cleaned = cleaned.replace(titleRegex, '')
   }
   
-  // Final cleanup of quotes/dashes
+  // Final trim
   cleaned = cleaned.replace(/^["'“”\-\s]+|["'“”\-\s]+$/g, '').trim()
   
   return cleaned
@@ -65,17 +65,19 @@ export default async function QuotesPage() {
                     “{cleanText}”
                   </p>
                   <div className="text-sm text-[#6B5E54]">
-                    {quote.teaching_number ? (
-                      <Link 
-                        href={`/teachings/${quote.teaching_number}`} 
-                        className="hover:text-[#7A3E3E] transition-colors font-medium"
-                      >
-                        — {quote.title}
-                      </Link>
-                    ) : (
-                      <span>— {quote.title}</span>
-                    )}
-                    {quote.date && <span> · {quote.date}</span>}
+                    {quote.title ? (
+                      quote.teaching_number ? (
+                        <Link 
+                          href={`/teachings/${quote.teaching_number}`} 
+                          className="hover:text-[#7A3E3E] transition-colors font-medium"
+                        >
+                          — {quote.title}
+                        </Link>
+                      ) : (
+                        <span>— {quote.title}</span>
+                      )
+                    ) : null}
+                    {quote.date && <span>{quote.title ? ' · ' : '— '}{quote.date}</span>}
                   </div>
                 </div>
               )
