@@ -1,5 +1,3 @@
-import Header from '@/components/Header'
-
 export default function AboutPage() {
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
