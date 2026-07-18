@@ -1,5 +1,8 @@
-﻿import Header from '@/components/Header'
+﻿'use client'
+
+import Header from '@/components/Header'
 import Link from 'next/link'
+import { useState } from 'react'
 
 async function getQuotes() {
   const { createClient } = await import('@supabase/supabase-js')
@@ -31,26 +34,51 @@ export default async function QuotesPage() {
 
         <div className="space-y-16">
           {quotes.map((quote) => (
-            <blockquote key={quote.id} className="border-l-0 pl-0">
-              <p className="text-[#2C2522] text-[1.1rem] leading-[1.85] whitespace-pre-wrap">
-                “{quote.quote_text}”
-              </p>
-              <footer className="mt-6 text-sm text-[#6B5E54]">
-                {quote.teaching_number ? (
-                  <Link
-                    href={`/teachings/${quote.teaching_number}`}
-                    className="hover:text-[#7A3E3E] transition-colors"
-                  >
-                    — {quote.title} · {quote.date}
-                  </Link>
-                ) : (
-                  <span>— {quote.title} · {quote.date}</span>
-                )}
-              </footer>
-            </blockquote>
+            <QuoteItem key={quote.id} quote={quote} />
           ))}
         </div>
       </div>
     </main>
+  )
+}
+
+function QuoteItem({ quote }: { quote: any }) {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div>
+      <blockquote className="border-l-0 pl-0">
+        <p className="text-[#2C2522] text-[1.1rem] leading-[1.85] whitespace-pre-wrap">
+          “{quote.quote_text}”
+        </p>
+        <footer className="mt-6 text-sm text-[#6B5E54]">
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="hover:text-[#7A3E3E] transition-colors cursor-pointer"
+          >
+            — {quote.title} · {quote.date}
+          </button>
+        </footer>
+      </blockquote>
+
+      {expanded && (
+        <div className="mt-8 border-l-4 border-[#C9BEB0] pl-8">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-medium text-[#2C2522]">
+              {quote.title}
+            </h3>
+            <button
+              onClick={() => setExpanded(false)}
+              className="text-sm text-[#6B5E54] hover:text-[#7A3E3E]"
+            >
+              ← Back to Quotes
+            </button>
+          </div>
+          <p className="text-[#2C2522] leading-[1.85] whitespace-pre-wrap">
+            {quote.full_text || quote.quote_text}
+          </p>
+        </div>
+      )}
+    </div>
   )
 }
