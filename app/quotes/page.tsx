@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Header from '@/components/Header'
 
 export default async function QuotesPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   const { data: quotes, error } = await supabase
     .from('quotes')
@@ -51,7 +51,7 @@ export default async function QuotesPage() {
           </div>
         ) : (
           <p className="text-center text-[#6B5E54]">
-            No quotes found. (Data is in Supabase — import if needed.)
+            No quotes found in database.
           </p>
         )}
       </div>
