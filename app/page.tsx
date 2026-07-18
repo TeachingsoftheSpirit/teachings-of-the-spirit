@@ -32,45 +32,35 @@ export default function Home() {
           />
         </form>
 
-        {/* Temporary Test Button for Welcome Email */}
-        <div className="mb-12">
-          <a
-            href="/api/test-welcome-email"
-            className="inline-block px-6 py-2 text-sm border border-[#C9BEB0] rounded-full hover:bg-[#EDE7DC] transition-colors"
-          >
-            Test Welcome Email (A Day’s Advice)
-          </a>
-          <p className="text-xs text-[#6B5E54] mt-2">(Temporary testing button)</p>
-        </div>
-      </div>
-
-      {/* Evocative Titles */}
-      <div className="max-w-3xl mx-auto px-6 pb-10">
-        <div className="space-y-1 mb-4">
-          {evocativeTitles.map((t) => (
-            <Link
-              key={t.number}
-              href={`/teachings/${t.number}`}
-              className="block py-2 text-xl text-[#2C2522] hover:text-[#7A3E3E] transition-colors"
-            >
-              {t.title} <span className="text-base text-[#6B5E54]">— {t.date}</span>
+        {/* 5 Evocative Titles - Center justified */}
+        <div className="max-w-md mx-auto mb-12">
+          <div className="space-y-1">
+            {evocativeTitles.map((t) => (
+              <Link
+                key={t.number}
+                href={`/teachings/${t.number}`}
+                className="block py-2 text-xl text-[#2C2522] hover:text-[#7A3E3E] transition-colors text-center"
+              >
+                {t.title} <span className="text-base text-[#6B5E54]">— {t.date}</span>
+              </Link>
+            ))}
+          </div>
+          <div className="text-center mt-4">
+            <Link href="/titles" className="text-sm text-[#6B5E54] hover:text-[#7A3E3E]">
+              See all titles →
             </Link>
-          ))}
-        </div>
-
-        <div className="text-center">
-          <Link href="/titles" className="text-sm text-[#6B5E54] hover:text-[#7A3E3E]">
-            See all titles →
-          </Link>
+          </div>
         </div>
       </div>
 
-      {/* Small image circles */}
+      {/* 5 Circles on cylindrical/sliver moon path */}
       <div className="max-w-4xl mx-auto px-6 pb-16">
-        <div className="flex justify-center gap-8">
-          <div className="w-20 h-20 rounded-full bg-[#EDE7DC]"></div>
-          <div className="w-20 h-20 rounded-full bg-[#EDE7DC]"></div>
-          <div className="w-20 h-20 rounded-full bg-[#EDE7DC]"></div>
+        <div className="flex justify-center items-end gap-6 relative h-28">
+          <div className="w-16 h-16 rounded-full bg-[#EDE7DC] -rotate-12 shadow-md"></div>
+          <div className="w-20 h-20 rounded-full bg-[#EDE7DC] -rotate-6 shadow-md"></div>
+          <div className="w-24 h-24 rounded-full bg-[#EDE7DC] shadow-md"></div>
+          <div className="w-20 h-20 rounded-full bg-[#EDE7DC] rotate-6 shadow-md"></div>
+          <div className="w-16 h-16 rounded-full bg-[#EDE7DC] rotate-12 shadow-md"></div>
         </div>
       </div>
     </main>
