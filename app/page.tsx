@@ -10,6 +10,14 @@ export default function Home() {
     { number: 2873, title: "I HAVE BEEN WAITING…", date: "Oct. 4, 2003" },
   ]
 
+  const mysticalCircles = [
+    { theme: "Balance", link: "/titles?theme=balance" },
+    { theme: "Death", link: "/titles?theme=death" },
+    { theme: "Grace", link: "/titles?theme=grace" },
+    { theme: "Rhythm", link: "/titles?theme=rhythm" },
+    { theme: "Awareness", link: "/titles?theme=awareness" },
+  ]
+
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
       <Header active="home" />
@@ -53,14 +61,23 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 5 Circles on smile-shaped cylindrical path */}
+      {/* 5 Mystical Circles - Glowing orb, hover enlarge, half-circle text */}
       <div className="max-w-4xl mx-auto px-6 pb-16">
-        <div className="flex justify-center items-end gap-12 relative h-32">
-          <div className="w-16 h-16 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-[-2rem] -rotate-12"></div>
-          <div className="w-20 h-20 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-[-1rem] -rotate-6"></div>
-          <div className="w-24 h-24 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md"></div>
-          <div className="w-20 h-20 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-[-1rem] rotate-6"></div>
-          <div className="w-16 h-16 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-[-2rem] rotate-12"></div>
+        <div className="flex justify-center items-end gap-12 relative h-40">
+          {mysticalCircles.map((circle, index) => (
+            <Link
+              key={index}
+              href={circle.link}
+              className="group relative flex flex-col items-center"
+            >
+              {/* Glowing orb */}
+              <div className="w-24 h-24 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-[0_0_30px_rgba(212,201,184,0.8)] group-hover:shadow-[0_0_45px_rgba(212,201,184,1)] transition-all duration-300 group-hover:scale-110"></div>
+              {/* Half-circle text */}
+              <div className="text-xs text-[#6B5E54] mt-3 tracking-wider text-center w-24">
+                {circle.theme}
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     </main>
