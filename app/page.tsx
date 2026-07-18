@@ -53,29 +53,14 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 5 Circles on smile-shaped vortex path with glow and mirror */}
+      {/* 5 Circles on smile-shaped vortex path */}
       <div className="max-w-4xl mx-auto px-6 pb-16">
         <div className="flex justify-center items-end gap-10 relative h-40">
-          <div className="relative">
-            <div className="w-16 h-16 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-[0_0_30px_rgba(212,201,184,0.8)] hover:shadow-[0_0_50px_rgba(212,201,184,1)] transition-all duration-300 hover:scale-110 translate-y-8 -rotate-12"></div>
-            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-12 h-6 bg-gradient-to-b from-white/40 to-transparent rounded-full blur-sm opacity-70"></div>
-          </div>
-          <div className="relative">
-            <div className="w-20 h-20 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-[0_0_30px_rgba(212,201,184,0.8)] hover:shadow-[0_0_50px_rgba(212,201,184,1)] transition-all duration-300 hover:scale-110 translate-y-4 -rotate-6"></div>
-            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-16 h-6 bg-gradient-to-b from-white/40 to-transparent rounded-full blur-sm opacity-70"></div>
-          </div>
-          <div className="relative">
-            <div className="w-28 h-28 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-[0_0_40px_rgba(212,201,184,0.9)] hover:shadow-[0_0_60px_rgba(212,201,184,1)] transition-all duration-300 hover:scale-110"></div>
-            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-20 h-8 bg-gradient-to-b from-white/40 to-transparent rounded-full blur-sm opacity-70"></div>
-          </div>
-          <div className="relative">
-            <div className="w-20 h-20 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-[0_0_30px_rgba(212,201,184,0.8)] hover:shadow-[0_0_50px_rgba(212,201,184,1)] transition-all duration-300 hover:scale-110 translate-y-4 rotate-6"></div>
-            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-16 h-6 bg-gradient-to-b from-white/40 to-transparent rounded-full blur-sm opacity-70"></div>
-          </div>
-          <div className="relative">
-            <div className="w-16 h-16 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-[0_0_30px_rgba(212,201,184,0.8)] hover:shadow-[0_0_50px_rgba(212,201,184,1)] transition-all duration-300 hover:scale-110 translate-y-8 rotate-12"></div>
-            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-12 h-6 bg-gradient-to-b from-white/40 to-transparent rounded-full blur-sm opacity-70"></div>
-          </div>
+          <div className="w-16 h-16 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-[-2rem] -rotate-12"></div>
+          <div className="w-20 h-20 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-[-1rem] -rotate-6"></div>
+          <div className="w-28 h-28 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md"></div>
+          <div className="w-20 h-20 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-[-1rem] rotate-6"></div>
+          <div className="w-16 h-16 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-md translate-y-[-2rem] rotate-12"></div>
         </div>
       </div>
     </main>
