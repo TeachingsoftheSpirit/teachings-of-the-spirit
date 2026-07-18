@@ -2,9 +2,27 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
 
-function cleanQuoteText(text: string): string {
-  // Remove leading "YYYY" or "YYYY " at the start of quote text
-  return text.replace(/^\s*["']?\d{4}["']?\s*/, '').trim()
+function cleanQuoteText(text: string, title?: string): string {
+  if (!text) return ''
+  
+  let cleaned = text.trim()
+  
+  // Remove leading quote + optional year/date + quote
+  cleaned = cleaned.replace(/^["'“”]?\s*\d{4}.*?["'“”]?\s*/, '')
+  
+  // Remove stray leading quote marks
+  cleaned = cleaned.replace(/^["'“”]+/, '')
+  
+  // Remove trailing title if it repeats at the end of the quote text
+  if (title) {
+    const titleRegex = new RegExp(`\\s*[-–—]?\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`, 'i')
+    cleaned = cleaned.replace(titleRegex, '')
+  }
+  
+  // Final trim and remove any remaining leading/trailing quotes or dashes
+  cleaned = cleaned.replace(/^["'“”\-\s]+|["'“”\-\s]+$/g, '').trim()
+  
+  return cleaned
 }
 
 export default async function QuotesPage() {
@@ -34,7 +52,7 @@ export default async function QuotesPage() {
         {quotes && quotes.length > 0 ? (
           <div className="space-y-12">
             {quotes.map((quote) => {
-              const cleanText = cleanQuoteText(quote.quote_text || '')
+              const cleanText = cleanQuoteText(quote.quote_text || '', quote.title)
               return (
                 <div key={quote.id} className="border-l-4 border-[#7A3E3E] pl-6">
                   <p className="text-[#2C2522] text-lg leading-[1.85] mb-4">
