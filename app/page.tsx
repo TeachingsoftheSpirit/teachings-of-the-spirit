@@ -61,9 +61,9 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 5 Mystical Circles on smile-shaped vortex path */}
+      {/* 5 Circles on smile-shaped vortex path with glow and circular text */}
       <div className="max-w-4xl mx-auto px-6 pb-16">
-        <div className="flex justify-center items-end gap-10 relative h-40">
+        <div className="flex justify-center items-end gap-10 relative h-48">
           {mysticalCircles.map((circle, index) => (
             <Link
               key={index}
@@ -75,8 +75,8 @@ export default function Home() {
                 <div className="w-24 h-24 rounded-full bg-[#D4C9B8] border border-[#C9BEB0] shadow-[0_0_40px_rgba(212,201,184,0.9)] group-hover:shadow-[0_0_60px_rgba(212,201,184,1)] transition-all duration-300 group-hover:scale-110"></div>
                 <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-20 h-8 bg-gradient-to-b from-white/40 to-transparent rounded-full blur-sm opacity-70"></div>
               </div>
-              {/* Theme label - positioned under circle */}
-              <div className="text-xs text-[#6B5E54] mt-4 tracking-wider text-center w-24">
+              {/* Circular text under circle */}
+              <div className="absolute -bottom-2 text-xs text-[#6B5E54] tracking-widest font-medium" style={{transform: 'rotate(-15deg)'}}>
                 {circle.theme}
               </div>
             </Link>
