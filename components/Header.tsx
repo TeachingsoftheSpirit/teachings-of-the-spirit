@@ -30,9 +30,9 @@ export default function Header({ active = 'home' }: { active?: string }) {
   return (
     <>
       <header className="sticky top-0 bg-[#F7F4EF] border-b border-[#C9BEB0] z-50">
-        <div className="max-w-5xl mx-auto px-6">
-          <nav className="flex items-center justify-center h-16 relative">
-            <div className="flex items-center gap-8 text-sm uppercase tracking-widest text-[#6B5E54]">
+        <div className="max-w-5xl mx-auto px-3 sm:px-6">
+          <nav className="flex items-center justify-center h-12 sm:h-16 relative">
+            <div className="flex items-center gap-2.5 sm:gap-8 text-[10px] sm:text-sm uppercase tracking-wider sm:tracking-widest text-[#6B5E54]">
               <Link href="/" className={`hover:text-[#2C2522] transition-colors ${active === 'home' ? 'text-[#2C2522] font-medium' : ''}`}>
                 Home
               </Link>
@@ -62,18 +62,13 @@ export default function Header({ active = 'home' }: { active?: string }) {
                 <Image
                   src="/doors-icon.png"
                   alt="Special Collections"
-                  width={36}
-                  height={36}
-                  className="object-contain"
+                  width={28}
+                  height={28}
+                  className="object-contain sm:w-9 sm:h-9"
                 />
-                <span className="text-[9px] leading-none mt-0.5 tracking-wide text-[#5C4A3A]">
+                <span className="text-[7px] sm:text-[9px] leading-none mt-0.5 tracking-wide text-[#5C4A3A]">
                   Special Collections
                 </span>
-                {userEmail && (
-                  <div className="absolute top-full mt-2 px-2.5 py-1 bg-[#2A241C] text-[#F7F1E6] text-[11px] rounded-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                    {userEmail}
-                  </div>
-                )}
               </button>
             )}
           </nav>
