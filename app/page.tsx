@@ -15,17 +15,22 @@ export default function Home() {
   const [hoveredId, setHoveredId] = useState<number | null>(null)
   const [activatedId, setActivatedId] = useState<number | null>(null)
 
+  // Temporary email test state
+  const [testEmail, setTestEmail] = useState('')
+  const [testStatus, setTestStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+  const [testMessage, setTestMessage] = useState('')
+
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // === The 7 Palantíri — Stepped Upward Smile Arc ===
+  // === The 7 Palantíri — Improved Size Progression ===
   const palantiri = [
-    { id: 1, topic: "Death",        word: "Death",        angle: 10, size: 62,  top: -42 },
-    { id: 2, topic: "Grace",        word: "Grace",        angle: 6,  size: 74,  top: -28 },
-    { id: 3, topic: "Soul",         word: "Soul",         angle: 3,  size: 86,  top: -14 },
+    { id: 1, topic: "Death",        word: "Death",        angle: 10, size: 72,  top: -42 },
+    { id: 2, topic: "Grace",        word: "Grace",        angle: 6,  size: 80,  top: -28 },
+    { id: 3, topic: "Soul",         word: "Soul",         angle: 3,  size: 88,  top: -14 },
     { id: 4, topic: "Spirit",       word: "Spirit",       angle: 0,  size: 96,  top: 0   },
-    { id: 5, topic: "Eternal Life", word: "Eternal Life", angle: -3, size: 86,  top: -14 },
-    { id: 6, topic: "Sin",          word: "Sin",          angle: -6, size: 74,  top: -28 },
-    { id: 7, topic: "Forgiveness",  word: "Forgiveness",  angle: -10, size: 62, top: -42 },
+    { id: 5, topic: "Eternal Life", word: "Eternal Life", angle: -3, size: 88,  top: -14 },
+    { id: 6, topic: "Sin",          word: "Sin",          angle: -6, size: 80,  top: -28 },
+    { id: 7, topic: "Forgiveness",  word: "Forgiveness",  angle: -10, size: 72, top: -42 },
   ]
 
   const topicKeywords: Record<string, string[]> = {
@@ -61,8 +66,7 @@ export default function Home() {
       .from('teachings')
       .select('teaching_number, title, date')
       .or(orConditions)
-      .limit(5)
-
+      .limit(7)
     setFilteredTeachings(data || [])
     setActiveFilter(word)
     setActivatedId(null)
@@ -89,6 +93,38 @@ export default function Home() {
 
   const handleWordClick = (word: string) => {
     fetchForTopic(word)
+  }
+
+  // Temporary test function
+  const sendTestEmail = async () => {
+    if (!testEmail.trim()) {
+      setTestStatus('error')
+      setTestMessage('Please enter an email address')
+      return
+    }
+
+    setTestStatus('sending')
+    setTestMessage('Sending...')
+
+    try {
+      const res = await fetch('/api/welcome-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: testEmail, source: 'home-test' }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to send')
+      }
+
+      setTestStatus('success')
+      setTestMessage('Email sent successfully! Check your inbox (and spam folder).')
+    } catch (err: any) {
+      setTestStatus('error')
+      setTestMessage(err.message || 'Something went wrong')
+    }
   }
 
   const teachingsToShow = activeFilter ? filteredTeachings : featuredTeachings
@@ -146,12 +182,11 @@ export default function Home() {
 
         {/* === THE PALANTÍRI CIRCLES === */}
         <div className="mt-8">
-          <div className="text-center mb-6">
+          <div className="text-center mb-1">
             <div className="text-[#6B5E54] text-sm">• Hover to Awaken •</div>
           </div>
 
-          {/* Stepped upward smile arc */}
-          <div className="flex justify-center items-center gap-4 pb-6" style={{ height: '160px' }}>
+          <div className="flex justify-center items-center gap-4 pb-2" style={{ height: '160px' }}>
             {palantiri.map((p) => {
               const isHovered = hoveredId === p.id
               const isActivated = activatedId === p.id
@@ -169,8 +204,8 @@ export default function Home() {
                   }}
                   onMouseEnter={() => handleMouseEnter(p.id)}
                   onMouseLeave={handleMouseLeave}
+                  onClick={() => handleWordClick(p.word)}
                 >
-                  {/* The Stone */}
                   <div
                     className={`w-full h-full rounded-full relative overflow-hidden border transition-all duration-500
                       bg-[radial-gradient(circle_at_35%_30%,#5a4a7a_0%,#2a2140_45%,#0f0d22_100%)]
@@ -184,7 +219,6 @@ export default function Home() {
                     <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_38%_32%,rgba(210,195,255,0.35)_0%,transparent_60%)]" />
                     <div className="absolute inset-0 rounded-full bg-[repeating-radial-gradient(circle,#ffffff08_0px,#ffffff08_1px,transparent_1px,transparent_3px)]" />
 
-                    {/* Fixed word — stays visible until another circle is activated */}
                     {isActivated && (
                       <div className="absolute inset-0 flex items-center justify-center p-2 transition-all duration-500">
                         <button
@@ -204,14 +238,46 @@ export default function Home() {
             })}
           </div>
 
-          {/* The Palantíri Circles text — smaller + closer */}
-          <div className="text-center -mt-2">
+          <div className="text-center -mt-3">
             <div className="text-[#2C2522] text-[15px] font-medium tracking-tight">The Palantíri Circles</div>
           </div>
         </div>
+
+        {/* ========== TEMPORARY EMAIL TEST SECTION ========== */}
+        <div className="mt-24 pt-12 border-t border-[#EDE8DF]">
+          <div className="max-w-md mx-auto text-center">
+            <h3 className="text-lg font-medium mb-2">Temporary Email Test</h3>
+            <p className="text-sm text-[#6B5E54] mb-6">
+              Enter an email address to receive the “A Day’s Advice” welcome gift.
+            </p>
+
+            <input
+              type="email"
+              value={testEmail}
+              onChange={(e) => setTestEmail(e.target.value)}
+              placeholder="your@email.com"
+              className="w-full px-4 py-2.5 rounded border border-[#D4CBBF] bg-white text-[#2C2522] focus:outline-none focus:border-[#7A3E3E] mb-4"
+            />
+
+            <button
+              onClick={sendTestEmail}
+              disabled={testStatus === 'sending'}
+              className="px-6 py-2.5 bg-[#2C2522] text-[#F7F4EF] rounded hover:bg-[#4A3F38] transition-colors disabled:opacity-50"
+            >
+              {testStatus === 'sending' ? 'Sending…' : 'Send Welcome Email'}
+            </button>
+
+            {testMessage && (
+              <p className={`mt-4 text-sm ${testStatus === 'success' ? 'text-green-700' : testStatus === 'error' ? 'text-red-700' : 'text-[#6B5E54]'}`}>
+                {testMessage}
+              </p>
+            )}
+          </div>
+        </div>
+        {/* ========== END TEMPORARY SECTION ========== */}
+
       </div>
 
-      {/* Vibration Keyframe */}
       <style jsx global>{`
         @keyframes vibrate {
           0%, 100% { transform: translate(0, 0); }
