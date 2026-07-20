@@ -4,13 +4,13 @@ import { createClient } from '@supabase/supabase-js'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 export async function POST(request: Request) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
     const { email, source = 'welcome' } = await request.json()
 
     if (!email || typeof email !== 'string') {
@@ -55,13 +55,9 @@ export async function POST(request: Request) {
         <table width="100%" style="max-width: 480px; background-color:#F4EBDA; border: 1px solid #C9B896; border-radius: 3px; box-shadow: 0 2px 8px rgba(80,60,30,0.08);">
           <tr>
             <td style="padding: 52px 44px 40px 44px; text-align: center;">
-
-              <!-- Title -->
               <div style="font-size: 27px; color: #2A241C; letter-spacing: 1.2px; margin-bottom: 42px; border-bottom: 1px solid #C2B08A; padding-bottom: 20px; font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;">
                 A Day's Advice
               </div>
-
-              <!-- The Advice -->
               <div style="text-align: center; color: #2A241C; font-size: 17.5px; line-height: 1.95; font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;">
                 <p style="margin: 0 0 24px 0;">Renew acquaintances<br>made in other years.</p>
                 <p style="margin: 0 0 24px 0;">Seek out new people.</p>
@@ -71,12 +67,9 @@ export async function POST(request: Request) {
                 <p style="margin: 0 0 24px 0;">Sing joyfully.</p>
                 <p style="margin: 0 0 10px 0;">Be ready for<br>unexpected opportunities.</p>
               </div>
-
-              <!-- Very small closing -->
               <div style="margin-top: 48px; font-size: 11px; color: #8A7B65; letter-spacing: 0.8px; font-family: Georgia, serif;">
                 — Teachings of the Spirit
               </div>
-
             </td>
           </tr>
         </table>
