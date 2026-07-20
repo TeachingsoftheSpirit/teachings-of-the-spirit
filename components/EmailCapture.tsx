@@ -299,8 +299,7 @@ export default function EmailCapture({
       >
         <div className="relative w-full rounded-sm overflow-hidden shadow-2xl" style={{ height: '640px' }}>
           <Image
-            src="/doors-of-durin-full.jpg"
-            alt="Doors of Durin"
+            src="/doors-of-durin-full.JPG"            alt="Doors of Durin"
             fill
             className="object-contain object-top bg-[#f5f0e6]"
             priority
