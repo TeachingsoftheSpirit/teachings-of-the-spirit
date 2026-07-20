@@ -7,11 +7,9 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function Home() {
   const supabase = createClient()
-
   const [featuredTeachings, setFeaturedTeachings] = useState<any[]>([])
   const [filteredTeachings, setFilteredTeachings] = useState<any[]>([])
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
-
   const [hoveredId, setHoveredId] = useState<number | null>(null)
   const [activatedId, setActivatedId] = useState<number | null>(null)
 
@@ -24,23 +22,23 @@ export default function Home() {
 
   // === The 7 Palantíri — Improved Size Progression ===
   const palantiri = [
-    { id: 1, topic: "Death",        word: "Death",        angle: 10, size: 72,  top: -42 },
-    { id: 2, topic: "Grace",        word: "Grace",        angle: 6,  size: 80,  top: -28 },
-    { id: 3, topic: "Soul",         word: "Soul",         angle: 3,  size: 88,  top: -14 },
-    { id: 4, topic: "Spirit",       word: "Spirit",       angle: 0,  size: 96,  top: 0   },
-    { id: 5, topic: "Eternal Life", word: "Eternal Life", angle: -3, size: 88,  top: -14 },
-    { id: 6, topic: "Sin",          word: "Sin",          angle: -6, size: 80,  top: -28 },
-    { id: 7, topic: "Forgiveness",  word: "Forgiveness",  angle: -10, size: 72, top: -42 },
+    { id: 1, topic: "Death", word: "Death", angle: 10, size: 72, top: -42 },
+    { id: 2, topic: "Grace", word: "Grace", angle: 6, size: 80, top: -28 },
+    { id: 3, topic: "Soul", word: "Soul", angle: 3, size: 88, top: -14 },
+    { id: 4, topic: "Spirit", word: "Spirit", angle: 0, size: 96, top: 0 },
+    { id: 5, topic: "Eternal Life", word: "Eternal Life", angle: -3, size: 88, top: -14 },
+    { id: 6, topic: "Sin", word: "Sin", angle: -6, size: 80, top: -28 },
+    { id: 7, topic: "Forgiveness", word: "Forgiveness", angle: -10, size: 72, top: -42 },
   ]
 
   const topicKeywords: Record<string, string[]> = {
-    "Death":        ["death", "die", "dying", "grave"],
-    "Grace":        ["grace", "gracious"],
-    "Soul":         ["soul"],
-    "Spirit":       ["spirit", "holy spirit"],
+    "Death": ["death", "die", "dying", "grave"],
+    "Grace": ["grace", "gracious"],
+    "Soul": ["soul"],
+    "Spirit": ["spirit", "holy spirit"],
     "Eternal Life": ["eternal", "everlasting", "eternal life"],
-    "Sin":          ["sin"],
-    "Forgiveness":  ["forgive", "forgiveness", "mercy"],
+    "Sin": ["sin"],
+    "Forgiveness": ["forgive", "forgiveness", "mercy"],
   }
 
   useEffect(() => {
@@ -67,6 +65,7 @@ export default function Home() {
       .select('teaching_number, title, date')
       .or(orConditions)
       .limit(7)
+
     setFilteredTeachings(data || [])
     setActiveFilter(word)
     setActivatedId(null)
@@ -81,7 +80,6 @@ export default function Home() {
   const handleMouseEnter = (id: number) => {
     setHoveredId(id)
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
-
     timeoutRef.current = setTimeout(() => {
       setActivatedId(id)
     }, 500)
@@ -140,12 +138,12 @@ export default function Home() {
           <p className="mt-3 text-[#6B5E54] text-lg">A private library of spiritual teachings received over many years</p>
         </div>
 
-        {/* Titles block */}
-        <div className="mb-16 pl-[280px]">
+        {/* Titles block — responsive left padding */}
+        <div className="mb-16 pl-0 sm:pl-[280px]">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-medium tracking-tight">
-              {activeFilter 
-                ? `Teachings on ${activeFilter}` 
+              {activeFilter
+                ? `Teachings on ${activeFilter}`
                 : "Teachings selected to be of interest to you..."}
             </h2>
             {activeFilter && (
@@ -211,8 +209,8 @@ export default function Home() {
                       bg-[radial-gradient(circle_at_35%_30%,#5a4a7a_0%,#2a2140_45%,#0f0d22_100%)]
                       border-[#5c4a7a] shadow-[inset_0_8px_18px_rgba(255,255,255,0.07),inset_0_-18px_28px_rgba(0,0,0,0.95),0_0_18px_rgba(90,70,140,0.35)]
                       ${isHovered && !isActivated ? 'animate-[vibrate_120ms_infinite]' : ''}
-                      ${isActivated 
-                        ? 'shadow-[inset_0_8px_18px_rgba(255,255,255,0.14),inset_0_-18px_28px_rgba(0,0,0,0.98),0_0_55px_rgba(185,160,255,0.75)] border-[#b8a0e0]' 
+                      ${isActivated
+                        ? 'shadow-[inset_0_8px_18px_rgba(255,255,255,0.14),inset_0_-18px_28px_rgba(0,0,0,0.98),0_0_55px_rgba(185,160,255,0.75)] border-[#b8a0e0]'
                         : ''}
                     `}
                   >
@@ -250,7 +248,6 @@ export default function Home() {
             <p className="text-sm text-[#6B5E54] mb-6">
               Enter an email address to receive the “A Day’s Advice” welcome gift.
             </p>
-
             <input
               type="email"
               value={testEmail}
@@ -258,7 +255,6 @@ export default function Home() {
               placeholder="your@email.com"
               className="w-full px-4 py-2.5 rounded border border-[#D4CBBF] bg-white text-[#2C2522] focus:outline-none focus:border-[#7A3E3E] mb-4"
             />
-
             <button
               onClick={sendTestEmail}
               disabled={testStatus === 'sending'}
@@ -266,7 +262,6 @@ export default function Home() {
             >
               {testStatus === 'sending' ? 'Sending…' : 'Send Welcome Email'}
             </button>
-
             {testMessage && (
               <p className={`mt-4 text-sm ${testStatus === 'success' ? 'text-green-700' : testStatus === 'error' ? 'text-red-700' : 'text-[#6B5E54]'}`}>
                 {testMessage}
@@ -275,7 +270,6 @@ export default function Home() {
           </div>
         </div>
         {/* ========== END TEMPORARY SECTION ========== */}
-
       </div>
 
       <style jsx global>{`
