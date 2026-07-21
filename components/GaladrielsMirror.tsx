@@ -24,8 +24,8 @@ export default function GaladrielsMirror({ videoUrl, title }: Props) {
 
     if (typeof window !== 'undefined') {
       setPosition({
-        x: Math.max(40, window.innerWidth / 2 - 340),
-        y: Math.max(40, window.innerHeight / 2 - 260),
+        x: Math.max(20, window.innerWidth / 2 - 340),
+        y: Math.max(20, window.innerHeight / 2 - 260),
       })
     }
 
@@ -61,7 +61,7 @@ export default function GaladrielsMirror({ videoUrl, title }: Props) {
     return () => video.removeEventListener('ended', onEnded)
   }, [showVideo])
 
-  const handleSurfaceClick = (e: React.MouseEvent) => {
+  const handleSurfaceClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation()
     const v = videoRef.current
     if (!v) return
@@ -77,41 +77,40 @@ export default function GaladrielsMirror({ videoUrl, title }: Props) {
     }
   }
 
-  const onMouseDown = (e: React.MouseEvent) => {
+  // --- Unified pointer / touch drag ---
+  const onPointerDown = (e: React.PointerEvent) => {
+    // Don’t start drag on the video surface or close button
     if ((e.target as HTMLElement).closest('video, button')) return
 
     e.preventDefault()
+    e.stopPropagation()
+
     setIsDragging(true)
     dragStart.current = {
       x: e.clientX - position.x,
       y: e.clientY - position.y,
     }
+
+    // Capture the pointer so we keep receiving events even if finger leaves the element
+    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
   }
 
-  useEffect(() => {
+  const onPointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return
+    e.preventDefault()
+    setPosition({
+      x: e.clientX - dragStart.current.x,
+      y: e.clientY - dragStart.current.y,
+    })
+  }
 
-    const onMouseMove = (e: MouseEvent) => {
-      setPosition({
-        x: e.clientX - dragStart.current.x,
-        y: e.clientY - dragStart.current.y,
-      })
-    }
-
-    const onMouseUp = () => {
-      setIsDragging(false)
-    }
-
-    window.addEventListener('mousemove', onMouseMove)
-    window.addEventListener('mouseup', onMouseUp)
-    window.addEventListener('blur', onMouseUp)
-
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove)
-      window.removeEventListener('mouseup', onMouseUp)
-      window.removeEventListener('blur', onMouseUp)
-    }
-  }, [isDragging])
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (!isDragging) return
+    setIsDragging(false)
+    try {
+      ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
+    } catch {}
+  }
 
   return (
     <>
@@ -134,21 +133,27 @@ export default function GaladrielsMirror({ videoUrl, title }: Props) {
 
       {isOpen && (
         <div className="fixed inset-0 z-50 pointer-events-none">
+          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/20 pointer-events-auto"
             onClick={() => setIsOpen(false)}
           />
 
+          {/* The Mirror */}
           <div
-            className="absolute pointer-events-auto"
+            className="absolute pointer-events-auto touch-none"
             style={{
               left: position.x,
               top: position.y,
               width: 'min(680px, 95vw)',
               cursor: isDragging ? 'grabbing' : 'grab',
               userSelect: 'none',
+              WebkitUserSelect: 'none',
             }}
-            onMouseDown={onMouseDown}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
           >
             <div className="relative rounded-2xl overflow-hidden shadow-[0_25px_60px_-12px_rgba(0,0,0,0.55)] border border-[#C9B896]/40">
               <div className="relative w-full aspect-[3/2] select-none">
