@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import SaveTeachingButton from '@/components/SaveTeachingButton'
+import GaladrielsMirror from '@/components/GaladrielsMirror'
 
 type Props = {
   params: Promise<{ id: string }>
@@ -45,10 +46,10 @@ export default async function TeachingPage({ params }: Props) {
             ← Previous Teaching
           </Link>
 
-          <SaveTeachingButton 
-  teachingNumber={teachingNumber} 
-  teachingTitle={teaching.title} 
-/>
+          <SaveTeachingButton
+            teachingNumber={teachingNumber}
+            teachingTitle={teaching.title}
+          />
 
           <Link
             href={`/teachings/${teachingNumber + 1}`}
@@ -59,7 +60,7 @@ export default async function TeachingPage({ params }: Props) {
         </div>
 
         {/* Metadata + Title */}
-        <div className="flex justify-between items-start mb-10">
+        <div className="flex justify-between items-start mb-6">
           <div className="text-left w-36">
             <div className="text-sm text-[#6B5E54]">{teaching.date}</div>
             {teaching.start_time && (
@@ -80,6 +81,16 @@ export default async function TeachingPage({ params }: Props) {
             )}
           </div>
         </div>
+
+        {/* Galadriel’s Mirror trigger (only if video exists) */}
+        {teaching.video_url && (
+          <div className="text-center mb-8">
+            <GaladrielsMirror
+              videoUrl={teaching.video_url}
+              title={teaching.title}
+            />
+          </div>
+        )}
 
         {/* Body */}
         <article>
