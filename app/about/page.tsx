@@ -14,12 +14,12 @@ export default function AboutPage() {
 
       <div className="max-w-3xl mx-auto px-6 pb-16">
         <div className="bg-white/60 rounded-2xl p-8 md:p-10 shadow-sm">
-          <div className="prose prose-lg max-w-none text-[#2C2522] 
-            prose-p:my-5 
-            prose-headings:mt-10 prose-headings:mb-4
-            prose-blockquote:my-6">
+          <div className="max-w-none text-[#2C2522] text-[17px] leading-relaxed
+            [&_p]:mb-6
+            [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:text-2xl [&_h2]:font-medium
+            [&_blockquote]:my-6">
 
-            <p className="text-center font-semibold text-xl !mt-0">
+            <p className="text-center font-semibold text-xl mb-8">
               The Author of these Teachings is the Holy Spirit of God.
             </p>
 
@@ -171,7 +171,7 @@ export default function AboutPage() {
               The 3rd secret of living “In the Spirit”: The search for God requires that you keep asking God for help, and accept it when it comes.
             </p>
 
-            <h2 className="mt-10">About the Writer</h2>
+            <h2>About the Writer</h2>
 
             <p>
               Dr. Russell was born in 1926 in Long Beach, California. He matriculated at UCLA, Berkeley, and Stanford, where he received his Ed.D. He began his teaching career at Punahou, went on to teach at Stanford for 8 years, and finished his 49-year teaching career at Southern Illinois University, Carbondale, Illinois.
