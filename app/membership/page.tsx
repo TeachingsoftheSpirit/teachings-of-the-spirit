@@ -3,9 +3,12 @@
 import { useState } from 'react'
 import Header from '@/components/Header'
 import Image from 'next/image'
+import { useSearchParams } from 'next/navigation'
 
 export default function MembershipPage() {
   const [loading, setLoading] = useState<string | null>(null)
+  const searchParams = useSearchParams()
+  const success = searchParams.get('success')
 
   const handleCheckout = async (priceId: string) => {
     setLoading(priceId)
@@ -33,19 +36,25 @@ export default function MembershipPage() {
     <main className="min-h-screen bg-[#F7F4EF]">
       <Header />
 
-      <div className="max-w-3xl mx-auto px-6 pt-16 pb-24">
-        <div className="text-center mb-14">
+      <div className="max-w-4xl mx-auto px-6 pt-12 pb-24">
+        {success && (
+          <div className="mb-8 rounded-xl border border-[#C9BEB0] bg-white/70 px-5 py-4 text-center text-[#2C2522]">
+            Thank you. Your membership is active. Welcome further in.
+          </div>
+        )}
+
+        <div className="text-center mb-12">
           <h1 className="text-3xl sm:text-4xl font-medium text-[#2C2522] mb-3">
             I’ll have a pint, please
           </h1>
           <p className="text-[#6B5E54] text-[17px] max-w-xl mx-auto leading-relaxed">
-            So glad you’ve found our library.<br />
+            So glad you’ve found our library.
+            <br />
             There’s more we have to offer: further up and further in!
           </p>
         </div>
 
-        <div className="grid gap-10 md:grid-cols-2">
-
+        <div className="grid gap-8 md:grid-cols-2">
           {/* Ordinary Pint */}
           <div className="rounded-2xl border border-[#E5DFD3] bg-white/60 overflow-hidden flex flex-col">
             <div className="relative w-full aspect-[3/2]">
@@ -64,13 +73,11 @@ export default function MembershipPage() {
               <p className="text-sm text-[#6B5E54] mb-6">
                 Full access to the library
               </p>
-
               <ul className="text-[15px] text-[#2C2522] space-y-2 mb-8 flex-1">
                 <li>• Open any Teaching from Titles</li>
                 <li>• Open any Teaching from Browse</li>
                 <li>• Read the Quotes</li>
               </ul>
-
               <div className="space-y-3">
                 <button
                   onClick={() => handleCheckout('price_1TvnT3DAWPDfVwdnpN1woX0c')}
@@ -114,14 +121,12 @@ export default function MembershipPage() {
               <p className="text-sm text-[#6B5E54] mb-6">
                 Everything in the Ordinary Pint, and more
               </p>
-
               <ul className="text-[15px] text-[#2C2522] space-y-2 mb-8 flex-1">
                 <li>• Full access to all Teachings</li>
                 <li>• Galadriel’s Mirror (videos)</li>
                 <li>• Future gatherings & conversations</li>
                 <li>• The deeper rooms as they open</li>
               </ul>
-
               <div className="space-y-3">
                 <button
                   onClick={() => handleCheckout('price_1TvnUGDAWPDfVwdnb0dPIKXk')}
@@ -143,7 +148,6 @@ export default function MembershipPage() {
               </div>
             </div>
           </div>
-
         </div>
 
         <p className="mt-12 text-center text-sm text-[#6B5E54]">

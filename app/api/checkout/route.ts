@@ -4,10 +4,11 @@ import { stripe } from '@/lib/stripe/server'
 export async function POST(request: Request) {
   try {
     const { priceId } = await request.json()
-
     if (!priceId) {
       return NextResponse.json({ error: 'Missing priceId' }, { status: 400 })
     }
+
+    const origin = request.headers.get('origin') || 'http://localhost:3000'
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -18,8 +19,8 @@ export async function POST(request: Request) {
           quantity: 1,
         },
       ],
-      success_url: `${request.headers.get('origin')}/membership?success=true`,
-      cancel_url: `${request.headers.get('origin')}/membership?canceled=true`,
+      success_url: `${origin}/membership?success=true`,
+      cancel_url: `${origin}/membership`,
     })
 
     return NextResponse.json({ url: session.url })

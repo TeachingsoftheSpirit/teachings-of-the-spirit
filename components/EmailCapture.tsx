@@ -31,7 +31,7 @@ export default function EmailCapture({
   teachingTitle,
 }: Props) {
   const [email, setEmail] = useState('')
-  const [status, setStatus] = useState<'idle' | 'sending' | 'key-sent' | 'success' | 'error'>('idle')
+  const [status, setStatus] = useState<'idle' | 'sending' | 'key-sent' | 'verified' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
   const [savedEmail, setSavedEmail] = useState('')
   const [memo, setMemo] = useState('')
@@ -44,7 +44,6 @@ export default function EmailCapture({
   const [sendingToSomeone, setSendingToSomeone] = useState(false)
   const [sendStatus, setSendStatus] = useState<'idle' | 'sent' | 'error'>('idle')
   const [checkingSession, setCheckingSession] = useState(false)
-
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const dragStart = useRef({ x: 0, y: 0 })
@@ -83,16 +82,13 @@ export default function EmailCapture({
       setCheckingSession(true)
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-
       if (user?.email) {
         setSavedEmail(user.email)
         setStatus('success')
         await fetchSavedList()
       }
-
       setCheckingSession(false)
     }
-
     checkSession()
   }, [isOpen])
 
@@ -106,7 +102,6 @@ export default function EmailCapture({
     }
 
     const supabase = createClient()
-
     pollRef.current = setInterval(async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (user?.email) {
@@ -115,8 +110,7 @@ export default function EmailCapture({
           pollRef.current = null
         }
         setSavedEmail(user.email)
-        setStatus('success')
-        await fetchSavedList()
+        setStatus('verified')
       }
     }, 2500)
 
@@ -128,7 +122,6 @@ export default function EmailCapture({
     }
   }, [status])
 
-  // When the list loads, check if the current teaching is already saved
   useEffect(() => {
     if (teachingNumber && savedList.length > 0) {
       const already = savedList.some((item) => item.teaching_number === teachingNumber)
@@ -187,13 +180,10 @@ export default function EmailCapture({
       setMessage('Please enter your email address.')
       return
     }
-
     setStatus('sending')
     setMessage('')
-
     try {
       const supabase = createClient()
-
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
@@ -201,9 +191,7 @@ export default function EmailCapture({
           shouldCreateUser: true,
         },
       })
-
       if (error) throw error
-
       setStatus('key-sent')
       setSavedEmail(email.trim())
     } catch (err: any) {
@@ -285,7 +273,6 @@ export default function EmailCapture({
         className="absolute inset-0 bg-black/10 pointer-events-auto"
         onClick={onClose}
       />
-
       <div
         ref={cardRef}
         className="absolute pointer-events-auto"
@@ -299,22 +286,27 @@ export default function EmailCapture({
       >
         <div className="relative w-full rounded-sm overflow-hidden shadow-2xl" style={{ height: '640px' }}>
           <Image
-            src="/doors-of-durin-full.JPG"            alt="Doors of Durin"
+            src="/doors-of-durin-full.JPG"
+            alt="Doors of Durin"
             fill
             className="object-contain object-top bg-[#f5f0e6]"
             priority
             sizes="460px"
           />
-
           <div className="absolute left-[5.1rem] right-[5.1rem] bottom-5 top-[255px] flex flex-col">
             <div className="bg-[#F7F1E6]/93 border border-[#C9B896] rounded-sm shadow-xl flex flex-col h-full overflow-hidden">
-              
               <div
                 data-drag-handle
                 className="flex items-center justify-between px-4 py-2.5 border-b border-[#E0D5C0] bg-[#F0E9DC]/95 cursor-grab active:cursor-grabbing select-none shrink-0"
               >
                 <div className="text-[13px] font-medium text-[#2A241C] tracking-wide">
-                  {status === 'success' ? 'Special Collections' : status === 'key-sent' ? 'A Key Has Been Sent' : 'A Library Card'}
+                  {status === 'success'
+                    ? 'Special Collections'
+                    : status === 'key-sent'
+                    ? 'A Key Has Been Sent'
+                    : status === 'verified'
+                    ? 'Thank You'
+                    : 'A Library Card'}
                 </div>
                 <button
                   onClick={onClose}
@@ -328,6 +320,25 @@ export default function EmailCapture({
                 {checkingSession ? (
                   <div className="py-8 text-center text-[#6B5E54]">
                     Opening your room…
+                  </div>
+                ) : status === 'verified' ? (
+                  <div className="space-y-5 text-center py-4">
+                    <h3 className="text-lg font-medium text-[#2A241C]">
+                      Thank you for verifying
+                    </h3>
+                    <p className="leading-relaxed text-[#3F362E]">
+                      Your Special Collections room is now open.
+                      <br /><br />
+                      Look in the <strong>top right</strong> of any page for the
+                      Special Collections icon. You can open it whenever you wish
+                      to save a Teaching or return to the ones you have kept.
+                    </p>
+                    <button
+                      onClick={onClose}
+                      className="w-full py-2 border border-[#C9B896] text-[#2A241C] text-[14px] rounded-sm hover:bg-[#EDE4D4] transition-colors"
+                    >
+                      Close
+                    </button>
                   </div>
                 ) : status === 'success' ? (
                   <div className="space-y-5">
