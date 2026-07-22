@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Header from '@/components/Header'
+import { stripe } from '@/lib/stripe/server'
 
 const ADMIN_EMAIL = 'jprussell@protonmail.com'
 
@@ -12,9 +13,21 @@ export default async function AdminPage() {
     redirect('/login')
   }
 
-  // Only allow the designated admin
   if (user.email !== ADMIN_EMAIL) {
     redirect('/')
+  }
+
+  // Simple check that Stripe is connected
+  let stripeStatus = 'Not connected'
+  let productCount = 0
+
+  try {
+    const products = await stripe.products.list({ limit: 5 })
+    productCount = products.data.length
+    stripeStatus = 'Connected'
+  } catch (err) {
+    stripeStatus = 'Error connecting to Stripe'
+    console.error(err)
   }
 
   return (
@@ -28,11 +41,26 @@ export default async function AdminPage() {
           Signed in as {user.email}
         </p>
 
+        {/* Stripe Section */}
+        <section className="mb-12 p-6 rounded-xl border border-[#E5DFD3] bg-white/50">
+          <h2 className="text-lg font-medium text-[#2C2522] mb-3">
+            Stripe
+          </h2>
+          <p className="text-[15px] text-[#6B5E54] mb-1">
+            Status: <span className="text-[#2C2522]">{stripeStatus}</span>
+          </p>
+          {stripeStatus === 'Connected' && (
+            <p className="text-[15px] text-[#6B5E54]">
+              Products found: {productCount}
+            </p>
+          )}
+        </section>
+
         <div className="space-y-4 text-[15px] text-[#2C2522]">
           <p>This is the beginning of the protected administrative area.</p>
           <p>From here we will later add:</p>
           <ul className="list-disc pl-5 space-y-1 text-[#6B5E54]">
-            <li>Stripe / subscription management</li>
+            <li>Subscription management</li>
             <li>Notes and internal tools</li>
             <li>Conversation monitoring</li>
             <li>Other house-keeping functions</li>
