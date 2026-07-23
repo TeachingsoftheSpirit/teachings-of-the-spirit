@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
         const isCanceled =
           subscription.status === 'canceled' ||
-          subscription.cancel_at_period_end === true
+          (subscription as any).cancel_at_period_end === true
 
         if (!isCanceled) {
           break
@@ -68,8 +68,9 @@ export async function POST(req: NextRequest) {
             await issueAnnualPartialRefund(subscription, profile.email)
           }
         } else {
-          if (subscription.current_period_end) {
-            accessEndsAt = new Date(subscription.current_period_end * 1000).toISOString()
+          const periodEnd = (subscription as any).current_period_end
+          if (periodEnd) {
+            accessEndsAt = new Date(periodEnd * 1000).toISOString()
           }
         }
 
@@ -119,14 +120,15 @@ async function issueAnnualPartialRefund(
 
     const now = new Date()
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    const periodEnd = new Date(subscription.current_period_end * 1000)
+    const periodEnd = (subscription as any).current_period_end
+    const periodStart = (subscription as any).current_period_start
 
-    if (periodEnd <= endOfMonth) {
+    if (!periodEnd || !periodStart || periodEnd * 1000 <= endOfMonth.getTime()) {
       return
     }
 
-    const totalMs = periodEnd.getTime() - new Date(subscription.current_period_start * 1000).getTime()
-    const unusedMs = periodEnd.getTime() - endOfMonth.getTime()
+    const totalMs = periodEnd * 1000 - periodStart * 1000
+    const unusedMs = periodEnd * 1000 - endOfMonth.getTime()
     const refundFraction = unusedMs / totalMs
     const amountPaid = latestInvoice.amount_paid
     const refundAmount = Math.floor(amountPaid * refundFraction)
