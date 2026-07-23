@@ -109,7 +109,7 @@ async function issueAnnualPartialRefund(
       limit: 1,
     })
 
-    const latestInvoice = invoices.data[0]
+    const latestInvoice = invoices.data[0] as any
     if (!latestInvoice || !latestInvoice.charge) {
       return
     }
