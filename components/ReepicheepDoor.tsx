@@ -1,15 +1,12 @@
 'use client'
-
 import { useState } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
-
 interface ReepicheepDoorProps {
   isOpen: boolean
   onClose: () => void
   onRequestEmailCapture: () => void
 }
-
 export default function ReepicheepDoor({
   isOpen,
   onClose,
@@ -23,9 +20,7 @@ export default function ReepicheepDoor({
   const [error, setError] = useState('')
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
   const [resetSent, setResetSent] = useState(false)
-
   if (!isOpen) return null
-
   const handleClose = () => {
     setView('main')
     setIdentifier('')
@@ -36,56 +31,45 @@ export default function ReepicheepDoor({
     setResetSent(false)
     onClose()
   }
-
   const resolveEmail = async (value: string): Promise<string | null> => {
     // If it looks like an email, use it directly
     if (value.includes('@')) {
       return value.trim()
     }
-
     // Otherwise treat it as a username and ask the server
     const res = await fetch('/api/auth/resolve-username', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: value.trim() }),
     })
-
     const data = await res.json()
-
     if (!res.ok) {
       throw new Error(data.error || 'No member found with that username')
     }
-
     return data.email
   }
-
   const handleMemberLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     setResetSent(false)
-
     try {
       const emailToUse = await resolveEmail(identifier)
-
       if (!emailToUse) {
         setError('No member found with that username.')
         setLoading(false)
         return
       }
-
       const supabase = createClient()
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: emailToUse,
         password,
       })
-
       if (signInError) {
         setError(signInError.message)
         setLoading(false)
         return
       }
-
       // Success — close the door
       handleClose()
     } catch (err: any) {
@@ -93,34 +77,28 @@ export default function ReepicheepDoor({
       setLoading(false)
     }
   }
-
   const handleForgotPassword = async () => {
     if (!identifier.trim()) {
       setError('Please enter your email or username first.')
       return
     }
-
     setLoading(true)
     setError('')
     setResetSent(false)
-
     try {
       const emailToUse = await resolveEmail(identifier)
-
       if (!emailToUse) {
         setError('No member found with that username.')
         setLoading(false)
         return
       }
-
       const supabase = createClient()
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(
         emailToUse,
         {
-          redirectTo: `${window.location.origin}/auth/reset-password`,redirectTo: `${window.location.origin}/auth/reset-password`,
+          redirectTo: `${window.location.origin}/auth/reset-password`,
         }
       )
-
       if (resetError) {
         setError(resetError.message)
       } else {
@@ -132,7 +110,6 @@ export default function ReepicheepDoor({
       setLoading(false)
     }
   }
-
   const handleCheckout = async (priceId: string) => {
     setCheckoutLoading(priceId)
     try {
@@ -154,7 +131,6 @@ export default function ReepicheepDoor({
       setCheckoutLoading(null)
     }
   }
-
   return (
     <>
       {/* Backdrop */}
@@ -162,7 +138,6 @@ export default function ReepicheepDoor({
         className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
         onClick={handleClose}
       />
-
       {/* ───────── Main card ───────── */}
       {view === 'main' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
@@ -226,7 +201,6 @@ export default function ReepicheepDoor({
           </div>
         </div>
       )}
-
       {/* ───────── Already a Member ───────── */}
       {view === 'member' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
@@ -293,7 +267,6 @@ export default function ReepicheepDoor({
                     </button>
                   </div>
                 </div>
-
                 {error && (
                   <p className="text-xs text-red-700 text-center">{error}</p>
                 )}
@@ -302,7 +275,6 @@ export default function ReepicheepDoor({
                     A reset link has been sent to your email.
                   </p>
                 )}
-
                 <button
                   type="submit"
                   disabled={loading}
@@ -338,7 +310,6 @@ export default function ReepicheepDoor({
           </div>
         </div>
       )}
-
       {/* ───────── Further up: two subscription cards ───────── */}
       {view === 'expanded' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 pointer-events-none">
@@ -363,7 +334,6 @@ export default function ReepicheepDoor({
                 Close
               </button>
             </div>
-
             {/* Two cards */}
             <div className="p-5 sm:p-6 grid gap-6 md:grid-cols-2">
               {/* House Brew */}
@@ -410,7 +380,6 @@ export default function ReepicheepDoor({
                   </div>
                 </div>
               </div>
-
               {/* Private Reserve */}
               <div className="rounded-2xl border border-[#C9BEB0] bg-white/80 overflow-hidden flex flex-col relative">
                 <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-[#2C2522] text-[#F7F4EF] text-[11px] tracking-wide px-3 py-0.5 rounded-full">
@@ -460,7 +429,6 @@ export default function ReepicheepDoor({
                 </div>
               </div>
             </div>
-
             <p className="px-6 pb-6 text-center text-sm text-[#6B5E54]">
               You may leave at any time. The threshold remains open.
             </p>
