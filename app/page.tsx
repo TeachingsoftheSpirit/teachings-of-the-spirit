@@ -20,6 +20,8 @@ export default function Home() {
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  const STORAGE_KEY = 'home-featured-ids'
+
   // === The 7 Palantíri — Improved Size Progression ===
   const palantiri = [
     { id: 1, topic: "Death", word: "Death", angle: 10, size: 72, top: -42 },
@@ -41,31 +43,70 @@ export default function Home() {
     "Forgiveness": ["forgive", "forgiveness", "mercy"],
   }
 
-  useEffect(() => {
-    fetchFeatured()
-  }, [])
-
-  const fetchFeatured = async () => {
-    const { data } = await supabase
-      .from('teachings')
-      .select('teaching_number, title, date')
-      .order('teaching_number', { ascending: false })
-      .limit(7)
-    setFeaturedTeachings(data || [])
+  function getRandomSubset<T>(arr: T[], n: number): T[] {
+    const copy = [...arr]
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[copy[i], copy[j]] = [copy[j], copy[i]]
+    }
+    return copy.slice(0, n)
   }
+
+  useEffect(() => {
+    const loadFeatured = async () => {
+      // Restore from this browser session if we already have a set
+      const stored = sessionStorage.getItem(STORAGE_KEY)
+      if (stored) {
+        try {
+          const ids: number[] = JSON.parse(stored)
+          if (Array.isArray(ids) && ids.length === 7) {
+            const { data } = await supabase
+              .from('teachings')
+              .select('teaching_number, title, date')
+              .in('teaching_number', ids)
+
+            if (data && data.length === 7) {
+              const ordered = ids
+                .map(id => data.find(t => t.teaching_number === id))
+                .filter(Boolean) as any[]
+              setFeaturedTeachings(ordered)
+              return
+            }
+          }
+        } catch {
+          // fall through and generate a new set
+        }
+      }
+
+      // First entry into the Main Room this session → new random selection
+      const { data } = await supabase
+        .from('teachings')
+        .select('teaching_number, title, date')
+        .limit(300)
+
+      if (data && data.length > 0) {
+        const selected = getRandomSubset(data, 7)
+        setFeaturedTeachings(selected)
+        sessionStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify(selected.map(t => t.teaching_number))
+        )
+      }
+    }
+
+    loadFeatured()
+  }, [])
 
   const fetchForTopic = async (word: string) => {
     const keywords = topicKeywords[word] || [word.toLowerCase()]
     const orConditions = keywords
       .map(k => `title.ilike.%${k}%,full_text.ilike.%${k}%`)
       .join(',')
-
     const { data } = await supabase
       .from('teachings')
       .select('teaching_number, title, date')
       .or(orConditions)
       .limit(7)
-
     setFilteredTeachings(data || [])
     setActiveFilter(word)
     setActivatedId(null)
@@ -76,13 +117,13 @@ export default function Home() {
     setFilteredTeachings([])
   }
 
-  // === 0.5 Second Hover + Persistent Word ===
+  // === 0.375 Second Hover + Persistent Word (was 500 ms) ===
   const handleMouseEnter = (id: number) => {
     setHoveredId(id)
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
     timeoutRef.current = setTimeout(() => {
       setActivatedId(id)
-    }, 500)
+    }, 375)
   }
 
   const handleMouseLeave = () => {
@@ -100,23 +141,18 @@ export default function Home() {
       setTestMessage('Please enter an email address')
       return
     }
-
     setTestStatus('sending')
     setTestMessage('Sending...')
-
     try {
       const res = await fetch('/api/welcome-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: testEmail, source: 'home-test' }),
       })
-
       const data = await res.json()
-
       if (!res.ok) {
         throw new Error(data.error || 'Failed to send')
       }
-
       setTestStatus('success')
       setTestMessage('Email sent successfully! Check your inbox (and spam folder).')
     } catch (err: any) {

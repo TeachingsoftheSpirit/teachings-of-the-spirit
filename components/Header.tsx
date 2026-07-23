@@ -58,7 +58,6 @@ export default function Header({ active = 'home' }: { active?: string }) {
       <header className="sticky top-0 bg-[#F7F4EF] border-b border-[#C9BEB0] z-50">
         <div className="max-w-5xl mx-auto px-3 sm:px-6">
           <nav className="flex items-center justify-center h-12 sm:h-16 relative">
-
             {isAdmin && (
               <Link
                 href="/admin"
@@ -89,7 +88,6 @@ export default function Header({ active = 'home' }: { active?: string }) {
               <span className="text-[7px] sm:text-[9px] leading-none mt-0.5 tracking-wide text-[#5C4A3A]">
                 Further up and further in!
               </span>
-
               <div className="absolute left-0 top-full mt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
                 <div className="bg-[#F7F4EF] border border-[#C9BEB0] rounded-lg shadow-lg p-2">
                   <Image
@@ -150,12 +148,10 @@ export default function Header({ active = 'home' }: { active?: string }) {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
       />
-
       <EmailCapture
         isOpen={isEmailCaptureOpen}
         onClose={() => setIsEmailCaptureOpen(false)}
       />
-
       <ReepicheepDoor
         isOpen={isReepicheepOpen}
         onClose={() => setIsReepicheepOpen(false)}

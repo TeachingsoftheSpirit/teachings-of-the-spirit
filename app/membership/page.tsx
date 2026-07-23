@@ -42,7 +42,7 @@ function MembershipContent() {
 
       <div className="text-center mb-12">
         <h1 className="text-3xl sm:text-4xl font-medium text-[#2C2522] mb-3">
-          I’ll have a pint, please
+          I’ll have the House Brew, please
         </h1>
         <p className="text-[#6B5E54] text-[17px] max-w-xl mx-auto leading-relaxed">
           So glad you’ve found our library.
@@ -52,12 +52,12 @@ function MembershipContent() {
       </div>
 
       <div className="grid gap-8 md:grid-cols-2">
-        {/* Ordinary Pint */}
+        {/* House Brew */}
         <div className="rounded-2xl border border-[#E5DFD3] bg-white/60 overflow-hidden flex flex-col">
           <div className="relative w-full aspect-[3/2]">
             <Image
               src="/images/ordinary-pint.jpg"
-              alt="A quiet pint in an old Oxford pub"
+              alt="A quiet house brew in an old Oxford pub"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 400px"
@@ -65,7 +65,7 @@ function MembershipContent() {
           </div>
           <div className="p-8 flex flex-col flex-1">
             <h2 className="text-xl font-medium text-[#2C2522] mb-1">
-              The Ordinary Pint
+              The House Brew
             </h2>
             <p className="text-sm text-[#6B5E54] mb-6">
               Full access to the library
@@ -116,7 +116,7 @@ function MembershipContent() {
               The Private Reserve
             </h2>
             <p className="text-sm text-[#6B5E54] mb-6">
-              Everything in the Ordinary Pint, and more
+              Everything in the House Brew, and more
             </p>
             <ul className="text-[15px] text-[#2C2522] space-y-2 mb-8 flex-1">
               <li>• Full access to all Teachings</li>

@@ -44,6 +44,9 @@ export default function EmailCapture({
   const [sendingToSomeone, setSendingToSomeone] = useState(false)
   const [sendStatus, setSendStatus] = useState<'idle' | 'sent' | 'error'>('idle')
   const [checkingSession, setCheckingSession] = useState(false)
+  const [membershipTier, setMembershipTier] = useState<string | null>(null)
+  const [billingInterval, setBillingInterval] = useState<string | null>(null)
+  const [openingPortal, setOpeningPortal] = useState(false)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const dragStart = useRef({ x: 0, y: 0 })
@@ -71,6 +74,9 @@ export default function EmailCapture({
       setJustSaved(false)
       setSendStatus('idle')
       setCheckingSession(false)
+      setMembershipTier(null)
+      setBillingInterval(null)
+      setOpeningPortal(false)
       if (pollRef.current) {
         clearInterval(pollRef.current)
         pollRef.current = null
@@ -85,6 +91,13 @@ export default function EmailCapture({
       if (user?.email) {
         setSavedEmail(user.email)
         setStatus('success')
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('subscription_status, billing_interval')
+          .eq('email', user.email.trim().toLowerCase())
+          .maybeSingle()
+        setMembershipTier(profile?.subscription_status || null)
+        setBillingInterval(profile?.billing_interval || null)
         await fetchSavedList()
       }
       setCheckingSession(false)
@@ -100,7 +113,6 @@ export default function EmailCapture({
       }
       return
     }
-
     const supabase = createClient()
     pollRef.current = setInterval(async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -113,7 +125,6 @@ export default function EmailCapture({
         setStatus('verified')
       }
     }, 2500)
-
     return () => {
       if (pollRef.current) {
         clearInterval(pollRef.current)
@@ -267,6 +278,51 @@ export default function EmailCapture({
     }
   }
 
+  const handleManageMembership = async () => {
+    setOpeningPortal(true)
+    try {
+      const res = await fetch('/api/membership/portal', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Unable to open membership portal')
+      window.open(data.url, '_blank', 'noopener,noreferrer')
+      setOpeningPortal(false)
+    } catch (err: any) {
+      console.error(err)
+      alert(err.message || 'Unable to open membership portal right now.')
+      setOpeningPortal(false)
+    }
+  }
+  const isPaidMember =
+    membershipTier === 'house_brew' || membershipTier === 'private_reserve'
+
+  // Build the title with a smaller interval
+  const renderTitle = () => {
+    if (status === 'key-sent') return 'A Key Has Been Sent'
+    if (status === 'verified') return 'Thank You'
+    if (status !== 'success') return 'A Library Card'
+
+    let tierLabel = ''
+    if (membershipTier === 'house_brew') tierLabel = 'House Brew'
+    else if (membershipTier === 'private_reserve') tierLabel = 'Private Reserve'
+
+    if (!tierLabel) return 'Special Collections'
+
+    let intervalLabel = ''
+    if (billingInterval === 'monthly') intervalLabel = 'Monthly'
+    else if (billingInterval === 'annual') intervalLabel = 'Annual'
+
+    return (
+      <>
+        Special Collections – {tierLabel}
+        {intervalLabel && (
+          <span className="text-[11px] text-[#6B5E54] font-normal">
+            {' '}– {intervalLabel}
+          </span>
+        )}
+      </>
+    )
+  }
+
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
       <div
@@ -300,13 +356,7 @@ export default function EmailCapture({
                 className="flex items-center justify-between px-4 py-2.5 border-b border-[#E0D5C0] bg-[#F0E9DC]/95 cursor-grab active:cursor-grabbing select-none shrink-0"
               >
                 <div className="text-[13px] font-medium text-[#2A241C] tracking-wide">
-                  {status === 'success'
-                    ? 'Special Collections'
-                    : status === 'key-sent'
-                    ? 'A Key Has Been Sent'
-                    : status === 'verified'
-                    ? 'Thank You'
-                    : 'A Library Card'}
+                  {renderTitle()}
                 </div>
                 <button
                   onClick={onClose}
@@ -315,7 +365,6 @@ export default function EmailCapture({
                   ✕
                 </button>
               </div>
-
               <div className="px-4 py-4 overflow-y-auto flex-1 text-[13px]">
                 {checkingSession ? (
                   <div className="py-8 text-center text-[#6B5E54]">
@@ -342,6 +391,19 @@ export default function EmailCapture({
                   </div>
                 ) : status === 'success' ? (
                   <div className="space-y-5">
+                    {/* Manage membership – only for paid members */}
+                    {isPaidMember && (
+                      <div className="pb-1">
+                        <button
+                          onClick={handleManageMembership}
+                          disabled={openingPortal}
+                          className="text-[12px] text-[#6B5E54] hover:text-[#2A241C] underline underline-offset-2 transition-colors disabled:opacity-50"
+                        >
+                          {openingPortal ? 'Opening…' : 'Manage membership'}
+                        </button>
+                      </div>
+                    )}
+
                     {teachingNumber && teachingTitle && (
                       <div className="space-y-2">
                         {justSaved ? (
