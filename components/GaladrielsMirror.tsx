@@ -1,13 +1,10 @@
 'use client'
-
 import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
-
 type Props = {
   videoUrl: string
   title: string
 }
-
 export default function GaladrielsMirror({ videoUrl, title }: Props) {
   const [isOpen, setIsOpen] = useState(false)
   const [showVideo, setShowVideo] = useState(false)
@@ -15,24 +12,20 @@ export default function GaladrielsMirror({ videoUrl, title }: Props) {
   const [isDragging, setIsDragging] = useState(false)
   const dragStart = useRef({ x: 0, y: 0 })
   const videoRef = useRef<HTMLVideoElement>(null)
-
   useEffect(() => {
     if (!isOpen) {
       setShowVideo(false)
       return
     }
-
     if (typeof window !== 'undefined') {
       setPosition({
         x: Math.max(20, window.innerWidth / 2 - 340),
         y: Math.max(20, window.innerHeight / 2 - 260),
       })
     }
-
     const timer = setTimeout(() => setShowVideo(true), 900)
     return () => clearTimeout(timer)
   }, [isOpen])
-
   useEffect(() => {
     if (showVideo && videoRef.current) {
       const v = videoRef.current
@@ -46,26 +39,21 @@ export default function GaladrielsMirror({ videoUrl, title }: Props) {
         .catch(() => {})
     }
   }, [showVideo])
-
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
-
     const onEnded = () => {
       setTimeout(() => {
         setShowVideo(false)
       }, 1000)
     }
-
     video.addEventListener('ended', onEnded)
     return () => video.removeEventListener('ended', onEnded)
   }, [showVideo])
-
   const handleSurfaceClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation()
     const v = videoRef.current
     if (!v) return
-
     if (!showVideo) {
       setShowVideo(true)
     } else {
@@ -76,25 +64,20 @@ export default function GaladrielsMirror({ videoUrl, title }: Props) {
       }
     }
   }
-
   // --- Unified pointer / touch drag ---
   const onPointerDown = (e: React.PointerEvent) => {
     // Don’t start drag on the video surface or close button
     if ((e.target as HTMLElement).closest('video, button')) return
-
     e.preventDefault()
     e.stopPropagation()
-
     setIsDragging(true)
     dragStart.current = {
       x: e.clientX - position.x,
       y: e.clientY - position.y,
     }
-
     // Capture the pointer so we keep receiving events even if finger leaves the element
     ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
   }
-
   const onPointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return
     e.preventDefault()
@@ -103,7 +86,6 @@ export default function GaladrielsMirror({ videoUrl, title }: Props) {
       y: e.clientY - dragStart.current.y,
     })
   }
-
   const onPointerUp = (e: React.PointerEvent) => {
     if (!isDragging) return
     setIsDragging(false)
@@ -111,7 +93,6 @@ export default function GaladrielsMirror({ videoUrl, title }: Props) {
       ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
     } catch {}
   }
-
   return (
     <>
       <button
@@ -130,7 +111,6 @@ export default function GaladrielsMirror({ videoUrl, title }: Props) {
           Galadriel’s Mirror
         </span>
       </button>
-
       {isOpen && (
         <div className="fixed inset-0 z-50 pointer-events-none">
           {/* Backdrop */}
@@ -138,7 +118,6 @@ export default function GaladrielsMirror({ videoUrl, title }: Props) {
             className="absolute inset-0 bg-black/20 pointer-events-auto"
             onClick={() => setIsOpen(false)}
           />
-
           {/* The Mirror */}
           <div
             className="absolute pointer-events-auto touch-none"
@@ -165,14 +144,12 @@ export default function GaladrielsMirror({ videoUrl, title }: Props) {
                   priority
                   sizes="680px"
                 />
-
                 <button
                   onClick={() => setIsOpen(false)}
                   className="absolute top-3 right-3 z-30 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 text-white/90 hover:bg-black/70 text-sm"
                 >
                   ✕
                 </button>
-
                 <div
                   className="absolute overflow-hidden transition-opacity duration-[2000ms] cursor-pointer"
                   style={{
@@ -195,7 +172,6 @@ export default function GaladrielsMirror({ videoUrl, title }: Props) {
                 </div>
               </div>
             </div>
-
             <div className="mt-2 text-center text-[12px] tracking-wide text-[#6B5E54]">
               {title}
             </div>
