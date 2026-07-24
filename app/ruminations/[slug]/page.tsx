@@ -6,10 +6,14 @@ import RuminationsTeachingsPanel from '@/components/RuminationsTeachingsPanel'
 
 type Props = {
   params: Promise<{ slug: string }>
+  searchParams: Promise<{ from?: string }>
 }
 
-export default async function RuminationPage({ params }: Props) {
+export default async function RuminationPage({ params, searchParams }: Props) {
   const { slug } = await params
+  const { from } = await searchParams
+  const fromTeaching = from ? parseInt(from, 10) : null
+
   const supabase = await createClient()
 
   const { data: rumination } = await supabase
@@ -20,6 +24,17 @@ export default async function RuminationPage({ params }: Props) {
 
   if (!rumination) {
     notFound()
+  }
+
+  // Optional: fetch title of the Teaching we came from (for a nicer return label)
+  let fromTitle: string | null = null
+  if (fromTeaching && !isNaN(fromTeaching)) {
+    const { data: t } = await supabase
+      .from('teachings')
+      .select('title')
+      .eq('teaching_number', fromTeaching)
+      .single()
+    fromTitle = t?.title ?? null
   }
 
   const { data: linked } = await supabase
@@ -39,8 +54,8 @@ export default async function RuminationPage({ params }: Props) {
     .map((row: any) => row.teachings)
     .filter(Boolean)
 
-  const pageCount = slug === 'vol-2-no-2' ? 12 : 0
-  const baseUrl = 'https://ednmsemgscovnzspbcvd.supabase.co/storage/v1/object/public/ruminations/vol-2-no-2'
+  const pageCount = rumination.page_count || 0
+  const baseUrl = `https://ednmsemgscovnzspbcvd.supabase.co/storage/v1/object/public/ruminations/${slug}`
 
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
@@ -70,8 +85,28 @@ export default async function RuminationPage({ params }: Props) {
         </div>
       </div>
 
+      {/* Floo return — only when arrived from a Teaching */}
+            {fromTeaching && !isNaN(fromTeaching) && (
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6">
+          <Link
+            href={`/teachings/${fromTeaching}`}
+            className="inline-flex items-center gap-1.5 text-sm transition-all duration-300
+              text-[#2C2522]
+              hover:text-[#00C853]
+              hover:[text-shadow:0_0_12px_rgba(0,220,120,0.85),0_0_28px_rgba(0,200,100,0.55)]
+              focus:outline-none"
+          >
+            <span className="text-[14px] leading-none text-[#00C853]">◈</span>
+            <span>
+              Return to Teaching
+              {fromTitle ? `: ${fromTitle}` : ` #${fromTeaching}`}
+            </span>
+          </Link>
+        </div>
+      )}
+
       {/* Centered pages */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-24">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 pb-24">
         {pageCount > 0 ? (
           <div className="space-y-10">
             {Array.from({ length: pageCount }, (_, i) => {
@@ -104,6 +139,7 @@ export default async function RuminationPage({ params }: Props) {
         <RuminationsTeachingsPanel
           teachings={relatedTeachings}
           pageCount={pageCount}
+          slug={slug}
         />
       )}
     </main>

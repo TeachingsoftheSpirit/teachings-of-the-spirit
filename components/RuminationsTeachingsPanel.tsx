@@ -12,27 +12,38 @@ type Teaching = {
 type Props = {
   teachings: Teaching[]
   pageCount: number
+  slug: string
 }
 
-// Approximate page → teaching map for Vol. 2, No. 2
-// (hand-authored for this experiment only)
-const PAGE_MAP: Record<number, number[]> = {
-  1: [],
-  2: [],
-  3: [139],
-  4: [139, 140],
-  5: [140, 141],
-  6: [141, 142],
-  7: [142, 90],
-  8: [201],
-  9: [201],
-  10: [320],
-  11: [320],
-  12: [320],
+const PAGE_MAPS: Record<string, Record<number, number[]>> = {
+  'vol-2-no-2': {
+    1: [],
+    2: [],
+    3: [139],
+    4: [139, 141],
+    5: [141, 90],
+    6: [141],
+    7: [141, 140],
+    8: [140, 142],
+    9: [142],
+    10: [201],
+    11: [201, 320],
+    12: [320],
+  },
+  'vol-21-no-3': {
+    1: [3099],
+    2: [3099, 3100],
+    3: [3100, 2704],
+    4: [2704, 2752],
+    5: [2752],
+    6: [2557],
+    7: [2557],
+  },
 }
 
-export default function RuminationsTeachingsPanel({ teachings, pageCount }: Props) {
+export default function RuminationsTeachingsPanel({ teachings, pageCount, slug }: Props) {
   const [activePages, setActivePages] = useState<number[]>([])
+  const pageMap = PAGE_MAPS[slug] || {}
 
   useEffect(() => {
     const observers: IntersectionObserver[] = []
@@ -68,10 +79,9 @@ export default function RuminationsTeachingsPanel({ teachings, pageCount }: Prop
     return () => observers.forEach((o) => o.disconnect())
   }, [pageCount])
 
-  // Collect teaching numbers that should be highlighted right now
   const activeTeachingNums = new Set<number>()
   activePages.forEach((p) => {
-    ;(PAGE_MAP[p] || []).forEach((n) => activeTeachingNums.add(n))
+    ;(pageMap[p] || []).forEach((n) => activeTeachingNums.add(n))
   })
 
   return (
@@ -90,25 +100,33 @@ export default function RuminationsTeachingsPanel({ teachings, pageCount }: Prop
               <li key={t.teaching_number}>
                 <Link
                   href={`/teachings/${t.teaching_number}`}
-                  className="block group"
+                  className={`block group transition-all duration-300 focus:outline-none ${
+                    isActive
+                      ? 'text-[#00C853] [text-shadow:0_0_12px_rgba(0,220,120,0.85),0_0_28px_rgba(0,200,100,0.55)]'
+                      : 'hover:text-[#00C853] hover:[text-shadow:0_0_12px_rgba(0,220,120,0.85),0_0_28px_rgba(0,200,100,0.55)]'
+                  }`}
                 >
                   <div
-                    className={`text-[10px] tabular-nums ${
-                      isActive ? 'text-[#2C2522] font-medium' : 'text-[#8A7B65]'
+                    className={`text-[10px] tabular-nums transition-colors duration-300 ${
+                      isActive ? 'text-[#00A844] font-medium' : 'text-[#8A7B65] group-hover:text-[#00A844]'
                     }`}
                   >
                     #{t.teaching_number}
                   </div>
                   <div
-                    className={`text-[11px] leading-snug transition-colors ${
+                    className={`text-[11px] leading-snug transition-colors duration-300 ${
                       isActive
-                        ? 'text-[#2C2522] font-semibold'
-                        : 'text-[#2C2522] group-hover:text-[#4A3F38]'
+                        ? 'text-[#00C853] font-semibold'
+                        : 'text-[#2C2522] group-hover:text-[#00C853]'
                     }`}
                   >
                     {t.title}
                   </div>
-                  <div className="text-[9px] text-[#8A7B65] mt-0.5">
+                  <div
+                    className={`text-[9px] mt-0.5 transition-colors duration-300 ${
+                      isActive ? 'text-[#00A844]' : 'text-[#8A7B65] group-hover:text-[#00A844]'
+                    }`}
+                  >
                     {t.date}
                   </div>
                 </Link>
