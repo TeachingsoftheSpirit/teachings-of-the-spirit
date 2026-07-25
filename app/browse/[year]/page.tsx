@@ -4,7 +4,6 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import TitlesList from '@/components/TitlesList'
 import { getMembershipLevel, canAccess } from '@/lib/membership'
-
 export default async function YearPage({
   params,
 }: {
@@ -13,10 +12,8 @@ export default async function YearPage({
   const { year: yearParam } = await params
   const year = parseInt(yearParam, 10)
   if (isNaN(year)) notFound()
-
   const level = await getMembershipLevel()
-  const allowBrowse = canAccess(level, 'browse_years')
-
+  const allowBrowse = canAccess(level, 'browse_open')
   if (!allowBrowse) {
     return (
       <main className="min-h-screen bg-[#F7F4EF]">
@@ -50,16 +47,13 @@ export default async function YearPage({
       </main>
     )
   }
-
   const supabase = await createClient()
   const { data: teachings } = await supabase
     .from('teachings')
     .select('teaching_number, title, year, date, slug')
     .eq('year', year)
     .order('teaching_number', { ascending: true })
-
   if (!teachings || teachings.length === 0) notFound()
-
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
       <Header active="browse" />
