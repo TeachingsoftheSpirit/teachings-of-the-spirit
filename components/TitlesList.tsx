@@ -8,6 +8,7 @@ type Teaching = {
   title: string
   year: number | null
   date: string | null
+  slug?: string | null
 }
 
 type SortConfig = {
@@ -15,14 +16,19 @@ type SortConfig = {
   direction: 'asc' | 'desc'
 }
 
-export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
+export default function TitlesList({
+  teachings,
+  allowOpen = true,
+}: {
+  teachings: Teaching[]
+  allowOpen?: boolean
+}) {
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: 'date',
     direction: 'asc',
   })
   const [expanded, setExpanded] = useState<Record<number, boolean>>({})
 
-  // Sorting logic
   const sortedTeachings = [...teachings].sort((a, b) => {
     if (sortConfig.key === 'date') {
       const dateA = a.date ? new Date(a.date).getTime() : 0
@@ -54,7 +60,6 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
     return sortConfig.direction === 'asc' ? ' ↑' : ' ↓'
   }
 
-  // Theme logic (kept from before)
   const THEMES = [
     { name: 'Death', keywords: ['death', 'dying', 'die'] },
     { name: 'Grace', keywords: ['grace'] },
@@ -66,9 +71,9 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
 
   function getThemes(title: string): string[] {
     const lower = title.toLowerCase()
-    return THEMES
-      .filter((t) => t.keywords.some((k) => lower.includes(k)))
-      .map((t) => t.name)
+    return THEMES.filter((t) => t.keywords.some((k) => lower.includes(k))).map(
+      (t) => t.name
+    )
   }
 
   const byTheme: Record<string, Teaching[]> = {}
@@ -84,9 +89,12 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
     setExpanded((prev) => ({ ...prev, [num]: !prev[num] }))
   }
 
+  function hrefFor(t: Teaching) {
+    return `/teachings/${t.slug || t.teaching_number}`
+  }
+
   return (
     <div>
-      {/* Sortable headers - now correctly aligned */}
       <div className="flex justify-between text-xs uppercase tracking-widest text-[#6B5E54] mb-4 px-2">
         <button
           onClick={() => requestSort('title')}
@@ -101,19 +109,20 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
           Date{getSortIndicator('date')}
         </button>
       </div>
-
       <div className="space-y-0.5">
         {sortedTeachings.map((t) => {
           const themes = getThemes(t.title)
           const hasRelated = themes.length > 0
           const isOpen = expanded[t.teaching_number]
-
           let related: Teaching[] = []
           if (isOpen && hasRelated) {
             const seen = new Set<number>()
             for (const theme of themes) {
               for (const r of byTheme[theme] || []) {
-                if (r.teaching_number !== t.teaching_number && !seen.has(r.teaching_number)) {
+                if (
+                  r.teaching_number !== t.teaching_number &&
+                  !seen.has(r.teaching_number)
+                ) {
                   seen.add(r.teaching_number)
                   related.push(r)
                 }
@@ -121,22 +130,27 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
             }
             related.sort((a, b) => a.teaching_number - b.teaching_number)
           }
-
+          const titleClass = allowOpen
+            ? 'text-[#2C2522] group-hover:text-[#7A3E3E] text-[1.05rem] leading-snug'
+            : 'text-[#2C2522]/70 text-[1.05rem] leading-snug cursor-default'
           return (
             <div key={t.teaching_number}>
-              <div className="group flex items-baseline justify-between gap-3 py-2.5 px-2 -mx-2 rounded-md hover:bg-[#EDE7DC] transition-colors">
+              <div
+                className={`group flex items-baseline justify-between gap-3 py-2.5 px-2 -mx-2 rounded-md transition-colors ${
+                  allowOpen ? 'hover:bg-[#EDE7DC]' : 'opacity-70'
+                }`}
+              >
                 <div className="flex items-baseline gap-4 min-w-0 flex-1">
                   <span className="text-[#6B5E54] text-sm tabular-nums w-12 shrink-0">
                     {t.teaching_number}
                   </span>
-
-                  <Link
-                    href={`/teachings/${t.teaching_number}`}
-                    className="text-[#2C2522] group-hover:text-[#7A3E3E] text-[1.05rem] leading-snug"
-                  >
-                    {t.title}
-                  </Link>
-
+                  {allowOpen ? (
+                    <Link href={hrefFor(t)} className={titleClass}>
+                      {t.title}
+                    </Link>
+                  ) : (
+                    <span className={titleClass}>{t.title}</span>
+                  )}
                   {hasRelated && (
                     <button
                       onClick={() => toggle(t.teaching_number)}
@@ -147,35 +161,52 @@ export default function TitlesList({ teachings }: { teachings: Teaching[] }) {
                     </button>
                   )}
                 </div>
-
                 {t.date && (
                   <span className="text-[#6B5E54] text-sm shrink-0 tabular-nums">
                     {t.date}
                   </span>
                 )}
               </div>
-
               {isOpen && related.length > 0 && (
                 <div className="ml-16 pl-4 border-l border-[#E5DFD5]/80 mb-2 mt-0.5 space-y-0">
-                  {related.map((r) => (
-                    <Link
-                      key={r.teaching_number}
-                      href={`/teachings/${r.teaching_number}`}
-                      className="flex items-baseline justify-between gap-4 py-1 text-[0.9rem] text-[#5C534A] hover:text-[#7A3E3E] transition-colors"
-                    >
-                      <div className="flex items-baseline gap-3 min-w-0">
-                        <span className="text-[#6B5E54]/80 text-xs tabular-nums w-10 shrink-0">
-                          {r.teaching_number}
-                        </span>
-                        <span className="leading-snug">{r.title}</span>
+                  {related.map((r) =>
+                    allowOpen ? (
+                      <Link
+                        key={r.teaching_number}
+                        href={hrefFor(r)}
+                        className="flex items-baseline justify-between gap-4 py-1 text-[0.9rem] text-[#5C534A] hover:text-[#7A3E3E] transition-colors"
+                      >
+                        <div className="flex items-baseline gap-3 min-w-0">
+                          <span className="text-[#6B5E54]/80 text-xs tabular-nums w-10 shrink-0">
+                            {r.teaching_number}
+                          </span>
+                          <span className="leading-snug">{r.title}</span>
+                        </div>
+                        {r.date && (
+                          <span className="text-[#6B5E54]/80 text-xs shrink-0 tabular-nums">
+                            {r.date}
+                          </span>
+                        )}
+                      </Link>
+                    ) : (
+                      <div
+                        key={r.teaching_number}
+                        className="flex items-baseline justify-between gap-4 py-1 text-[0.9rem] text-[#5C534A]/80 cursor-default"
+                      >
+                        <div className="flex items-baseline gap-3 min-w-0">
+                          <span className="text-[#6B5E54]/80 text-xs tabular-nums w-10 shrink-0">
+                            {r.teaching_number}
+                          </span>
+                          <span className="leading-snug">{r.title}</span>
+                        </div>
+                        {r.date && (
+                          <span className="text-[#6B5E54]/80 text-xs shrink-0 tabular-nums">
+                            {r.date}
+                          </span>
+                        )}
                       </div>
-                      {r.date && (
-                        <span className="text-[#6B5E54]/80 text-xs shrink-0 tabular-nums">
-                          {r.date}
-                        </span>
-                      )}
-                    </Link>
-                  ))}
+                    )
+                  )}
                 </div>
               )}
             </div>

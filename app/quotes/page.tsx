@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Header from '@/components/Header'
 
@@ -30,11 +30,12 @@ export default function QuotesPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [expandedTeaching, setExpandedTeaching] = useState<Teaching | null>(null)
   const [loadingId, setLoadingId] = useState<string | null>(null)
+  // Full expand is House Brew+ (Level 3). Anonymous and magic-link see quotes only.
+  const [allowExpand, setAllowExpand] = useState(false)
 
   const supabase = createClient()
 
-  // Fetch quotes on mount
-  useState(() => {
+  useEffect(() => {
     const fetchQuotes = async () => {
       const { data } = await supabase
         .from('quotes')
@@ -43,9 +44,42 @@ export default function QuotesPage() {
       if (data) setQuotes(data)
     }
     fetchQuotes()
-  })
+  }, [])
+
+  useEffect(() => {
+    const checkLevel = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user?.email) {
+        setAllowExpand(false)
+        return
+      }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_status')
+        .eq('email', user.email.trim().toLowerCase())
+        .maybeSingle()
+
+      const status = (profile?.subscription_status || '').toLowerCase().trim()
+      setAllowExpand(
+        status === 'house_brew' ||
+          status === 'private_reserve' ||
+          status === 'ordinary_pint' ||
+          status === 'patron'
+      )
+    }
+    checkLevel()
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      checkLevel()
+    })
+    return () => subscription.unsubscribe()
+  }, [])
 
   const toggleExpand = async (quote: Quote) => {
+    if (!allowExpand) return
+
     if (expandedId === quote.id) {
       setExpandedId(null)
       setExpandedTeaching(null)
@@ -53,7 +87,6 @@ export default function QuotesPage() {
     }
 
     setLoadingId(quote.id)
-
     let teaching = null
 
     if (quote.teaching_number) {
@@ -79,18 +112,14 @@ export default function QuotesPage() {
       setExpandedTeaching(teaching)
       setExpandedId(quote.id)
     }
-
     setLoadingId(null)
   }
 
-  // Simple and reliable: Bold the first ~80 characters of the quote
   const renderHighlightedText = (fullText: string, quoteText: string) => {
     if (!quoteText) {
       return fullText.split(/\n\n+/).map((para, i) => <p key={i}>{para}</p>)
     }
-
     const anchor = quoteText.trim().replace(/\s+/g, ' ').slice(0, 80)
-
     return fullText.split(/\n\n+/).map((para, i) => {
       const index = para.indexOf(anchor)
       if (index !== -1) {
@@ -115,9 +144,16 @@ export default function QuotesPage() {
         <h1 className="text-4xl font-medium tracking-tight text-[#2C2522] mb-2 text-center">
           Quotes
         </h1>
-        <p className="text-center text-[#6B5E54] mb-10">
+        <p className="text-center text-[#6B5E54] mb-6">
           A mesmerizing look into the mind of God
         </p>
+        {!allowExpand && (
+          <p className="text-center text-[14px] text-[#8A7B65] mb-10 max-w-md mx-auto leading-relaxed">
+            The quotes are open to read. Opening the full Teaching is as simple
+            as clicking on “Further up and further in!”
+          </p>
+        )}
+        {allowExpand && <div className="mb-10" />}
 
         <div className="space-y-12">
           {quotes.map((quote) => {
@@ -130,34 +166,51 @@ export default function QuotesPage() {
                   “{quote.quote_text}”
                 </p>
 
-                <button
-                  onClick={() => toggleExpand(quote)}
-                  className="group flex items-center gap-2 text-sm text-[#6B5E54] hover:text-[#7A3E3E] transition-colors"
-                >
-                  <span className="font-medium">— {quote.title}</span>
-                  {quote.date && <span>· {quote.date}</span>}
-                  <span className="ml-1 text-xs opacity-60 group-hover:opacity-100 transition-opacity">
-                    {isExpanded ? '↑ collapse' : '↓ read full teaching'}
-                  </span>
-                </button>
+                {allowExpand ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleExpand(quote)}
+                    className="group flex items-center gap-2 text-sm text-[#6B5E54] hover:text-[#7A3E3E] transition-colors"
+                  >
+                    <span className="font-medium">— {quote.title}</span>
+                    {quote.date && <span>· {quote.date}</span>}
+                    <span className="ml-1 text-xs opacity-60 group-hover:opacity-100 transition-opacity">
+                      {isExpanded ? '↑ collapse' : '↓ read full teaching'}
+                    </span>
+                  </button>
+                ) : (
+                  <div
+                    className="flex items-center gap-2 text-sm text-[#6B5E54] opacity-45 cursor-default select-none"
+                    aria-disabled="true"
+                  >
+                    <span className="font-medium">— {quote.title}</span>
+                    {quote.date && <span>· {quote.date}</span>}
+                    <span className="ml-1 text-xs">↓ read full teaching</span>
+                  </div>
+                )}
 
-                {isExpanded && expandedTeaching && (
+                {isExpanded && expandedTeaching && allowExpand && (
                   <div className="mt-8 pl-4 border-l border-[#C4B8A8] animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="text-[#2C2522] leading-[1.9] text-[1.05rem] space-y-5">
-                      {renderHighlightedText(expandedTeaching.full_text, quote.quote_text)}
+                      {renderHighlightedText(
+                        expandedTeaching.full_text,
+                        quote.quote_text
+                      )}
                     </div>
-
-                    {(expandedTeaching.closing_phrase || expandedTeaching.end_time) && (
+                    {(expandedTeaching.closing_phrase ||
+                      expandedTeaching.end_time) && (
                       <div className="mt-8 text-right italic text-[#6B5E54]">
                         {expandedTeaching.closing_phrase}
-                        {expandedTeaching.end_time && `  ${expandedTeaching.end_time}`}
+                        {expandedTeaching.end_time &&
+                          ` ${expandedTeaching.end_time}`}
                       </div>
                     )}
                   </div>
                 )}
-
                 {isLoading && (
-                  <div className="mt-4 text-sm text-[#6B5E54] italic">Loading full teaching…</div>
+                  <div className="mt-4 text-sm text-[#6B5E54] italic">
+                    Loading full teaching…
+                  </div>
                 )}
               </div>
             )

@@ -39,6 +39,36 @@ const PAGE_MAPS: Record<string, Record<number, number[]>> = {
     6: [2557],
     7: [2557],
   },
+  'vol-3-no-1': {
+    1: [157],
+    2: [157, 258],
+    3: [258],
+    4: [258, 155],
+    5: [155, 317],
+    6: [317, 445],
+    7: [155],
+    8: [258],
+    9: [260],
+    10: [260, 258],
+    11: [258, 260, 424],
+    12: [424, 156],
+    13: [258, 194],
+  },
+  'vol-3-no-2': {
+    1: [231],
+    2: [231, 54],
+    3: [459, 489],
+    4: [489, 74],
+    5: [74, 54, 344],
+    6: [344],
+    7: [458, 203],
+    8: [380, 203],
+    9: [203, 404, 171],
+    10: [171, 344, 404, 195],
+    11: [195, 404, 459],
+    12: [54, 175, 203],
+    13: [203],
+  },
 }
 
 export default function RuminationsTeachingsPanel({ teachings, pageCount, slug }: Props) {
@@ -89,11 +119,11 @@ export default function RuminationsTeachingsPanel({ teachings, pageCount, slug }
       className="hidden xl:block fixed top-40 z-20"
       style={{ left: 'calc(50% + 26rem)' }}
     >
-      <div className="w-48 bg-[#F7F4EF] border border-[#D4CBBF] shadow-[0_4px_20px_rgba(44,37,34,0.12)] rounded-sm p-3.5">
-        <h2 className="text-[9px] tracking-widest uppercase text-[#8A7B65] mb-2.5 text-center">
+      <div className="w-48 bg-[#F7F4EF] border border-[#D4CBBF] shadow-[0_4px_20px_rgba(44,37,34,0.12)] rounded-sm p-3.5 max-h-[calc(100vh-12rem)] flex flex-col">
+        <h2 className="text-[9px] tracking-widest uppercase text-[#8A7B65] mb-2.5 text-center shrink-0">
           Contemplated Teachings
         </h2>
-        <ul className="space-y-2.5">
+        <ul className="space-y-2.5 overflow-y-auto pr-1">
           {teachings.map((t) => {
             const isActive = activeTeachingNums.has(t.teaching_number)
             return (

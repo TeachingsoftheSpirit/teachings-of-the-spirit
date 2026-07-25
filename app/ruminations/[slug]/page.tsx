@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import RuminationsTeachingsPanel from '@/components/RuminationsTeachingsPanel'
+import { getMembershipLevel, canAccess } from '@/lib/membership'
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -14,8 +15,44 @@ export default async function RuminationPage({ params, searchParams }: Props) {
   const { from } = await searchParams
   const fromTeaching = from ? parseInt(from, 10) : null
 
-  const supabase = await createClient()
+  const level = await getMembershipLevel()
+  const allowOpen = canAccess(level, 'ruminations_full')
 
+  if (!allowOpen) {
+    return (
+      <main className="min-h-screen bg-[#F7F4EF]">
+        <Header active="ruminations" />
+        <div className="max-w-lg mx-auto px-6 pt-24 pb-24 text-center">
+          <h1 className="text-2xl font-medium text-[#2C2522] mb-3">
+            Further in
+          </h1>
+          <p className="text-[#6B5E54] text-[17px] leading-relaxed mb-2">
+            This letter is part of the Private Reserve.
+          </p>
+          <p className="text-[#8A7B65] text-[15px] leading-relaxed mb-10">
+            Russell’s Ruminations are deeper dives written for professional
+            colleagues. The shelves open further in.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/ruminations"
+              className="inline-block text-[15px] text-[#2C2522] border border-[#C9BEB0] rounded-sm px-5 py-2.5 hover:bg-[#EDE4D4] transition-colors"
+            >
+              All Ruminations
+            </Link>
+            <Link
+              href="/"
+              className="inline-block text-[15px] text-[#2C2522] border border-[#C9BEB0] rounded-sm px-5 py-2.5 hover:bg-[#EDE4D4] transition-colors"
+            >
+              Main Room
+            </Link>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  const supabase = await createClient()
   const { data: rumination } = await supabase
     .from('ruminations')
     .select('*')
@@ -26,7 +63,6 @@ export default async function RuminationPage({ params, searchParams }: Props) {
     notFound()
   }
 
-  // Optional: fetch title of the Teaching we came from (for a nicer return label)
   let fromTitle: string | null = null
   if (fromTeaching && !isNaN(fromTeaching)) {
     const { data: t } = await supabase
@@ -39,14 +75,16 @@ export default async function RuminationPage({ params, searchParams }: Props) {
 
   const { data: linked } = await supabase
     .from('ruminations_teachings')
-    .select(`
+    .select(
+      `
       teaching_number,
       teachings (
         teaching_number,
         title,
         date
       )
-    `)
+    `
+    )
     .eq('rumination_id', rumination.id)
     .order('teaching_number')
 
@@ -60,8 +98,6 @@ export default async function RuminationPage({ params, searchParams }: Props) {
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
       <Header active="ruminations" />
-
-      {/* Sticky title bar */}
       <div className="sticky top-[52px] z-30 bg-[#F7F4EF]/95 backdrop-blur border-b border-[#E5DFD3]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-4">
           <Link
@@ -76,7 +112,8 @@ export default async function RuminationPage({ params, searchParams }: Props) {
             </div>
             <div className="mx-auto mt-1.5 mb-1.5 h-px w-24 bg-[#D4CBBF]" />
             <div className="text-[15px] text-[#8A7B65] tracking-wide">
-              Vol. {rumination.volume}, No. {rumination.number} · {rumination.date_text}
+              Vol. {rumination.volume}, No. {rumination.number} ·{' '}
+              {rumination.date_text}
             </div>
             <div className="text-2xl sm:text-3xl font-medium text-[#2C2522] truncate leading-tight mt-0.5">
               {rumination.title}
@@ -84,9 +121,7 @@ export default async function RuminationPage({ params, searchParams }: Props) {
           </div>
         </div>
       </div>
-
-      {/* Floo return — only when arrived from a Teaching */}
-            {fromTeaching && !isNaN(fromTeaching) && (
+      {fromTeaching && !isNaN(fromTeaching) && (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6">
           <Link
             href={`/teachings/${fromTeaching}`}
@@ -104,8 +139,6 @@ export default async function RuminationPage({ params, searchParams }: Props) {
           </Link>
         </div>
       )}
-
-      {/* Centered pages */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 pb-24">
         {pageCount > 0 ? (
           <div className="space-y-10">
@@ -134,7 +167,6 @@ export default async function RuminationPage({ params, searchParams }: Props) {
           </div>
         )}
       </div>
-
       {relatedTeachings.length > 0 && pageCount > 0 && (
         <RuminationsTeachingsPanel
           teachings={relatedTeachings}

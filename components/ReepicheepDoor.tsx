@@ -2,25 +2,29 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
+
 interface ReepicheepDoorProps {
   isOpen: boolean
   onClose: () => void
   onRequestEmailCapture: () => void
 }
+
 export default function ReepicheepDoor({
   isOpen,
   onClose,
   onRequestEmailCapture,
 }: ReepicheepDoorProps) {
   const [view, setView] = useState<'main' | 'member' | 'expanded'>('main')
-  const [identifier, setIdentifier] = useState('') // email or username
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
   const [resetSent, setResetSent] = useState(false)
+
   if (!isOpen) return null
+
   const handleClose = () => {
     setView('main')
     setIdentifier('')
@@ -31,12 +35,11 @@ export default function ReepicheepDoor({
     setResetSent(false)
     onClose()
   }
+
   const resolveEmail = async (value: string): Promise<string | null> => {
-    // If it looks like an email, use it directly
     if (value.includes('@')) {
       return value.trim()
     }
-    // Otherwise treat it as a username and ask the server
     const res = await fetch('/api/auth/resolve-username', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -48,6 +51,7 @@ export default function ReepicheepDoor({
     }
     return data.email
   }
+
   const handleMemberLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -70,13 +74,13 @@ export default function ReepicheepDoor({
         setLoading(false)
         return
       }
-      // Success — close the door
       handleClose()
     } catch (err: any) {
       setError(err.message || 'Unable to enter right now.')
       setLoading(false)
     }
   }
+
   const handleForgotPassword = async () => {
     if (!identifier.trim()) {
       setError('Please enter your email or username first.')
@@ -110,6 +114,7 @@ export default function ReepicheepDoor({
       setLoading(false)
     }
   }
+
   const handleCheckout = async (priceId: string) => {
     setCheckoutLoading(priceId)
     try {
@@ -131,14 +136,14 @@ export default function ReepicheepDoor({
       setCheckoutLoading(null)
     }
   }
+
   return (
     <>
-      {/* Backdrop */}
       <div
         className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
         onClick={handleClose}
       />
-      {/* ───────── Main card ───────── */}
+
       {view === 'main' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div
@@ -201,7 +206,7 @@ export default function ReepicheepDoor({
           </div>
         </div>
       )}
-      {/* ───────── Already a Member ───────── */}
+
       {view === 'member' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div
@@ -310,18 +315,17 @@ export default function ReepicheepDoor({
           </div>
         </div>
       )}
-      {/* ───────── Further up: two subscription cards ───────── */}
+
       {view === 'expanded' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 pointer-events-none">
           <div
             className="pointer-events-auto w-full max-w-4xl max-h-[95vh] overflow-y-auto rounded-2xl bg-[#F7F4EF] shadow-2xl border border-[#E5DFD3]"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5DFD3] sticky top-0 bg-[#F7F4EF] z-10">
               <div>
                 <h2 className="text-lg font-medium text-[#2C2522]">
-                  I’ll have the House Brew, please
+                  I’ll have a brew… or the Private Reserve
                 </h2>
                 <p className="text-sm text-[#6B5E54] mt-0.5">
                   Further up and further in
@@ -334,9 +338,7 @@ export default function ReepicheepDoor({
                 Close
               </button>
             </div>
-            {/* Two cards */}
             <div className="p-5 sm:p-6 grid gap-6 md:grid-cols-2">
-              {/* House Brew */}
               <div className="rounded-2xl border border-[#E5DFD3] bg-white/60 overflow-hidden flex flex-col">
                 <div className="relative w-full aspect-[3/2]">
                   <Image
@@ -380,7 +382,6 @@ export default function ReepicheepDoor({
                   </div>
                 </div>
               </div>
-              {/* Private Reserve */}
               <div className="rounded-2xl border border-[#C9BEB0] bg-white/80 overflow-hidden flex flex-col relative">
                 <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-[#2C2522] text-[#F7F4EF] text-[11px] tracking-wide px-3 py-0.5 rounded-full">
                   Deeper Rooms

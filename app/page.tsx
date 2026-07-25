@@ -5,6 +5,11 @@ import Link from 'next/link'
 import Header from '@/components/Header'
 import { createClient } from '@/lib/supabase/client'
 
+function setFeaturedCookie(ids: number[]) {
+  // Read by the Teaching page server gate for anonymous visitors
+  document.cookie = `tos_featured=${ids.join(',')}; path=/; max-age=86400; SameSite=Lax`
+}
+
 export default function Home() {
   const supabase = createClient()
   const [featuredTeachings, setFeaturedTeachings] = useState<any[]>([])
@@ -12,37 +17,30 @@ export default function Home() {
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [hoveredId, setHoveredId] = useState<number | null>(null)
   const [activatedId, setActivatedId] = useState<number | null>(null)
-
-  // Temporary email test state
+  const [isAnonymous, setIsAnonymous] = useState(true)
   const [testEmail, setTestEmail] = useState('')
   const [testStatus, setTestStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [testMessage, setTestMessage] = useState('')
-
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-
   const STORAGE_KEY = 'home-featured-ids'
-
-  // === The 7 Palantíri — Improved Size Progression ===
   const palantiri = [
-    { id: 1, topic: "Death", word: "Death", angle: 10, size: 72, top: -42 },
-    { id: 2, topic: "Grace", word: "Grace", angle: 6, size: 80, top: -28 },
-    { id: 3, topic: "Soul", word: "Soul", angle: 3, size: 88, top: -14 },
-    { id: 4, topic: "Spirit", word: "Spirit", angle: 0, size: 96, top: 0 },
-    { id: 5, topic: "Eternal Life", word: "Eternal Life", angle: -3, size: 88, top: -14 },
-    { id: 6, topic: "Sin", word: "Sin", angle: -6, size: 80, top: -28 },
-    { id: 7, topic: "Forgiveness", word: "Forgiveness", angle: -10, size: 72, top: -42 },
+    { id: 1, topic: 'Death', word: 'Death', angle: 10, size: 72, top: -42 },
+    { id: 2, topic: 'Grace', word: 'Grace', angle: 6, size: 80, top: -28 },
+    { id: 3, topic: 'Soul', word: 'Soul', angle: 3, size: 88, top: -14 },
+    { id: 4, topic: 'Spirit', word: 'Spirit', angle: 0, size: 96, top: 0 },
+    { id: 5, topic: 'Eternal Life', word: 'Eternal Life', angle: -3, size: 88, top: -14 },
+    { id: 6, topic: 'Sin', word: 'Sin', angle: -6, size: 80, top: -28 },
+    { id: 7, topic: 'Forgiveness', word: 'Forgiveness', angle: -10, size: 72, top: -42 },
   ]
-
   const topicKeywords: Record<string, string[]> = {
-    "Death": ["death", "die", "dying", "grave"],
-    "Grace": ["grace", "gracious"],
-    "Soul": ["soul"],
-    "Spirit": ["spirit", "holy spirit"],
-    "Eternal Life": ["eternal", "everlasting", "eternal life"],
-    "Sin": ["sin"],
-    "Forgiveness": ["forgive", "forgiveness", "mercy"],
+    Death: ['death', 'die', 'dying', 'grave'],
+    Grace: ['grace', 'gracious'],
+    Soul: ['soul'],
+    Spirit: ['spirit', 'holy spirit'],
+    'Eternal Life': ['eternal', 'everlasting', 'eternal life'],
+    Sin: ['sin'],
+    Forgiveness: ['forgive', 'forgiveness', 'mercy'],
   }
-
   function getRandomSubset<T>(arr: T[], n: number): T[] {
     const copy = [...arr]
     for (let i = copy.length - 1; i > 0; i--) {
@@ -51,10 +49,22 @@ export default function Home() {
     }
     return copy.slice(0, n)
   }
-
+  useEffect(() => {
+    const apply = (user: { email?: string | null } | null) => {
+      setIsAnonymous(!user)
+    }
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      apply(user)
+    })
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      apply(session?.user ?? null)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
   useEffect(() => {
     const loadFeatured = async () => {
-      // Restore from this browser session if we already have a set
       const stored = sessionStorage.getItem(STORAGE_KEY)
       if (stored) {
         try {
@@ -62,62 +72,53 @@ export default function Home() {
           if (Array.isArray(ids) && ids.length === 7) {
             const { data } = await supabase
               .from('teachings')
-              .select('teaching_number, title, date')
+              .select('teaching_number, title, date, slug')
               .in('teaching_number', ids)
-
             if (data && data.length === 7) {
               const ordered = ids
-                .map(id => data.find(t => t.teaching_number === id))
+                .map((id) => data.find((t) => t.teaching_number === id))
                 .filter(Boolean) as any[]
               setFeaturedTeachings(ordered)
+              setFeaturedCookie(ids)
               return
             }
           }
         } catch {
-          // fall through and generate a new set
+          // fall through
         }
       }
-
-      // First entry into the Main Room this session → new random selection
       const { data } = await supabase
         .from('teachings')
-        .select('teaching_number, title, date')
+        .select('teaching_number, title, date, slug')
         .limit(300)
-
       if (data && data.length > 0) {
         const selected = getRandomSubset(data, 7)
+        const ids = selected.map((t) => t.teaching_number)
         setFeaturedTeachings(selected)
-        sessionStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify(selected.map(t => t.teaching_number))
-        )
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(ids))
+        setFeaturedCookie(ids)
       }
     }
-
     loadFeatured()
   }, [])
-
   const fetchForTopic = async (word: string) => {
     const keywords = topicKeywords[word] || [word.toLowerCase()]
     const orConditions = keywords
-      .map(k => `title.ilike.%${k}%,full_text.ilike.%${k}%`)
+      .map((k) => `title.ilike.%${k}%,full_text.ilike.%${k}%`)
       .join(',')
     const { data } = await supabase
       .from('teachings')
-      .select('teaching_number, title, date')
+      .select('teaching_number, title, date, slug')
       .or(orConditions)
       .limit(7)
     setFilteredTeachings(data || [])
     setActiveFilter(word)
     setActivatedId(null)
   }
-
   const clearFilter = () => {
     setActiveFilter(null)
     setFilteredTeachings([])
   }
-
-  // === 0.375 Second Hover + Persistent Word (was 500 ms) ===
   const handleMouseEnter = (id: number) => {
     setHoveredId(id)
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
@@ -125,16 +126,13 @@ export default function Home() {
       setActivatedId(id)
     }, 375)
   }
-
   const handleMouseLeave = () => {
     setHoveredId(null)
   }
-
   const handleWordClick = (word: string) => {
+    if (isAnonymous) return
     fetchForTopic(word)
   }
-
-  // Temporary test function
   const sendTestEmail = async () => {
     if (!testEmail.trim()) {
       setTestStatus('error')
@@ -160,27 +158,23 @@ export default function Home() {
       setTestMessage(err.message || 'Something went wrong')
     }
   }
-
   const teachingsToShow = activeFilter ? filteredTeachings : featuredTeachings
-
   return (
     <main className="min-h-screen bg-[#F7F4EF] text-[#2C2522]">
       <Header active="home" />
-
       <div className="max-w-5xl mx-auto px-6 pt-10 pb-20">
-        {/* Title */}
         <div className="text-center mb-10">
           <h1 className="text-5xl font-medium tracking-tight">Teachings of the Spirit</h1>
-          <p className="mt-3 text-[#6B5E54] text-lg">A private library of spiritual teachings received over many years</p>
+          <p className="mt-3 text-[#6B5E54] text-lg">
+            A private library of spiritual teachings received over many years
+          </p>
         </div>
-
-        {/* Titles block — responsive left padding */}
         <div className="mb-16 pl-0 sm:pl-[280px]">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-medium tracking-tight">
               {activeFilter
                 ? `Teachings on ${activeFilter}`
-                : "Teachings selected to be of interest to you..."}
+                : 'Teachings selected to be of interest to you...'}
             </h2>
             {activeFilter && (
               <button
@@ -191,13 +185,12 @@ export default function Home() {
               </button>
             )}
           </div>
-
           <div className="space-y-1">
             {teachingsToShow.length > 0 ? (
               teachingsToShow.map((t) => (
                 <Link
                   key={t.teaching_number}
-                  href={`/teachings/${t.teaching_number}`}
+                  href={`/teachings/${t.slug || t.teaching_number}`}
                   className="group flex items-baseline gap-5 py-1.5 border-b border-[#EDE8DF] hover:border-[#7A3E3E] transition-colors"
                 >
                   <span className="text-sm text-[#6B5E54] tabular-nums w-28 shrink-0">
@@ -213,22 +206,23 @@ export default function Home() {
             )}
           </div>
         </div>
-
-        {/* === THE PALANTÍRI CIRCLES === */}
         <div className="mt-8">
           <div className="text-center mb-1">
             <div className="text-[#6B5E54] text-sm">• Hover to Awaken •</div>
           </div>
-
-          <div className="flex justify-center items-center gap-4 pb-2" style={{ height: '160px' }}>
+          <div
+            className="flex justify-center items-center gap-4 pb-2"
+            style={{ height: '160px' }}
+          >
             {palantiri.map((p) => {
               const isHovered = hoveredId === p.id
               const isActivated = activatedId === p.id
-
               return (
                 <div
                   key={p.id}
-                  className={`group relative flex-shrink-0 transition-all duration-500 cursor-pointer ${isActivated ? 'scale-[1.06] z-10' : ''}`}
+                  className={`group relative flex-shrink-0 transition-all duration-500 ${
+                    isAnonymous ? 'cursor-default' : 'cursor-pointer'
+                  } ${isActivated ? 'scale-[1.06] z-10' : ''}`}
                   style={{
                     width: `${p.size}px`,
                     height: `${p.size}px`,
@@ -245,22 +239,28 @@ export default function Home() {
                       bg-[radial-gradient(circle_at_35%_30%,#5a4a7a_0%,#2a2140_45%,#0f0d22_100%)]
                       border-[#5c4a7a] shadow-[inset_0_8px_18px_rgba(255,255,255,0.07),inset_0_-18px_28px_rgba(0,0,0,0.95),0_0_18px_rgba(90,70,140,0.35)]
                       ${isHovered && !isActivated ? 'animate-[vibrate_120ms_infinite]' : ''}
-                      ${isActivated
-                        ? 'shadow-[inset_0_8px_18px_rgba(255,255,255,0.14),inset_0_-18px_28px_rgba(0,0,0,0.98),0_0_55px_rgba(185,160,255,0.75)] border-[#b8a0e0]'
-                        : ''}
+                      ${
+                        isActivated
+                          ? 'shadow-[inset_0_8px_18px_rgba(255,255,255,0.14),inset_0_-18px_28px_rgba(0,0,0,0.98),0_0_55px_rgba(185,160,255,0.75)] border-[#b8a0e0]'
+                          : ''
+                      }
                     `}
                   >
                     <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_38%_32%,rgba(210,195,255,0.35)_0%,transparent_60%)]" />
                     <div className="absolute inset-0 rounded-full bg-[repeating-radial-gradient(circle,#ffffff08_0px,#ffffff08_1px,transparent_1px,transparent_3px)]" />
-
                     {isActivated && (
                       <div className="absolute inset-0 flex items-center justify-center p-2 transition-all duration-500">
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation()
                             handleWordClick(p.word)
                           }}
-                          className="px-4 py-1 text-center text-[10px] md:text-xs font-medium tracking-[1.5px] text-white/95 bg-black/40 hover:bg-black/55 active:bg-black/65 backdrop-blur-md rounded-full border border-white/20 transition-all active:scale-[0.985] leading-tight"
+                          className={`px-4 py-1 text-center text-[10px] md:text-xs font-medium tracking-[1.5px] text-white/95 bg-black/40 backdrop-blur-md rounded-full border border-white/20 leading-tight ${
+                            isAnonymous
+                              ? 'cursor-default opacity-90'
+                              : 'hover:bg-black/55 active:bg-black/65 active:scale-[0.985] cursor-pointer'
+                          }`}
                         >
                           {p.word}
                         </button>
@@ -271,13 +271,12 @@ export default function Home() {
               )
             })}
           </div>
-
           <div className="text-center -mt-3">
-            <div className="text-[#2C2522] text-[15px] font-medium tracking-tight">The Palantíri Circles</div>
+            <div className="text-[#2C2522] text-[15px] font-medium tracking-tight">
+              The Palantíri Circles
+            </div>
           </div>
         </div>
-
-        {/* ========== TEMPORARY EMAIL TEST SECTION ========== */}
         <div className="mt-24 pt-12 border-t border-[#EDE8DF]">
           <div className="max-w-md mx-auto text-center">
             <h3 className="text-lg font-medium mb-2">Temporary Email Test</h3>
@@ -299,21 +298,36 @@ export default function Home() {
               {testStatus === 'sending' ? 'Sending…' : 'Send Welcome Email'}
             </button>
             {testMessage && (
-              <p className={`mt-4 text-sm ${testStatus === 'success' ? 'text-green-700' : testStatus === 'error' ? 'text-red-700' : 'text-[#6B5E54]'}`}>
+              <p
+                className={`mt-4 text-sm ${
+                  testStatus === 'success'
+                    ? 'text-green-700'
+                    : testStatus === 'error'
+                      ? 'text-red-700'
+                      : 'text-[#6B5E54]'
+                }`}
+              >
                 {testMessage}
               </p>
             )}
           </div>
         </div>
-        {/* ========== END TEMPORARY SECTION ========== */}
       </div>
-
       <style jsx global>{`
         @keyframes vibrate {
-          0%, 100% { transform: translate(0, 0); }
-          25% { transform: translate(-0.5px, 0.5px); }
-          50% { transform: translate(0.5px, -0.4px); }
-          75% { transform: translate(-0.4px, 0.4px); }
+          0%,
+          100% {
+            transform: translate(0, 0);
+          }
+          25% {
+            transform: translate(-0.5px, 0.5px);
+          }
+          50% {
+            transform: translate(0.5px, -0.4px);
+          }
+          75% {
+            transform: translate(-0.4px, 0.4px);
+          }
         }
       `}</style>
     </main>

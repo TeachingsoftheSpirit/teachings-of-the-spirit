@@ -1,10 +1,8 @@
 'use client'
-
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
-
 type Props = {
   isOpen: boolean
   onClose: () => void
@@ -12,7 +10,6 @@ type Props = {
   teachingTitle?: string
   onSuccess?: (email: string) => void
 }
-
 type SavedItem = {
   id: string
   teaching_number: number
@@ -23,7 +20,6 @@ type SavedItem = {
     date: string
   } | null
 }
-
 export default function EmailCapture({
   isOpen,
   onClose,
@@ -47,12 +43,14 @@ export default function EmailCapture({
   const [membershipTier, setMembershipTier] = useState<string | null>(null)
   const [billingInterval, setBillingInterval] = useState<string | null>(null)
   const [openingPortal, setOpeningPortal] = useState(false)
+  const [letterBody, setLetterBody] = useState('')
+  const [letterStatus, setLetterStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [letterError, setLetterError] = useState('')
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const dragStart = useRef({ x: 0, y: 0 })
   const cardRef = useRef<HTMLDivElement>(null)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
-
   useEffect(() => {
     if (isOpen && cardRef.current) {
       const width = 460
@@ -62,7 +60,6 @@ export default function EmailCapture({
       })
     }
   }, [isOpen])
-
   useEffect(() => {
     if (!isOpen) {
       setStatus('idle')
@@ -77,13 +74,15 @@ export default function EmailCapture({
       setMembershipTier(null)
       setBillingInterval(null)
       setOpeningPortal(false)
+      setLetterBody('')
+      setLetterStatus('idle')
+      setLetterError('')
       if (pollRef.current) {
         clearInterval(pollRef.current)
         pollRef.current = null
       }
       return
     }
-
     const checkSession = async () => {
       setCheckingSession(true)
       const supabase = createClient()
@@ -104,7 +103,6 @@ export default function EmailCapture({
     }
     checkSession()
   }, [isOpen])
-
   useEffect(() => {
     if (status !== 'key-sent') {
       if (pollRef.current) {
@@ -132,14 +130,12 @@ export default function EmailCapture({
       }
     }
   }, [status])
-
   useEffect(() => {
     if (teachingNumber && savedList.length > 0) {
       const already = savedList.some((item) => item.teaching_number === teachingNumber)
       setJustSaved(already)
     }
   }, [savedList, teachingNumber])
-
   const onMouseDown = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('[data-drag-handle]')) {
       setIsDragging(true)
@@ -149,7 +145,6 @@ export default function EmailCapture({
       }
     }
   }
-
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
       if (!isDragging) return
@@ -168,9 +163,7 @@ export default function EmailCapture({
       window.removeEventListener('mouseup', onMouseUp)
     }
   }, [isDragging])
-
   if (!isOpen) return null
-
   const fetchSavedList = async () => {
     setLoadingList(true)
     try {
@@ -183,7 +176,6 @@ export default function EmailCapture({
       setLoadingList(false)
     }
   }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email.trim()) {
@@ -210,7 +202,6 @@ export default function EmailCapture({
       setMessage(err.message || 'Unable to send the key right now.')
     }
   }
-
   const handleSaveTeaching = async () => {
     if (!teachingNumber || justSaved) return
     setSavingTeaching(true)
@@ -232,7 +223,6 @@ export default function EmailCapture({
       setSavingTeaching(false)
     }
   }
-
   const handleSaveMemo = async () => {
     if (!teachingNumber) return
     setSavingMemo(true)
@@ -252,7 +242,6 @@ export default function EmailCapture({
       setSavingMemo(false)
     }
   }
-
   const handleSendToSomeone = async () => {
     if (!teachingNumber || !sendTo.trim()) return
     setSendingToSomeone(true)
@@ -277,7 +266,6 @@ export default function EmailCapture({
       setSendingToSomeone(false)
     }
   }
-
   const handleManageMembership = async () => {
     setOpeningPortal(true)
     try {
@@ -292,25 +280,41 @@ export default function EmailCapture({
       setOpeningPortal(false)
     }
   }
+  const handleSendLetter = async () => {
+    if (!letterBody.trim() || letterStatus === 'sending') return
+    setLetterStatus('sending')
+    setLetterError('')
+    try {
+      const res = await fetch('/api/letters', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          body: letterBody.trim(),
+          teaching_number: teachingNumber || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Could not leave the letter')
+      setLetterStatus('sent')
+      setLetterBody('')
+    } catch (err: any) {
+      setLetterStatus('error')
+      setLetterError(err.message || 'Could not leave the letter')
+    }
+  }
   const isPaidMember =
     membershipTier === 'house_brew' || membershipTier === 'private_reserve'
-
-  // Build the title with a smaller interval
   const renderTitle = () => {
     if (status === 'key-sent') return 'A Key Has Been Sent'
     if (status === 'verified') return 'Thank You'
     if (status !== 'success') return 'A Library Card'
-
     let tierLabel = ''
     if (membershipTier === 'house_brew') tierLabel = 'House Brew'
     else if (membershipTier === 'private_reserve') tierLabel = 'Private Reserve'
-
     if (!tierLabel) return 'Special Collections'
-
     let intervalLabel = ''
     if (billingInterval === 'monthly') intervalLabel = 'Monthly'
     else if (billingInterval === 'annual') intervalLabel = 'Annual'
-
     return (
       <>
         Special Collections – {tierLabel}
@@ -322,7 +326,6 @@ export default function EmailCapture({
       </>
     )
   }
-
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
       <div
@@ -391,7 +394,6 @@ export default function EmailCapture({
                   </div>
                 ) : status === 'success' ? (
                   <div className="space-y-5">
-                    {/* Manage membership – only for paid members */}
                     {isPaidMember && (
                       <div className="pb-1">
                         <button
@@ -403,7 +405,6 @@ export default function EmailCapture({
                         </button>
                       </div>
                     )}
-
                     {teachingNumber && teachingTitle && (
                       <div className="space-y-2">
                         {justSaved ? (
@@ -440,12 +441,10 @@ export default function EmailCapture({
                         )}
                       </div>
                     )}
-
                     <p className="leading-relaxed text-[#3F362E]">
                       You can save any Teaching that matters to you, from any room in the house.
                       You can also attach a note to it as a reference or observation.
                     </p>
-
                     {teachingNumber && (
                       <div className="space-y-1.5">
                         <label className="text-sm text-[#6B5E54]">Note for this Teaching</label>
@@ -465,7 +464,6 @@ export default function EmailCapture({
                         </button>
                       </div>
                     )}
-
                     {teachingNumber && (
                       <div className="space-y-1.5">
                         <label className="text-sm text-[#6B5E54]">Send this Teaching to someone</label>
@@ -491,7 +489,6 @@ export default function EmailCapture({
                         )}
                       </div>
                     )}
-
                     <div>
                       <div className="text-sm text-[#6B5E54] mb-1.5">Your saved Teachings</div>
                       <div className="max-h-36 overflow-y-auto border border-[#E0D5C0] rounded-sm bg-white/70">
@@ -526,6 +523,50 @@ export default function EmailCapture({
                           })
                         )}
                       </div>
+                    </div>
+
+                    {/* Letter to the house */}
+                    <div className="space-y-1.5 border-t border-[#E0D5C0] pt-4">
+                      <div className="text-sm text-[#6B5E54]">
+                        Leave a letter for the house
+                      </div>
+                      <p className="text-[11px] text-[#8A7B65] leading-relaxed">
+                        A short note to the stewards — gratitude, a question, or something
+                        you noticed. Not a public comment.
+                        {teachingNumber
+                          ? ` This letter will mention Teaching #${teachingNumber}.`
+                          : ''}
+                      </p>
+                      {letterStatus === 'sent' ? (
+                        <p className="text-[13px] text-[#3F362E] py-1">
+                          Your letter has been left at the desk.
+                        </p>
+                      ) : (
+                        <>
+                          <textarea
+                            value={letterBody}
+                            onChange={(e) => {
+                              setLetterBody(e.target.value)
+                              if (letterStatus === 'error') setLetterStatus('idle')
+                            }}
+                            placeholder="A few lines…"
+                            rows={3}
+                            maxLength={2000}
+                            className="w-full px-3 py-2 bg-white border border-[#D4C8B0] rounded-sm text-[13px] text-[#2A241C] placeholder:text-[#A39682] focus:outline-none focus:border-[#8A7B65] resize-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleSendLetter}
+                            disabled={!letterBody.trim() || letterStatus === 'sending'}
+                            className="text-[13px] text-[#5C4A3A] hover:text-[#2A241C] transition-colors disabled:opacity-40"
+                          >
+                            {letterStatus === 'sending' ? 'Leaving…' : 'Leave letter'}
+                          </button>
+                          {letterStatus === 'error' && letterError && (
+                            <p className="text-[12px] text-red-700">{letterError}</p>
+                          )}
+                        </>
+                      )}
                     </div>
 
                     <button

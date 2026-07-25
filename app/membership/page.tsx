@@ -1,5 +1,4 @@
 'use client'
-
 import { Suspense, useState } from 'react'
 import Header from '@/components/Header'
 import Image from 'next/image'
@@ -39,10 +38,9 @@ function MembershipContent() {
           Thank you. Your membership is active. Welcome further in.
         </div>
       )}
-
       <div className="text-center mb-12">
         <h1 className="text-3xl sm:text-4xl font-medium text-[#2C2522] mb-3">
-          I’ll have the House Brew, please
+          I’ll have a brew… or the Private Reserve
         </h1>
         <p className="text-[#6B5E54] text-[17px] max-w-xl mx-auto leading-relaxed">
           So glad you’ve found our library.
@@ -50,7 +48,6 @@ function MembershipContent() {
           There’s more we have to offer: further up and further in!
         </p>
       </div>
-
       <div className="grid gap-8 md:grid-cols-2">
         {/* House Brew */}
         <div className="rounded-2xl border border-[#E5DFD3] bg-white/60 overflow-hidden flex flex-col">
@@ -96,7 +93,6 @@ function MembershipContent() {
             </div>
           </div>
         </div>
-
         {/* Private Reserve */}
         <div className="rounded-2xl border border-[#C9BEB0] bg-white/80 overflow-hidden flex flex-col relative">
           <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-[#2C2522] text-[#F7F4EF] text-[11px] tracking-wide px-3 py-0.5 rounded-full">
@@ -146,7 +142,6 @@ function MembershipContent() {
           </div>
         </div>
       </div>
-
       <p className="mt-12 text-center text-sm text-[#6B5E54]">
         You may leave at any time. The threshold remains open.
       </p>

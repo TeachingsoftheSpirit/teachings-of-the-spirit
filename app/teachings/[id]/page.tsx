@@ -1,36 +1,107 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import Header from '@/components/Header'
 import SaveTeachingButton from '@/components/SaveTeachingButton'
 import GaladrielsMirror from '@/components/GaladrielsMirror'
+import {
+  getMembershipLevel,
+  canAccess,
+} from '@/lib/membership'
 
 type Props = {
   params: Promise<{ id: string }>
 }
 
 export default async function TeachingPage({ params }: Props) {
-  const { id } = await params
-  const teachingNumber = parseInt(id, 10)
-  if (isNaN(teachingNumber)) {
-    notFound()
-  }
+  const { id: slugOrId } = await params
+
+  const level = await getMembershipLevel()
+  const allowAny = canAccess(level, 'read_any_teaching')
+  const allowPrevNext = canAccess(level, 'previous_next')
+  const allowGaladriel = canAccess(level, 'galadriels_mirror')
+  const allowRuminations = canAccess(level, 'ruminations_full')
 
   const supabase = await createClient()
 
+  // Prefer slug; fall back to teaching_number if the segment is purely numeric
+  const isNumeric = /^\d+$/.test(slugOrId)
   const { data: teaching } = await supabase
     .from('teachings')
     .select('*')
-    .eq('teaching_number', teachingNumber)
+    .eq(isNumeric ? 'teaching_number' : 'slug', isNumeric ? parseInt(slugOrId, 10) : slugOrId)
     .single()
 
   if (!teaching) {
     notFound()
   }
 
+  const teachingNumber = teaching.teaching_number as number
+
+  // Anonymous may only open Teachings currently featured on the Main Room
+  let allowThis = allowAny
+  if (!allowAny) {
+    const cookieStore = await cookies()
+    const raw = cookieStore.get('tos_featured')?.value || ''
+    const featured = raw
+      .split(',')
+      .map((s) => parseInt(s.trim(), 10))
+      .filter((n) => !Number.isNaN(n))
+    allowThis = featured.includes(teachingNumber)
+  }
+
+  if (!allowThis) {
+    return (
+      <main className="min-h-screen bg-[#F7F4EF]">
+        <div className="sticky top-0 z-50 bg-[#F7F4EF] border-b border-[#C9BEB0]">
+          <Header active="teachings" />
+        </div>
+        <div className="max-w-lg mx-auto px-6 pt-24 pb-24 text-center">
+          <h1 className="text-2xl font-medium text-[#2C2522] mb-3">
+            Further in
+          </h1>
+          <p className="text-[#6B5E54] text-[17px] leading-relaxed mb-2">
+            This Teaching is not among those open at the threshold.
+          </p>
+          <p className="text-[#8A7B65] text-[15px] leading-relaxed mb-10">
+            The wider library opens when you leave your email at the door —
+            click “Further up and further in!”
+          </p>
+          <Link
+            href="/"
+            className="inline-block text-[15px] text-[#2C2522] border border-[#C9BEB0] rounded-sm px-5 py-2.5 hover:bg-[#EDE4D4] transition-colors"
+          >
+            Return to the Main Room
+          </Link>
+        </div>
+      </main>
+    )
+  }
+
+  let prevSlug: string | null = null
+  let nextSlug: string | null = null
+  if (allowPrevNext) {
+    if (teachingNumber > 1) {
+      const { data: prev } = await supabase
+        .from('teachings')
+        .select('slug')
+        .eq('teaching_number', teachingNumber - 1)
+        .maybeSingle()
+      prevSlug = prev?.slug ?? null
+    }
+    const { data: next } = await supabase
+      .from('teachings')
+      .select('slug')
+      .eq('teaching_number', teachingNumber + 1)
+      .maybeSingle()
+    nextSlug = next?.slug ?? null
+  }
+
   const { data: rumLinks } = await supabase
     .from('ruminations_teachings')
-    .select(`
+    .select(
+      `
       rumination_id,
       ruminations (
         slug,
@@ -39,24 +110,34 @@ export default async function TeachingPage({ params }: Props) {
         title,
         date_text
       )
-    `)
+    `
+    )
     .eq('teaching_number', teachingNumber)
 
   const relatedRuminations = (rumLinks || [])
     .map((row: any) => row.ruminations)
     .filter(Boolean)
 
+  const prevClass =
+    allowPrevNext && prevSlug
+      ? 'text-[#6B5E54] hover:text-[#7A3E3E]'
+      : 'text-[#6B5E54] pointer-events-none opacity-30'
+  const nextClass =
+    allowPrevNext && nextSlug
+      ? 'text-[#6B5E54] hover:text-[#7A3E3E]'
+      : 'text-[#6B5E54] pointer-events-none opacity-30'
+
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
       <div className="sticky top-0 z-50 bg-[#F7F4EF] border-b border-[#C9BEB0]">
         <Header active="teachings" />
       </div>
-
       <div className="max-w-3xl mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-8">
           <Link
-            href={teachingNumber > 1 ? `/teachings/${teachingNumber - 1}` : '#'}
-            className={`text-[#6B5E54] hover:text-[#7A3E3E] ${teachingNumber === 1 ? 'pointer-events-none opacity-30' : ''}`}
+            href={prevSlug ? `/teachings/${prevSlug}` : '#'}
+            className={prevClass}
+            aria-disabled={!prevSlug}
           >
             ← Previous Teaching
           </Link>
@@ -65,13 +146,13 @@ export default async function TeachingPage({ params }: Props) {
             teachingTitle={teaching.title}
           />
           <Link
-            href={`/teachings/${teachingNumber + 1}`}
-            className="text-[#6B5E54] hover:text-[#7A3E3E]"
+            href={nextSlug ? `/teachings/${nextSlug}` : '#'}
+            className={nextClass}
+            aria-disabled={!nextSlug}
           >
             Next Teaching →
           </Link>
         </div>
-
         <div className="flex justify-between items-start mb-6">
           <div className="text-left w-36">
             <div className="text-sm text-[#6B5E54]">{teaching.date}</div>
@@ -91,8 +172,7 @@ export default async function TeachingPage({ params }: Props) {
             )}
           </div>
         </div>
-
-        {teaching.video_url && (
+        {teaching.video_url && allowGaladriel && (
           <div className="text-center mb-8">
             <GaladrielsMirror
               videoUrl={teaching.video_url}
@@ -100,7 +180,13 @@ export default async function TeachingPage({ params }: Props) {
             />
           </div>
         )}
-
+        {teaching.video_url && !allowGaladriel && (
+          <div className="text-center mb-8">
+            <div className="inline-block px-5 py-3 rounded-sm border border-[#D4CBBF] bg-white/50 text-[13px] text-[#8A7B65]">
+              Galadriel’s Mirror opens with the Private Reserve
+            </div>
+          </div>
+        )}
         <article>
           <div className="text-[#2C2522] leading-[1.85] text-[1.12rem] space-y-5">
             {teaching.full_text.split(/\n\n+/).map((para: string, i: number) => (
@@ -108,7 +194,6 @@ export default async function TeachingPage({ params }: Props) {
             ))}
           </div>
         </article>
-
         {(teaching.closing_phrase || teaching.end_time) && (
           <div className="mt-12 text-right">
             {teaching.closing_phrase && (
@@ -119,8 +204,7 @@ export default async function TeachingPage({ params }: Props) {
             )}
           </div>
         )}
-
-        {relatedRuminations.length > 0 && (
+        {relatedRuminations.length > 0 && allowRuminations && (
           <div className="mt-16 pt-8 border-t border-[#E5DFD3]">
             <p className="text-[13px] text-[#8A7B65] text-center mb-5">
               This Teaching was also referenced in
@@ -150,18 +234,29 @@ export default async function TeachingPage({ params }: Props) {
             </ul>
           </div>
         )}
+        {relatedRuminations.length > 0 && !allowRuminations && (
+          <div className="mt-16 pt-8 border-t border-[#E5DFD3] text-center">
+            <p className="text-[13px] text-[#8A7B65]">
+              This Teaching is also referenced in Russell’s Ruminations
+            </p>
+            <p className="text-[12px] text-[#8A7B65] mt-1">
+              Full access opens with the Private Reserve
+            </p>
+          </div>
+        )}
       </div>
-
       <div className="max-w-3xl mx-auto px-6 pb-12 flex justify-between text-sm border-t border-[#C9BEB0] pt-6">
         <Link
-          href={teachingNumber > 1 ? `/teachings/${teachingNumber - 1}` : '#'}
-          className={`text-[#6B5E54] hover:text-[#7A3E3E] ${teachingNumber === 1 ? 'pointer-events-none opacity-30' : ''}`}
+          href={prevSlug ? `/teachings/${prevSlug}` : '#'}
+          className={prevClass}
+          aria-disabled={!prevSlug}
         >
           ← Previous Teaching
         </Link>
         <Link
-          href={`/teachings/${teachingNumber + 1}`}
-          className="text-[#6B5E54] hover:text-[#7A3E3E]"
+          href={nextSlug ? `/teachings/${nextSlug}` : '#'}
+          className={nextClass}
+          aria-disabled={!nextSlug}
         >
           Next Teaching →
         </Link>

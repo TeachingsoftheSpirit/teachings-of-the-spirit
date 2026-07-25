@@ -3,9 +3,12 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
+const CONTACT_EMAIL = 'hello@teachingsofthespirit.com'
+
 export default function Footer() {
   const [isPaidMember, setIsPaidMember] = useState(false)
   const [openingPortal, setOpeningPortal] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     const check = async () => {
@@ -44,6 +47,18 @@ export default function Footer() {
     }
   }
 
+  const handleWriteToUs = async () => {
+    try {
+      await navigator.clipboard.writeText(CONTACT_EMAIL)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2200)
+    } catch {
+      // Clipboard blocked — still show the address so they can copy by hand
+      setCopied(true)
+      setTimeout(() => setCopied(false), 4000)
+    }
+  }
+
   return (
     <footer className="mt-20 border-t border-[#E5DFD3] bg-[#F7F4EF]">
       <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[#6B5E54]">
@@ -60,12 +75,18 @@ export default function Footer() {
               {openingPortal ? 'Opening…' : 'Manage membership'}
             </button>
           )}
-          <a
-            href="mailto:hello@teachingsofthespirit.com"
-            className="hover:text-[#2C2522] transition-colors underline-offset-2 hover:underline"
+          <button
+            type="button"
+            onClick={handleWriteToUs}
+            className="hover:text-[#2C2522] transition-colors underline-offset-2 hover:underline text-left"
+            title={CONTACT_EMAIL}
           >
-            Write to Us
-          </a>
+            {copied ? (
+              <span className="text-[#2C2522]">{CONTACT_EMAIL} · copied</span>
+            ) : (
+              'Write to Us'
+            )}
+          </button>
         </div>
       </div>
     </footer>
