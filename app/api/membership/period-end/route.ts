@@ -33,13 +33,17 @@ export async function POST() {
       limit: 1,
     })
 
-    const sub = subscriptions.data[0]
-    if (!sub || !sub.current_period_end) {
+    const sub = subscriptions.data[0] as
+      | (Stripe.Subscription & { current_period_end?: number })
+      | undefined
+
+    const periodEnd = sub?.current_period_end
+    if (!periodEnd) {
       return NextResponse.json({ endDate: null })
     }
 
     return NextResponse.json({
-      endDate: new Date(sub.current_period_end * 1000).toISOString(),
+      endDate: new Date(periodEnd * 1000).toISOString(),
     })
   } catch (err: any) {
     console.error(err)
