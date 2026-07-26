@@ -266,19 +266,8 @@ export default function EmailCapture({
       setSendingToSomeone(false)
     }
   }
-  const handleManageMembership = async () => {
-    setOpeningPortal(true)
-    try {
-      const res = await fetch('/api/membership/portal', { method: 'POST' })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Unable to open membership portal')
-      window.open(data.url, '_blank', 'noopener,noreferrer')
-      setOpeningPortal(false)
-    } catch (err: any) {
-      console.error(err)
-      alert(err.message || 'Unable to open membership portal right now.')
-      setOpeningPortal(false)
-    }
+    const handleManageMembership = () => {
+    window.location.href = '/membership/manage'
   }
   const handleSendLetter = async () => {
     if (!letterBody.trim() || letterStatus === 'sending') return

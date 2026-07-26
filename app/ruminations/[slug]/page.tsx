@@ -53,6 +53,7 @@ export default async function RuminationPage({ params, searchParams }: Props) {
   }
 
   const supabase = await createClient()
+
   const { data: rumination } = await supabase
     .from('ruminations')
     .select('*')
@@ -98,6 +99,7 @@ export default async function RuminationPage({ params, searchParams }: Props) {
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
       <Header active="ruminations" />
+
       <div className="sticky top-[52px] z-30 bg-[#F7F4EF]/95 backdrop-blur border-b border-[#E5DFD3]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-4">
           <Link
@@ -121,6 +123,7 @@ export default async function RuminationPage({ params, searchParams }: Props) {
           </div>
         </div>
       </div>
+
       {fromTeaching && !isNaN(fromTeaching) && (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6">
           <Link
@@ -139,6 +142,7 @@ export default async function RuminationPage({ params, searchParams }: Props) {
           </Link>
         </div>
       )}
+
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 pb-24">
         {pageCount > 0 ? (
           <div className="space-y-10">
@@ -167,11 +171,12 @@ export default async function RuminationPage({ params, searchParams }: Props) {
           </div>
         )}
       </div>
+
       {relatedTeachings.length > 0 && pageCount > 0 && (
         <RuminationsTeachingsPanel
           teachings={relatedTeachings}
           pageCount={pageCount}
-          slug={slug}
+          pageMap={(rumination.page_map as Record<string, number[]>) || {}}
         />
       )}
     </main>

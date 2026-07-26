@@ -1,27 +1,27 @@
 'use client'
-
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
+import Image from 'next/image'
 
 const CONTACT_EMAIL = 'hello@teachingsofthespirit.com'
 
 export default function Footer() {
   const [isPaidMember, setIsPaidMember] = useState(false)
-  const [openingPortal, setOpeningPortal] = useState(false)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     const check = async () => {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
       if (!user?.email) return
-
       const { data: profile } = await supabase
         .from('profiles')
         .select('subscription_status')
         .eq('email', user.email.trim().toLowerCase())
         .maybeSingle()
-
       if (
         profile?.subscription_status === 'house_brew' ||
         profile?.subscription_status === 'private_reserve'
@@ -32,28 +32,12 @@ export default function Footer() {
     check()
   }, [])
 
-  const handleManage = async () => {
-    setOpeningPortal(true)
-    try {
-      const res = await fetch('/api/membership/portal', { method: 'POST' })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Unable to open membership portal')
-      window.open(data.url, '_blank', 'noopener,noreferrer')
-      setOpeningPortal(false)
-    } catch (err: any) {
-      console.error(err)
-      alert(err.message || 'Unable to open membership portal right now.')
-      setOpeningPortal(false)
-    }
-  }
-
   const handleWriteToUs = async () => {
     try {
       await navigator.clipboard.writeText(CONTACT_EMAIL)
       setCopied(true)
       setTimeout(() => setCopied(false), 2200)
     } catch {
-      // Clipboard blocked — still show the address so they can copy by hand
       setCopied(true)
       setTimeout(() => setCopied(false), 4000)
     }
@@ -62,18 +46,15 @@ export default function Footer() {
   return (
     <footer className="mt-20 border-t border-[#E5DFD3] bg-[#F7F4EF]">
       <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[#6B5E54]">
-        <div>
-          © 2026 Teachings of the Spirit, LLC. All rights reserved.
-        </div>
+        <div>© 2026 Teachings of the Spirit, LLC. All rights reserved.</div>
         <div className="flex items-center gap-5">
           {isPaidMember && (
-            <button
-              onClick={handleManage}
-              disabled={openingPortal}
-              className="hover:text-[#2C2522] transition-colors underline-offset-2 hover:underline disabled:opacity-50"
+            <Link
+              href="/membership/manage"
+              className="hover:text-[#2C2522] transition-colors underline-offset-2 hover:underline"
             >
-              {openingPortal ? 'Opening…' : 'Manage membership'}
-            </button>
+              Manage membership
+            </Link>
           )}
           <button
             type="button"
@@ -87,6 +68,24 @@ export default function Footer() {
               'Write to Us'
             )}
           </button>
+
+          {/* Old Forest door */}
+          <Link
+            href="/old-forest"
+            className="group relative flex items-center"
+            title="The Old Forest"
+          >
+            <Image
+              src="/images/tom-bombadil.jpg"
+              alt="The Old Forest"
+              width={36}
+              height={36}
+              className="rounded-full object-cover border border-[#D4CBBF] opacity-80 group-hover:opacity-100 transition-opacity"
+            />
+            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-[#F7F4EF] bg-[#2C2522] rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+              The Old Forest
+            </span>
+          </Link>
         </div>
       </div>
     </footer>

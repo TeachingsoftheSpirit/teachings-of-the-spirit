@@ -12,68 +12,15 @@ type Teaching = {
 type Props = {
   teachings: Teaching[]
   pageCount: number
-  slug: string
+  pageMap: Record<string, number[]>
 }
 
-const PAGE_MAPS: Record<string, Record<number, number[]>> = {
-  'vol-2-no-2': {
-    1: [],
-    2: [],
-    3: [139],
-    4: [139, 141],
-    5: [141, 90],
-    6: [141],
-    7: [141, 140],
-    8: [140, 142],
-    9: [142],
-    10: [201],
-    11: [201, 320],
-    12: [320],
-  },
-  'vol-21-no-3': {
-    1: [3099],
-    2: [3099, 3100],
-    3: [3100, 2704],
-    4: [2704, 2752],
-    5: [2752],
-    6: [2557],
-    7: [2557],
-  },
-  'vol-3-no-1': {
-    1: [157],
-    2: [157, 258],
-    3: [258],
-    4: [258, 155],
-    5: [155, 317],
-    6: [317, 445],
-    7: [155],
-    8: [258],
-    9: [260],
-    10: [260, 258],
-    11: [258, 260, 424],
-    12: [424, 156],
-    13: [258, 194],
-  },
-  'vol-3-no-2': {
-    1: [231],
-    2: [231, 54],
-    3: [459, 489],
-    4: [489, 74],
-    5: [74, 54, 344],
-    6: [344],
-    7: [458, 203],
-    8: [380, 203],
-    9: [203, 404, 171],
-    10: [171, 344, 404, 195],
-    11: [195, 404, 459],
-    12: [54, 175, 203],
-    13: [203],
-  },
-}
-
-export default function RuminationsTeachingsPanel({ teachings, pageCount, slug }: Props) {
+export default function RuminationsTeachingsPanel({
+  teachings,
+  pageCount,
+  pageMap,
+}: Props) {
   const [activePages, setActivePages] = useState<number[]>([])
-  const pageMap = PAGE_MAPS[slug] || {}
 
   useEffect(() => {
     const observers: IntersectionObserver[] = []
@@ -85,7 +32,10 @@ export default function RuminationsTeachingsPanel({ teachings, pageCount, slug }
       const obs = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
-            const pageNum = parseInt(entry.target.id.replace('rum-page-', ''), 10)
+            const pageNum = parseInt(
+              entry.target.id.replace('rum-page-', ''),
+              10
+            )
             setActivePages((prev) => {
               if (entry.isIntersecting) {
                 if (prev.includes(pageNum)) return prev
@@ -102,6 +52,7 @@ export default function RuminationsTeachingsPanel({ teachings, pageCount, slug }
           threshold: 0.1,
         }
       )
+
       obs.observe(el)
       observers.push(obs)
     }
@@ -111,7 +62,7 @@ export default function RuminationsTeachingsPanel({ teachings, pageCount, slug }
 
   const activeTeachingNums = new Set<number>()
   activePages.forEach((p) => {
-    ;(pageMap[p] || []).forEach((n) => activeTeachingNums.add(n))
+    ;(pageMap[String(p)] || []).forEach((n) => activeTeachingNums.add(n))
   })
 
   return (
@@ -138,7 +89,9 @@ export default function RuminationsTeachingsPanel({ teachings, pageCount, slug }
                 >
                   <div
                     className={`text-[10px] tabular-nums transition-colors duration-300 ${
-                      isActive ? 'text-[#00A844] font-medium' : 'text-[#8A7B65] group-hover:text-[#00A844]'
+                      isActive
+                        ? 'text-[#00A844] font-medium'
+                        : 'text-[#8A7B65] group-hover:text-[#00A844]'
                     }`}
                   >
                     #{t.teaching_number}
@@ -154,7 +107,9 @@ export default function RuminationsTeachingsPanel({ teachings, pageCount, slug }
                   </div>
                   <div
                     className={`text-[9px] mt-0.5 transition-colors duration-300 ${
-                      isActive ? 'text-[#00A844]' : 'text-[#8A7B65] group-hover:text-[#00A844]'
+                      isActive
+                        ? 'text-[#00A844]'
+                        : 'text-[#8A7B65] group-hover:text-[#00A844]'
                     }`}
                   >
                     {t.date}
