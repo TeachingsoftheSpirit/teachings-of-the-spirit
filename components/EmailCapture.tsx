@@ -1,8 +1,10 @@
 'use client'
+
 import { useState, useEffect, useRef } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
+import { openDesk } from './DeskOverlay'
+
 type Props = {
   isOpen: boolean
   onClose: () => void
@@ -10,83 +12,132 @@ type Props = {
   teachingTitle?: string
   onSuccess?: (email: string) => void
 }
-type SavedItem = {
+
+type HouseMessage = {
   id: string
-  teaching_number: number
-  memo: string | null
+  email: string
+  direction: 'from_admin' | 'from_member'
+  body: string
   created_at: string
-  teachings: {
-    title: string
-    date: string
-  } | null
+  read_at: string | null
+  created_by: string | null
+  kind: string
 }
+
+function kindLabel(kind: string) {
+  if (kind === 'gift') return 'Gift'
+  if (kind === 'comp') return 'Comp'
+  if (kind === 'support') return 'Support'
+  if (kind === 'reply') return 'Reply'
+  return 'Note'
+}
+
 export default function EmailCapture({
   isOpen,
   onClose,
-  teachingNumber,
-  teachingTitle,
+  onSuccess,
 }: Props) {
   const [email, setEmail] = useState('')
-  const [status, setStatus] = useState<'idle' | 'sending' | 'key-sent' | 'verified' | 'success' | 'error'>('idle')
+  const [status, setStatus] = useState<
+    'idle' | 'sending' | 'key-sent' | 'verified' | 'success' | 'error'
+  >('idle')
   const [message, setMessage] = useState('')
   const [savedEmail, setSavedEmail] = useState('')
-  const [memo, setMemo] = useState('')
-  const [sendTo, setSendTo] = useState('')
-  const [savedList, setSavedList] = useState<SavedItem[]>([])
-  const [loadingList, setLoadingList] = useState(false)
-  const [savingTeaching, setSavingTeaching] = useState(false)
-  const [justSaved, setJustSaved] = useState(false)
-  const [savingMemo, setSavingMemo] = useState(false)
-  const [sendingToSomeone, setSendingToSomeone] = useState(false)
-  const [sendStatus, setSendStatus] = useState<'idle' | 'sent' | 'error'>('idle')
   const [checkingSession, setCheckingSession] = useState(false)
   const [membershipTier, setMembershipTier] = useState<string | null>(null)
   const [billingInterval, setBillingInterval] = useState<string | null>(null)
-  const [openingPortal, setOpeningPortal] = useState(false)
-  const [letterBody, setLetterBody] = useState('')
-  const [letterStatus, setLetterStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
-  const [letterError, setLetterError] = useState('')
+  const [houseMessages, setHouseMessages] = useState<HouseMessage[]>([])
+  const [houseUnread, setHouseUnread] = useState(0)
+  const [houseLoading, setHouseLoading] = useState(false)
+  const [houseReply, setHouseReply] = useState('')
+  const [houseReplyStatus, setHouseReplyStatus] = useState<
+    'idle' | 'sending' | 'sent' | 'error'
+  >('idle')
+  const [houseReplyError, setHouseReplyError] = useState('')
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const dragStart = useRef({ x: 0, y: 0 })
   const cardRef = useRef<HTMLDivElement>(null)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
+  const onSuccessRef = useRef(onSuccess)
+  onSuccessRef.current = onSuccess
+
   useEffect(() => {
-    if (isOpen && cardRef.current) {
+    if (isOpen && typeof window !== 'undefined') {
       const width = 460
       setPosition({
-        x: Math.max(40, window.innerWidth - width - 50),
-        y: 70,
+        x: Math.max(20, window.innerWidth - width - 50),
+        y: Math.max(20, 70),
       })
     }
   }, [isOpen])
+
+  const fetchHouseMessages = async () => {
+    setHouseLoading(true)
+    try {
+      const res = await fetch('/api/messages')
+      if (!res.ok) {
+        setHouseMessages([])
+        setHouseUnread(0)
+        return
+      }
+      const data = await res.json()
+      const list: HouseMessage[] = data.messages || []
+      setHouseMessages(list)
+      setHouseUnread(data.unread || 0)
+      const unreadIds = list
+        .filter((m) => m.direction === 'from_admin' && !m.read_at)
+        .map((m) => m.id)
+      if (unreadIds.length > 0) {
+        await fetch('/api/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'mark_read', ids: unreadIds }),
+        })
+        setHouseUnread(0)
+        setHouseMessages((prev) =>
+          prev.map((m) =>
+            unreadIds.includes(m.id)
+              ? { ...m, read_at: new Date().toISOString() }
+              : m
+          )
+        )
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setHouseLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (!isOpen) {
       setStatus('idle')
       setMessage('')
-      setMemo('')
-      setSendTo('')
-      setSavedList([])
       setEmail('')
-      setJustSaved(false)
-      setSendStatus('idle')
+      setSavedEmail('')
       setCheckingSession(false)
       setMembershipTier(null)
       setBillingInterval(null)
-      setOpeningPortal(false)
-      setLetterBody('')
-      setLetterStatus('idle')
-      setLetterError('')
+      setHouseMessages([])
+      setHouseUnread(0)
+      setHouseReply('')
+      setHouseReplyStatus('idle')
+      setHouseReplyError('')
+      setIsDragging(false)
       if (pollRef.current) {
         clearInterval(pollRef.current)
         pollRef.current = null
       }
       return
     }
+
     const checkSession = async () => {
       setCheckingSession(true)
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
       if (user?.email) {
         setSavedEmail(user.email)
         setStatus('success')
@@ -97,12 +148,13 @@ export default function EmailCapture({
           .maybeSingle()
         setMembershipTier(profile?.subscription_status || null)
         setBillingInterval(profile?.billing_interval || null)
-        await fetchSavedList()
+        await fetchHouseMessages()
       }
       setCheckingSession(false)
     }
     checkSession()
   }, [isOpen])
+
   useEffect(() => {
     if (status !== 'key-sent') {
       if (pollRef.current) {
@@ -113,7 +165,9 @@ export default function EmailCapture({
     }
     const supabase = createClient()
     pollRef.current = setInterval(async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
       if (user?.email) {
         if (pollRef.current) {
           clearInterval(pollRef.current)
@@ -121,6 +175,7 @@ export default function EmailCapture({
         }
         setSavedEmail(user.email)
         setStatus('verified')
+        onSuccessRef.current?.(user.email)
       }
     }, 2500)
     return () => {
@@ -130,52 +185,42 @@ export default function EmailCapture({
       }
     }
   }, [status])
-  useEffect(() => {
-    if (teachingNumber && savedList.length > 0) {
-      const already = savedList.some((item) => item.teaching_number === teachingNumber)
-      setJustSaved(already)
+
+  const beginDrag = (e: React.MouseEvent) => {
+    const t = e.target as HTMLElement
+    if (
+      t.closest('input, textarea, button, a, select, [data-no-drag], label')
+    ) {
+      return
     }
-  }, [savedList, teachingNumber])
-  const onMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('[data-drag-handle]')) {
-      setIsDragging(true)
-      dragStart.current = {
-        x: e.clientX - position.x,
-        y: e.clientY - position.y,
-      }
+    if (!t.closest('[data-drag-surface]')) return
+    e.preventDefault()
+    setIsDragging(true)
+    dragStart.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
     }
   }
+
   useEffect(() => {
+    if (!isDragging) return
     const onMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return
       setPosition({
         x: e.clientX - dragStart.current.x,
         y: e.clientY - dragStart.current.y,
       })
     }
     const onMouseUp = () => setIsDragging(false)
-    if (isDragging) {
-      window.addEventListener('mousemove', onMouseMove)
-      window.addEventListener('mouseup', onMouseUp)
-    }
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
     return () => {
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', onMouseUp)
     }
   }, [isDragging])
+
   if (!isOpen) return null
-  const fetchSavedList = async () => {
-    setLoadingList(true)
-    try {
-      const res = await fetch('/api/saved-teachings')
-      const data = await res.json()
-      setSavedList(data.saved || [])
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setLoadingList(false)
-    }
-  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email.trim()) {
@@ -202,100 +247,43 @@ export default function EmailCapture({
       setMessage(err.message || 'Unable to send the key right now.')
     }
   }
-  const handleSaveTeaching = async () => {
-    if (!teachingNumber || justSaved) return
-    setSavingTeaching(true)
-    try {
-      const res = await fetch('/api/save-teaching', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          teaching_number: teachingNumber,
-          memo: memo || null,
-        }),
-      })
-      if (!res.ok) throw new Error('Save failed')
-      setJustSaved(true)
-      await fetchSavedList()
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setSavingTeaching(false)
-    }
-  }
-  const handleSaveMemo = async () => {
-    if (!teachingNumber) return
-    setSavingMemo(true)
-    try {
-      await fetch('/api/save-teaching', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          teaching_number: teachingNumber,
-          memo: memo || null,
-        }),
-      })
-      await fetchSavedList()
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setSavingMemo(false)
-    }
-  }
-  const handleSendToSomeone = async () => {
-    if (!teachingNumber || !sendTo.trim()) return
-    setSendingToSomeone(true)
-    setSendStatus('idle')
-    try {
-      const res = await fetch('/api/send-teaching', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: sendTo.trim(),
-          teaching_number: teachingNumber,
-          teaching_title: teachingTitle,
-        }),
-      })
-      if (!res.ok) throw new Error('Failed to send')
-      setSendStatus('sent')
-      setSendTo('')
-    } catch (err) {
-      console.error(err)
-      setSendStatus('error')
-    } finally {
-      setSendingToSomeone(false)
-    }
-  }
-    const handleManageMembership = () => {
+
+  const handleManageMembership = () => {
     window.location.href = '/membership/manage'
   }
-  const handleSendLetter = async () => {
-    if (!letterBody.trim() || letterStatus === 'sending') return
-    setLetterStatus('sending')
-    setLetterError('')
+
+  const handleManageCollection = () => {
+    openDesk()
+    onClose()
+  }
+
+  const handleHouseReply = async () => {
+    if (!houseReply.trim() || houseReplyStatus === 'sending') return
+    setHouseReplyStatus('sending')
+    setHouseReplyError('')
     try {
-      const res = await fetch('/api/letters', {
+      const res = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          body: letterBody.trim(),
-          teaching_number: teachingNumber || null,
-        }),
+        body: JSON.stringify({ action: 'reply', body: houseReply.trim() }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Could not leave the letter')
-      setLetterStatus('sent')
-      setLetterBody('')
+      if (!res.ok) throw new Error(data.error || 'Could not send reply')
+      setHouseReply('')
+      setHouseReplyStatus('sent')
+      await fetchHouseMessages()
     } catch (err: any) {
-      setLetterStatus('error')
-      setLetterError(err.message || 'Could not leave the letter')
+      setHouseReplyStatus('error')
+      setHouseReplyError(err.message || 'Could not send reply')
     }
   }
+
   const isPaidMember =
     membershipTier === 'house_brew' || membershipTier === 'private_reserve'
+
   const renderTitle = () => {
     if (status === 'key-sent') return 'A Key Has Been Sent'
-    if (status === 'verified') return 'Thank You'
+    if (status === 'verified') return 'Thank you'
     if (status !== 'success') return 'A Library Card'
     let tierLabel = ''
     if (membershipTier === 'house_brew') tierLabel = 'House Brew'
@@ -308,13 +296,21 @@ export default function EmailCapture({
       <>
         Special Collections – {tierLabel}
         {intervalLabel && (
-          <span className="text-[11px] text-[#6B5E54] font-normal">
-            {' '}– {intervalLabel}
+          <span className="text-[11px] text-[#3F362E] font-normal">
+            {' '}
+            – {intervalLabel}
           </span>
         )}
       </>
     )
   }
+
+  const panelClass =
+    'bg-[#E8DFD0]/72 border border-[#B8A990]/80 rounded-sm shadow-xl flex flex-col h-full overflow-hidden backdrop-blur-[2px]'
+
+  const linkBtn =
+    'text-[12px] text-[#2A241C] hover:text-[#1a1614] underline underline-offset-2 transition-colors'
+
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
       <div
@@ -323,43 +319,67 @@ export default function EmailCapture({
       />
       <div
         ref={cardRef}
-        className="absolute pointer-events-auto"
+        data-drag-surface
+        className="absolute pointer-events-auto select-none"
         style={{
           left: position.x,
           top: position.y,
-          cursor: isDragging ? 'grabbing' : 'default',
           width: '460px',
+          cursor: isDragging ? 'grabbing' : 'grab',
         }}
-        onMouseDown={onMouseDown}
+        onMouseDown={beginDrag}
       >
-        <div className="relative w-full rounded-sm overflow-hidden shadow-2xl" style={{ height: '640px' }}>
+        <div
+          className="relative w-full rounded-sm overflow-hidden shadow-2xl"
+          style={{ height: '640px' }}
+        >
           <Image
             src="/doors-of-durin-full.JPG"
             alt="Doors of Durin"
             fill
-            className="object-contain object-top bg-[#f5f0e6]"
+            className="object-contain object-top bg-[#f5f0e6] pointer-events-none"
             priority
             sizes="460px"
+            draggable={false}
           />
-          <div className="absolute left-[5.1rem] right-[5.1rem] bottom-5 top-[255px] flex flex-col">
-            <div className="bg-[#F7F1E6]/93 border border-[#C9B896] rounded-sm shadow-xl flex flex-col h-full overflow-hidden">
+          <div
+            className="absolute left-[5.1rem] right-[5.1rem] bottom-5 top-[255px] flex flex-col"
+            data-no-drag
+            style={{ cursor: 'default' }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div className={panelClass}>
               <div
-                data-drag-handle
-                className="flex items-center justify-between px-4 py-2.5 border-b border-[#E0D5C0] bg-[#F0E9DC]/95 cursor-grab active:cursor-grabbing select-none shrink-0"
+                className="flex items-center justify-between px-4 py-2.5 border-b border-[#C9BDA8]/70 bg-[#D9CFBC]/55 select-none shrink-0"
+                style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                  setIsDragging(true)
+                  dragStart.current = {
+                    x: e.clientX - position.x,
+                    y: e.clientY - position.y,
+                  }
+                }}
               >
                 <div className="text-[13px] font-medium text-[#2A241C] tracking-wide">
                   {renderTitle()}
                 </div>
                 <button
                   onClick={onClose}
-                  className="text-[#8A7B65] hover:text-[#2A241C] text-sm transition-colors px-1"
+                  className="text-[#3F362E] hover:text-[#2A241C] text-sm transition-colors px-1"
+                  style={{ cursor: 'pointer' }}
                 >
                   ✕
                 </button>
               </div>
-              <div className="px-4 py-4 overflow-y-auto flex-1 text-[13px]">
+
+              <div
+                className="px-4 py-4 overflow-y-auto flex-1 text-[13px] text-[#2A241C]"
+                data-no-drag
+                style={{ cursor: 'default' }}
+              >
                 {checkingSession ? (
-                  <div className="py-8 text-center text-[#6B5E54]">
+                  <div className="py-8 text-center text-[#3F362E]">
                     Opening your room…
                   </div>
                 ) : status === 'verified' ? (
@@ -367,228 +387,162 @@ export default function EmailCapture({
                     <h3 className="text-lg font-medium text-[#2A241C]">
                       Thank you for verifying
                     </h3>
-                    <p className="leading-relaxed text-[#3F362E]">
-                      Your Special Collections room is now open.
-                      <br /><br />
-                      Look in the <strong>top right</strong> of any page for the
-                      Special Collections icon. You can open it whenever you wish
-                      to save a Teaching or return to the ones you have kept.
+                    <p className="leading-relaxed text-[#2A241C]">
+                      Your room is open.
+                      <br />
+                      <br />
+                      The <strong>Desk</strong> icon (top right) holds Teachings
+                      you save. Special Collections is for the house —
+                      membership and messages.
                     </p>
                     <button
                       onClick={onClose}
-                      className="w-full py-2 border border-[#C9B896] text-[#2A241C] text-[14px] rounded-sm hover:bg-[#EDE4D4] transition-colors"
+                      className="w-full py-2 border border-[#B8A990] text-[#2A241C] text-[14px] rounded-sm hover:bg-[#E8DFD0]/80 transition-colors"
                     >
                       Close
                     </button>
                   </div>
                 ) : status === 'success' ? (
-                  <div className="space-y-5">
-                    {isPaidMember && (
-                      <div className="pb-1">
-                        <button
-                          onClick={handleManageMembership}
-                          disabled={openingPortal}
-                          className="text-[12px] text-[#6B5E54] hover:text-[#2A241C] underline underline-offset-2 transition-colors disabled:opacity-50"
-                        >
-                          {openingPortal ? 'Opening…' : 'Manage membership'}
-                        </button>
-                      </div>
-                    )}
-                    {teachingNumber && teachingTitle && (
-                      <div className="space-y-2">
-                        {justSaved ? (
-                          <>
-                            <div className="leading-relaxed text-[#3F362E]">
-                              <div className="text-[#6B5E54]">We have saved the Teaching</div>
-                              <div className="mt-1 font-medium text-[#2A241C] text-[14px]">
-                                {teachingTitle}
-                              </div>
-                              <div className="mt-1 text-[12px] text-[#6B5E54]">
-                                to the Special Collection of {savedEmail}
-                              </div>
-                            </div>
-                            <div className="text-[13px] text-[#A39682]">
-                              Saved
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="leading-relaxed text-[#3F362E]">
-                              <div className="text-[#6B5E54]">Save this Teaching to your Special Collection?</div>
-                              <div className="mt-1 font-medium text-[#2A241C] text-[14px]">
-                                {teachingTitle}
-                              </div>
-                            </div>
-                            <button
-                              onClick={handleSaveTeaching}
-                              disabled={savingTeaching}
-                              className="text-[13px] text-[#5C4A3A] hover:text-[#2A241C] transition-colors disabled:opacity-50"
-                            >
-                              {savingTeaching ? 'Saving…' : 'Save Teaching'}
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    )}
-                    <p className="leading-relaxed text-[#3F362E]">
-                      You can save any Teaching that matters to you, from any room in the house.
-                      You can also attach a note to it as a reference or observation.
+                  <div className="space-y-4">
+                    <p className="text-[12px] text-[#3F362E] leading-relaxed">
+                      Signed in as{' '}
+                      <span className="font-medium text-[#2A241C]">
+                        {savedEmail}
+                      </span>
                     </p>
-                    {teachingNumber && (
-                      <div className="space-y-1.5">
-                        <label className="text-sm text-[#6B5E54]">Note for this Teaching</label>
-                        <textarea
-                          value={memo}
-                          onChange={(e) => setMemo(e.target.value)}
-                          placeholder='e.g. "Send this one to Mary" or "Dad would like this"'
-                          rows={2}
-                          className="w-full px-3 py-2 bg-white border border-[#D4C8B0] rounded-sm text-[13px] text-[#2A241C] placeholder:text-[#A39682] focus:outline-none focus:border-[#8A7B65] resize-none"
-                        />
+
+                    {/* Manage actions */}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                      <button
+                        type="button"
+                        onClick={handleManageCollection}
+                        className={linkBtn}
+                      >
+                        Manage Collection
+                      </button>
+                      {isPaidMember && (
                         <button
-                          onClick={handleSaveMemo}
-                          disabled={savingMemo}
-                          className="text-[13px] text-[#5C4A3A] hover:text-[#2A241C] transition-colors disabled:opacity-50"
+                          type="button"
+                          onClick={handleManageMembership}
+                          className={linkBtn}
                         >
-                          {savingMemo ? 'Saving…' : 'Save note'}
+                          Manage Membership
                         </button>
-                      </div>
-                    )}
-                    {teachingNumber && (
-                      <div className="space-y-1.5">
-                        <label className="text-sm text-[#6B5E54]">Send this Teaching to someone</label>
-                        <input
-                          type="email"
-                          value={sendTo}
-                          onChange={(e) => {
-                            setSendTo(e.target.value)
-                            setSendStatus('idle')
-                          }}
-                          placeholder="email@example.com"
-                          className="w-full px-3 py-2 bg-white border border-[#D4C8B0] rounded-sm text-[13px] text-[#2A241C] placeholder:text-[#A39682] focus:outline-none focus:border-[#8A7B65]"
-                        />
-                        <button
-                          onClick={handleSendToSomeone}
-                          disabled={!sendTo.trim() || sendingToSomeone}
-                          className="text-[13px] text-[#5C4A3A] hover:text-[#2A241C] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          {sendingToSomeone ? 'Sending…' : sendStatus === 'sent' ? 'Sent' : 'Send Teaching'}
-                        </button>
-                        {sendStatus === 'error' && (
-                          <p className="text-[12px] text-red-700">Unable to send right now.</p>
-                        )}
-                      </div>
-                    )}
-                    <div>
-                      <div className="text-sm text-[#6B5E54] mb-1.5">Your saved Teachings</div>
-                      <div className="max-h-36 overflow-y-auto border border-[#E0D5C0] rounded-sm bg-white/70">
-                        {loadingList ? (
-                          <div className="p-3 text-sm text-[#8A7B65]">Loading…</div>
-                        ) : savedList.length === 0 ? (
-                          <div className="p-3 text-sm text-[#8A7B65]">No Teachings saved yet.</div>
-                        ) : (
-                          savedList.map((item) => {
-                            const isCurrent = item.teaching_number === teachingNumber
-                            return (
-                              <Link
-                                key={item.id}
-                                href={`/teachings/${item.teaching_number}`}
-                                className={`block px-3 py-2.5 border-b border-[#EDE6D9] last:border-b-0 hover:bg-[#F7F1E6] transition-colors ${
-                                  isCurrent ? 'bg-[#EDE4D4]' : ''
-                                }`}
-                              >
-                                <div className={`text-[11px] tracking-wide uppercase ${isCurrent ? 'font-medium text-[#2A241C]' : 'text-[#2A241C]'}`}>
-                                  {item.teachings?.title || `Teaching ${item.teaching_number}`}
-                                </div>
-                                <div className="text-[11px] text-[#8A7B65] mt-0.5">
-                                  {item.teachings?.date}
-                                </div>
-                                {item.memo && (
-                                  <div className="text-[11px] text-[#6B5E54] mt-0.5 italic">
-                                    {item.memo}
-                                  </div>
-                                )}
-                              </Link>
-                            )
-                          })
-                        )}
-                      </div>
+                      )}
                     </div>
 
-                    {/* Letter to the house */}
-                    <div className="space-y-1.5 border-t border-[#E0D5C0] pt-4">
-                      <div className="text-sm text-[#6B5E54]">
-                        Leave a letter for the house
+                    {/* Separator */}
+                    <div className="border-t border-[#A89880]/70" />
+
+                    {/* Notes from the house */}
+                    <div className="space-y-2">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <div className="text-[13px] font-medium text-[#2A241C]">
+                          Notes from the house
+                        </div>
+                        {houseUnread > 0 && (
+                          <span className="text-[11px] text-[#7A3E3E]">
+                            {houseUnread} new
+                          </span>
+                        )}
                       </div>
-                      <p className="text-[11px] text-[#8A7B65] leading-relaxed">
-                        A short note to the stewards — gratitude, a question, or something
-                        you noticed. Not a public comment.
-                        {teachingNumber
-                          ? ` This letter will mention Teaching #${teachingNumber}.`
-                          : ''}
-                      </p>
-                      {letterStatus === 'sent' ? (
-                        <p className="text-[13px] text-[#3F362E] py-1">
-                          Your letter has been left at the desk.
-                        </p>
+                      {houseLoading ? (
+                        <div className="text-[12px] text-[#3F362E]">Loading…</div>
+                      ) : houseMessages.length === 0 ? (
+                        <div className="text-[12px] text-[#3F362E]">
+                          No notes yet.
+                        </div>
                       ) : (
-                        <>
-                          <textarea
-                            value={letterBody}
-                            onChange={(e) => {
-                              setLetterBody(e.target.value)
-                              if (letterStatus === 'error') setLetterStatus('idle')
-                            }}
-                            placeholder="A few lines…"
-                            rows={3}
-                            maxLength={2000}
-                            className="w-full px-3 py-2 bg-white border border-[#D4C8B0] rounded-sm text-[13px] text-[#2A241C] placeholder:text-[#A39682] focus:outline-none focus:border-[#8A7B65] resize-none"
-                          />
-                          <button
-                            type="button"
-                            onClick={handleSendLetter}
-                            disabled={!letterBody.trim() || letterStatus === 'sending'}
-                            className="text-[13px] text-[#5C4A3A] hover:text-[#2A241C] transition-colors disabled:opacity-40"
-                          >
-                            {letterStatus === 'sending' ? 'Leaving…' : 'Leave letter'}
-                          </button>
-                          {letterStatus === 'error' && letterError && (
-                            <p className="text-[12px] text-red-700">{letterError}</p>
-                          )}
-                        </>
+                        <ul className="space-y-2 max-h-36 overflow-y-auto">
+                          {houseMessages.slice(0, 6).map((msg) => (
+                            <li
+                              key={msg.id}
+                              className={`rounded-sm px-2.5 py-2 text-[12px] leading-relaxed ${
+                                msg.direction === 'from_admin'
+                                  ? 'bg-[#F5F0E6]/50 border border-[#C9BDA8]/50'
+                                  : 'bg-[#D9CFBC]/35'
+                              }`}
+                            >
+                              <div className="text-[10px] tracking-wide text-[#3F362E] mb-0.5">
+                                {msg.direction === 'from_admin'
+                                  ? 'House'
+                                  : 'You'}
+                                {' · '}
+                                {kindLabel(msg.kind)}
+                                {' · '}
+                                {new Date(msg.created_at).toLocaleString()}
+                              </div>
+                              <div className="text-[#2A241C] whitespace-pre-wrap">
+                                {msg.body}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
                       )}
+                      <div className="space-y-1.5 pt-1">
+                        <textarea
+                          value={houseReply}
+                          onChange={(e) => {
+                            setHouseReply(e.target.value)
+                            if (houseReplyStatus === 'error')
+                              setHouseReplyStatus('idle')
+                          }}
+                          placeholder="Reply to the house…"
+                          rows={2}
+                          maxLength={4000}
+                          className="w-full px-3 py-2 bg-[#F5F0E6]/55 border border-[#B8A990]/80 rounded-sm text-[13px] text-[#2A241C] placeholder:text-[#3F362E] focus:outline-none focus:border-[#6B5E54] resize-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleHouseReply}
+                          disabled={
+                            !houseReply.trim() ||
+                            houseReplyStatus === 'sending'
+                          }
+                          className="text-[13px] text-[#2A241C] hover:text-[#1a1614] transition-colors disabled:opacity-40"
+                        >
+                          {houseReplyStatus === 'sending'
+                            ? 'Sending…'
+                            : 'Send reply'}
+                        </button>
+                        {houseReplyStatus === 'error' && houseReplyError && (
+                          <p className="text-[12px] text-red-800">
+                            {houseReplyError}
+                          </p>
+                        )}
+                      </div>
                     </div>
 
                     <button
                       onClick={onClose}
-                      className="w-full py-2 mt-1 border border-[#C9B896] text-[#2A241C] text-[14px] rounded-sm hover:bg-[#EDE4D4] transition-colors"
+                      className="w-full py-2 mt-1 border border-[#B8A990] text-[#2A241C] text-[14px] rounded-sm hover:bg-[#E8DFD0]/70 transition-colors"
                     >
                       I’m Done
                     </button>
                   </div>
                 ) : status === 'key-sent' ? (
                   <div className="space-y-4 text-center">
-                    <p className="leading-relaxed text-[#3F362E]">
-                      A key has been sent to<br />
-                      <span className="font-medium text-[#2A241C]">{savedEmail}</span>
+                    <p className="leading-relaxed text-[#2A241C]">
+                      A key has been sent to
+                      <br />
+                      <span className="font-medium">{savedEmail}</span>
                     </p>
-                    <p className="text-[13px] leading-relaxed text-[#6B5E54]">
-                      Please open your email and click “Confirm” on the link.<br />
-                      You will then be returned to your Special Collection.
-                    </p>
-                    <p className="text-[12px] text-[#8A7B65]">
-                      Waiting for confirmation…
+                    <p className="text-[13px] leading-relaxed text-[#3F362E]">
+                      Open your email and click “Confirm” on the link.
                     </p>
                     <button
                       onClick={onClose}
-                      className="w-full py-2 border border-[#C9B896] text-[#2A241C] text-[14px] rounded-sm hover:bg-[#EDE4D4] transition-colors"
+                      className="w-full py-2 border border-[#B8A990] text-[#2A241C] text-[14px] rounded-sm hover:bg-[#E8DFD0]/70 transition-colors"
                     >
                       Close
                     </button>
                   </div>
                 ) : (
                   <div>
-                    <p className="text-center leading-relaxed text-[#3F362E] mb-5">
-                      If you enter your email address, we will reserve a Special Collections Reading Room in your name for any Teachings you wish to save. This does not require a password or any payment, but it will require you to respond to an email we send you to validate your email address.
+                    <p className="text-center leading-relaxed text-[#2A241C] mb-5">
+                      Enter your email to open a quiet room in your name. No
+                      password and no payment — only a short confirmation by
+                      email. You can then save Teachings to your desk.
                     </p>
                     <form onSubmit={handleSubmit}>
                       <input
@@ -596,7 +550,7 @@ export default function EmailCapture({
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="your@email.com"
-                        className="w-full px-3 py-2 mb-3 bg-white border border-[#D4C8B0] rounded-sm text-[#2A241C] placeholder:text-[#A39682] focus:outline-none focus:border-[#8A7B65]"
+                        className="w-full px-3 py-2 mb-3 bg-[#F5F0E6]/55 border border-[#B8A990]/80 rounded-sm text-[#2A241C] placeholder:text-[#3F362E] focus:outline-none focus:border-[#6B5E54]"
                         disabled={status === 'sending'}
                       />
                       <button
@@ -609,16 +563,18 @@ export default function EmailCapture({
                       <button
                         type="button"
                         onClick={onClose}
-                        className="w-full py-2 border border-[#C9B896] text-[#2A241C] text-[14px] rounded-sm hover:bg-[#EDE4D4] transition-colors"
+                        className="w-full py-2 border border-[#B8A990] text-[#2A241C] text-[14px] rounded-sm hover:bg-[#E8DFD0]/70 transition-colors"
                       >
                         Not Now, Thanks
                       </button>
                       {message && status === 'error' && (
-                        <p className="mt-3 text-center text-sm text-red-700">{message}</p>
+                        <p className="mt-3 text-center text-sm text-red-800">
+                          {message}
+                        </p>
                       )}
-                      <p className="mt-5 text-center text-[11px] leading-relaxed text-[#8A7B65]">
-                        We only use your email to remember what you want to save.
-                        We do not sell, trade or give away any personal information associated with your email.
+                      <p className="mt-5 text-center text-[11px] leading-relaxed text-[#3F362E]">
+                        We only use your email to open the rooms for you. We do
+                        not sell, trade, or give away personal information.
                       </p>
                     </form>
                   </div>

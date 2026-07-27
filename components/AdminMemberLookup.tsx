@@ -15,6 +15,17 @@ type Member = {
   admin_note_at?: string | null
 }
 
+type HouseMessage = {
+  id: string
+  email: string
+  direction: 'from_admin' | 'from_member'
+  body: string
+  created_at: string
+  read_at: string | null
+  created_by: string | null
+  kind: string
+}
+
 function labelTier(status: string | null) {
   if (!status) return 'Magic Link / free key (no paid tier)'
   if (status === 'house_brew') return 'House Brew'
@@ -30,6 +41,14 @@ function memberLabel(m: Member) {
   return `${email}${user}${tier}`
 }
 
+function kindLabel(kind: string) {
+  if (kind === 'gift') return 'Gift'
+  if (kind === 'comp') return 'Comp'
+  if (kind === 'support') return 'Support'
+  if (kind === 'reply') return 'Reply'
+  return 'Note'
+}
+
 export default function AdminMemberLookup() {
   const [q, setQ] = useState('')
   const [loading, setLoading] = useState(false)
@@ -38,14 +57,22 @@ export default function AdminMemberLookup() {
   const [allMembers, setAllMembers] = useState<Member[]>([])
   const [selectedId, setSelectedId] = useState('')
   const [results, setResults] = useState<Member[] | null>(null)
-
-  // Override form state
   const [tier, setTier] = useState('')
   const [interval, setInterval] = useState('')
   const [note, setNote] = useState('')
   const [clearAccess, setClearAccess] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [syncing, setSyncing] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
+  const [syncDetail, setSyncDetail] = useState('')
+
+  // Messages
+  const [messages, setMessages] = useState<HouseMessage[]>([])
+  const [msgLoading, setMsgLoading] = useState(false)
+  const [msgBody, setMsgBody] = useState('')
+  const [msgKind, setMsgKind] = useState('note')
+  const [msgSending, setMsgSending] = useState(false)
+  const [msgError, setMsgError] = useState('')
 
   const loadList = async () => {
     setListLoading(true)
@@ -65,18 +92,35 @@ export default function AdminMemberLookup() {
     loadList()
   }, [])
 
+  const loadMessages = async (email: string) => {
+    setMsgLoading(true)
+    setMsgError('')
+    try {
+      const res = await fetch(
+        `/api/admin/messages?email=${encodeURIComponent(email)}`
+      )
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Could not load messages')
+      setMessages(data.messages || [])
+    } catch (err: any) {
+      setMsgError(err.message || 'Could not load messages')
+      setMessages([])
+    } finally {
+      setMsgLoading(false)
+    }
+  }
+
   const applyMemberToForm = (m: Member) => {
     setTier(m.subscription_status || '')
     setInterval(m.billing_interval || '')
     setNote(m.admin_note || '')
     setClearAccess(false)
     setSaveMsg('')
-  }
-
-  const showMember = (m: Member) => {
-    setResults([m])
-    setSelectedId(m.id)
-    applyMemberToForm(m)
+    setSyncDetail('')
+    setMsgBody('')
+    setMsgKind('note')
+    if (m.email) loadMessages(m.email)
+    else setMessages([])
   }
 
   const onPickFromList = (id: string) => {
@@ -94,6 +138,7 @@ export default function AdminMemberLookup() {
     setError('')
     setResults(null)
     setSaveMsg('')
+    setSyncDetail('')
     try {
       const res = await fetch(
         `/api/admin/lookup?q=${encodeURIComponent(q.trim())}`
@@ -107,6 +152,7 @@ export default function AdminMemberLookup() {
         applyMemberToForm(list[0])
       } else {
         setSelectedId('')
+        setMessages([])
       }
     } catch (err: any) {
       setError(err.message || 'Lookup failed')
@@ -147,12 +193,71 @@ export default function AdminMemberLookup() {
     }
   }
 
+  const syncFromStripe = async (profileId: string) => {
+    const ok = window.confirm(
+      'Sync from Stripe will overwrite this profile’s tier, interval, and access-ends date with whatever Stripe reports now.\n\nIf this person is comped, that comp will be lost unless you re-apply it after.\n\nContinue?'
+    )
+    if (!ok) return
+
+    setSyncing(true)
+    setSaveMsg('')
+    setSyncDetail('')
+    setError('')
+    try {
+      const res = await fetch('/api/admin/sync-stripe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profile_id: profileId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Sync failed')
+      const updated: Member = data.member
+      setResults([updated])
+      setAllMembers((prev) =>
+        prev.map((m) => (m.id === updated.id ? { ...m, ...updated } : m))
+      )
+      applyMemberToForm(updated)
+      setSaveMsg('Synced from Stripe.')
+      if (data.stripe) {
+        setSyncDetail(JSON.stringify(data.stripe, null, 2))
+      }
+    } catch (err: any) {
+      setError(err.message || 'Sync failed')
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  const sendMessage = async (email: string) => {
+    const text = msgBody.trim()
+    if (!text) return
+    setMsgSending(true)
+    setMsgError('')
+    try {
+      const res = await fetch('/api/admin/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, body: text, kind: msgKind }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Send failed')
+      setMsgBody('')
+      await loadMessages(email)
+    } catch (err: any) {
+      setMsgError(err.message || 'Send failed')
+    } finally {
+      setMsgSending(false)
+    }
+  }
+
   return (
     <section className="mb-12 p-6 rounded-xl border border-[#E5DFD3] bg-white/50">
       <h2 className="text-lg font-medium text-[#2C2522] mb-1">Member lookup</h2>
       <p className="text-[14px] text-[#6B5E54] mb-5">
         Choose from the full list (up to 200 newest) or search by email / username.
         Override is for support and comps only — billing still lives in Stripe.
+        Sync reads Stripe and updates the profile to match. Messages appear in
+        their Special Collections as “Notes from the house.”
       </p>
 
       <div className="mb-5">
@@ -216,6 +321,7 @@ export default function AdminMemberLookup() {
                   </span>
                 ) : null}
               </div>
+
               <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-[#6B5E54] mb-4">
                 <div>
                   <span className="text-[#8A7B65]">Tier: </span>
@@ -263,11 +369,30 @@ export default function AdminMemberLookup() {
                 )}
               </dl>
 
-              {/* Override — only when a single member is in focus */}
               {results.length === 1 && (
                 <div className="border-t border-[#E5DFD3] pt-4 mt-2 space-y-3">
-                  <p className="text-[13px] text-[#8A7B65]">
-                    Manual override (does not change Stripe billing)
+                  <div className="flex flex-wrap items-center gap-3 mb-2">
+                    <button
+                      type="button"
+                      disabled={syncing || !m.stripe_customer_id}
+                      onClick={() => syncFromStripe(m.id)}
+                      className="px-4 py-2 rounded-lg border border-[#C9BEB0] text-[#2C2522] text-sm hover:bg-[#F7F4EF] transition-colors disabled:opacity-60"
+                    >
+                      {syncing ? 'Syncing…' : 'Sync from Stripe'}
+                    </button>
+                    {saveMsg && (
+                      <span className="text-sm text-green-700">{saveMsg}</span>
+                    )}
+                  </div>
+                  {syncDetail && (
+                    <pre className="text-[11px] leading-relaxed text-[#6B5E54] bg-white/80 border border-[#E5DFD3] rounded-lg p-3 overflow-x-auto whitespace-pre-wrap">
+                      {syncDetail}
+                    </pre>
+                  )}
+
+                  <p className="text-[13px] text-[#8A7B65] pt-2">
+                    Manual override (does not change Stripe billing — use for
+                    comps and support fixes)
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
@@ -310,7 +435,7 @@ export default function AdminMemberLookup() {
                   </label>
                   <div>
                     <label className="block text-xs text-[#8A7B65] mb-1">
-                      Note (optional)
+                      Internal note (optional, admin-only)
                     </label>
                     <input
                       type="text"
@@ -329,10 +454,97 @@ export default function AdminMemberLookup() {
                     >
                       {saving ? 'Saving…' : 'Save override'}
                     </button>
-                    {saveMsg && (
-                      <span className="text-sm text-green-700">{saveMsg}</span>
-                    )}
                   </div>
+
+                  {/* Notes from the house */}
+                  {m.email && (
+                    <div className="border-t border-[#E5DFD3] pt-4 mt-4 space-y-3">
+                      <h3 className="text-[15px] font-medium text-[#2C2522]">
+                        Notes from the house
+                      </h3>
+                      <p className="text-[12px] text-[#8A7B65]">
+                        These appear in their Special Collections. Use Gift or
+                        Comp when you are granting something without charge.
+                      </p>
+
+                      {msgLoading ? (
+                        <p className="text-sm text-[#6B5E54]">Loading…</p>
+                      ) : messages.length === 0 ? (
+                        <p className="text-sm text-[#6B5E54]">No messages yet.</p>
+                      ) : (
+                        <ul className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                          {messages.map((msg) => (
+                            <li
+                              key={msg.id}
+                              className={`rounded-lg px-3 py-2 text-[13px] leading-relaxed ${
+                                msg.direction === 'from_admin'
+                                  ? 'bg-white border border-[#E5DFD3]'
+                                  : 'bg-[#EDE4D4]/60 border border-transparent'
+                              }`}
+                            >
+                              <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-[#8A7B65] mb-1">
+                                <span>
+                                  {msg.direction === 'from_admin'
+                                    ? 'House'
+                                    : 'Member'}
+                                </span>
+                                <span>·</span>
+                                <span>{kindLabel(msg.kind)}</span>
+                                <span>·</span>
+                                <span>
+                                  {new Date(msg.created_at).toLocaleString()}
+                                </span>
+                                {msg.direction === 'from_admin' &&
+                                  !msg.read_at && (
+                                    <>
+                                      <span>·</span>
+                                      <span className="text-[#7A3E3E]">
+                                        Unread
+                                      </span>
+                                    </>
+                                  )}
+                              </div>
+                              <div className="text-[#2C2522] whitespace-pre-wrap">
+                                {msg.body}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                      {msgError && (
+                        <p className="text-sm text-red-700">{msgError}</p>
+                      )}
+
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <select
+                          value={msgKind}
+                          onChange={(e) => setMsgKind(e.target.value)}
+                          className="px-3 py-2 rounded-lg border border-[#E5DFD3] bg-white text-[#2C2522] text-sm sm:w-36"
+                        >
+                          <option value="note">Note</option>
+                          <option value="gift">Gift</option>
+                          <option value="comp">Comp</option>
+                          <option value="support">Support</option>
+                        </select>
+                      </div>
+                      <textarea
+                        value={msgBody}
+                        onChange={(e) => setMsgBody(e.target.value)}
+                        rows={3}
+                        placeholder="Write to this member…"
+                        className="w-full px-3 py-2 rounded-lg border border-[#E5DFD3] bg-white text-[#2C2522] text-sm"
+                      />
+                      <button
+                        type="button"
+                        disabled={msgSending || !msgBody.trim()}
+                        onClick={() => sendMessage(m.email!)}
+                        className="px-4 py-2 rounded-lg bg-[#2C2522] text-[#F7F4EF] text-sm hover:bg-[#3d342f] transition-colors disabled:opacity-60"
+                      >
+                        {msgSending ? 'Sending…' : 'Send to Special Collections'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </li>

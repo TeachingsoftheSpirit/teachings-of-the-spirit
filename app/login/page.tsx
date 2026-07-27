@@ -35,40 +35,15 @@ export default function LoginPage() {
       }
 
       // Sign in with password
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const { error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
-
       if (authError) throw authError
 
-      // Check membership / grace period
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('subscription_status, access_ends_at')
-        .eq('email', email.toLowerCase())
-        .maybeSingle()
-
-      if (profile?.subscription_status === 'canceled') {
-        const endsAt = profile.access_ends_at ? new Date(profile.access_ends_at) : null
-        const now = new Date()
-
-        if (endsAt && endsAt > now) {
-          // Still inside the grace period — allow login
-          window.location.href = '/'
-          return
-        }
-
-        // Grace period over
-        await supabase.auth.signOut()
-        setStatus('error')
-        setMessage(
-          'Your membership has ended. You may renew any time from the membership page.'
-        )
-        return
-      }
-
-      // Active member or free verified user
+      // Canceled paid membership does NOT block sign-in.
+      // User keeps Magic Link–level access (Special Collections, etc.).
+      // Paid rooms are gated elsewhere by subscription_status.
       window.location.href = '/'
     } catch (err: any) {
       setStatus('error')
@@ -86,10 +61,12 @@ export default function LoginPage() {
         <p className="text-center text-[#6B5E54] mb-10 text-[15px]">
           Sign in with your username or email and password.
         </p>
-
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label htmlFor="identifier" className="block text-sm text-[#6B5E54] mb-1.5">
+            <label
+              htmlFor="identifier"
+              className="block text-sm text-[#6B5E54] mb-1.5"
+            >
               Username or Email
             </label>
             <input
@@ -103,9 +80,11 @@ export default function LoginPage() {
               autoComplete="username"
             />
           </div>
-
           <div>
-            <label htmlFor="password" className="block text-sm text-[#6B5E54] mb-1.5">
+            <label
+              htmlFor="password"
+              className="block text-sm text-[#6B5E54] mb-1.5"
+            >
               Password
             </label>
             <input
@@ -119,7 +98,6 @@ export default function LoginPage() {
               autoComplete="current-password"
             />
           </div>
-
           <button
             type="submit"
             disabled={status === 'loading'}
@@ -128,22 +106,30 @@ export default function LoginPage() {
             {status === 'loading' ? 'Signing in…' : 'Sign In'}
           </button>
         </form>
-
         {message && (
-          <p className={`mt-6 text-center text-sm ${status === 'error' ? 'text-red-700' : 'text-[#6B5E54]'}`}>
+          <p
+            className={`mt-6 text-center text-sm ${
+              status === 'error' ? 'text-red-700' : 'text-[#6B5E54]'
+            }`}
+          >
             {message}
           </p>
         )}
-
         <div className="mt-8 text-center text-sm text-[#6B5E54] space-y-2">
           <p>
-            <Link href="/auth/reset-password" className="underline underline-offset-2 hover:text-[#2C2522]">
+            <Link
+              href="/auth/reset-password"
+              className="underline underline-offset-2 hover:text-[#2C2522]"
+            >
               Forgot password?
             </Link>
           </p>
           <p>
             Don’t have an account?{' '}
-            <Link href="/membership" className="underline underline-offset-2 hover:text-[#2C2522]">
+            <Link
+              href="/membership"
+              className="underline underline-offset-2 hover:text-[#2C2522]"
+            >
               Become a member
             </Link>
           </p>

@@ -1,11 +1,16 @@
 'use client'
+
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import EmailCapture from './EmailCapture'
 import ReepicheepDoor from './ReepicheepDoor'
+import DeskOverlay, { openDesk, type DeskContext } from './DeskOverlay'
+
 const ADMIN_EMAIL = 'jprussell@protonmail.com'
+const DESK_OPEN_KEY = 'tot-desk-open'
+
 export default function Header({ active = 'home' }: { active?: string }) {
   const [isVerified, setIsVerified] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -13,23 +18,33 @@ export default function Header({ active = 'home' }: { active?: string }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isReepicheepOpen, setIsReepicheepOpen] = useState(false)
   const [isEmailCaptureOpen, setIsEmailCaptureOpen] = useState(false)
+  const [isDeskOpen, setIsDeskOpen] = useState(false)
+  const [deskContext, setDeskContext] = useState<DeskContext | null>(null)
+
   useEffect(() => {
+    // Restore desk across page navigations
+    try {
+      if (sessionStorage.getItem(DESK_OPEN_KEY) === '1') {
+        setIsDeskOpen(true)
+      }
+    } catch {
+      /* ignore */
+    }
+
     const supabase = createClient()
     const applyUser = (user: any) => {
       setIsVerified(!!user)
       setUserEmail(user?.email ?? null)
       setIsAdmin(user?.email === ADMIN_EMAIL)
     }
-    // Initial check
     supabase.auth.getUser().then(({ data: { user } }) => {
       applyUser(user)
     })
-    // Live updates (critical for the original tab after magic-link verify)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        applyUser(session?.user ?? null)
-      }
-    )
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      applyUser(session?.user ?? null)
+    })
     const onVisible = () => {
       if (document.visibilityState === 'visible') {
         supabase.auth.getUser().then(({ data: { user } }) => {
@@ -38,116 +53,182 @@ export default function Header({ active = 'home' }: { active?: string }) {
       }
     }
     document.addEventListener('visibilitychange', onVisible)
+
+    const onOpenDesk = (e: Event) => {
+      const detail = (e as CustomEvent).detail || {}
+      setDeskContext({
+        teachingNumber: detail.teachingNumber ?? null,
+        teachingTitle: detail.teachingTitle ?? null,
+      })
+      try {
+        sessionStorage.setItem(DESK_OPEN_KEY, '1')
+      } catch {
+        /* ignore */
+      }
+      setIsDeskOpen(true)
+    }
+    window.addEventListener('tot-open-desk', onOpenDesk)
+
     return () => {
       subscription.unsubscribe()
       document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('tot-open-desk', onOpenDesk)
     }
   }, [])
+
+  const closeDesk = () => {
+    try {
+      sessionStorage.removeItem(DESK_OPEN_KEY)
+    } catch {
+      /* ignore */
+    }
+    setIsDeskOpen(false)
+    setDeskContext(null)
+  }
+
   return (
     <>
-      <header className="sticky top-0 bg-[#F7F4EF] border-b border-[#C9BEB0] z-50">
-        <div className="max-w-5xl mx-auto px-3 sm:px-6">
-          <nav className="flex items-center justify-between h-12 sm:h-16 relative">
-            {/* Left side */}
-            <div className="flex items-center gap-3 sm:gap-4 z-10">
-              {isAdmin && (
-                <Link
-                  href="/admin"
-                  className="flex flex-col items-center group"
-                  title="Admin"
-                >
-                  <span className="text-lg sm:text-xl leading-none text-[#5C4A3A] opacity-70 group-hover:opacity-100 transition-opacity">
-                    ⌘
-                  </span>
-                  <span className="text-[7px] sm:text-[9px] leading-none mt-0.5 tracking-wide text-[#5C4A3A]">
-                    Admin
-                  </span>
-                </Link>
-              )}
-              <button
-                onClick={() => setIsReepicheepOpen(true)}
-                className="flex flex-col items-center group cursor-pointer"
-                title="Further up and further in!"
+      <header className="w-full bg-[#F7F4EF] border-b border-[#E5DFD3]">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6">
+          <nav className="relative flex items-center justify-center min-h-[3.85rem] sm:min-h-[4.35rem] text-[15px] sm:text-[16px] text-[#6B5E54]">
+            <button
+              type="button"
+              onClick={() => setIsReepicheepOpen(true)}
+              className="absolute left-0 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center gap-0.5 w-[4.5rem] sm:w-[5.5rem] cursor-pointer group z-20"
+              title="Further up and further in"
+            >
+              <Image
+                src="/images/reepicheep.jpg"
+                alt="Further up and further in"
+                width={36}
+                height={36}
+                className="object-contain w-8 h-8 sm:w-9 sm:h-9"
+              />
+              <span className="text-[7px] sm:text-[9px] leading-tight tracking-wide text-[#5C4A3A] text-center group-hover:text-[#2C2522]">
+                Further up
+                <br />
+                and further in
+              </span>
+              <div
+                className="pointer-events-none absolute left-0 top-full mt-1 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition duration-200 origin-top-left z-50"
+                aria-hidden
               >
-                <Image
-                  src="/images/reepicheep.jpg"
-                  alt="Further up and further in!"
-                  width={36}
-                  height={36}
-                  className="object-contain sm:w-10 sm:h-10"
-                />
-                <span className="text-[7px] sm:text-[9px] leading-none mt-0.5 tracking-wide text-[#5C4A3A]">
-                  Further up and further in!
-                </span>
-                <div className="absolute left-0 top-full mt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
-                  <div className="bg-[#F7F4EF] border border-[#C9BEB0] rounded-lg shadow-lg p-2">
-                    <Image
-                      src="/images/reepicheep.jpg"
-                      alt="Further up and further in!"
-                      width={220}
-                      height={220}
-                      className="object-contain rounded"
-                    />
-                  </div>
+                <div className="rounded-sm overflow-hidden shadow-xl border border-[#C9BEB0] bg-[#F7F4EF]">
+                  <Image
+                    src="/images/reepicheep.jpg"
+                    alt=""
+                    width={160}
+                    height={220}
+                    className="object-cover w-[7rem] h-[9.5rem] sm:w-[8rem] sm:h-[11rem]"
+                  />
                 </div>
-              </button>
-            </div>
+              </div>
+            </button>
 
-            {/* Center nav — truly centered */}
-            <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 sm:gap-6 text-[10px] sm:text-sm uppercase tracking-wider sm:tracking-widest text-[#6B5E54]">
-              <Link href="/" className={`hover:text-[#2C2522] transition-colors ${active === 'home' ? 'text-[#2C2522] font-medium' : ''}`}>
+            <div className="flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-5 gap-y-1 px-[4.75rem] sm:px-[6.75rem]">
+              <Link
+                href="/"
+                className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${
+                  active === 'home' ? 'text-[#2C2522] font-medium' : ''
+                }`}
+              >
                 Home
               </Link>
-              <Link href="/quotes" className={`hover:text-[#2C2522] transition-colors ${active === 'quotes' ? 'text-[#2C2522] font-medium' : ''}`}>
-                Quotes
-              </Link>
-              <Link href="/search" className={`hover:text-[#2C2522] transition-colors ${active === 'search' ? 'text-[#2C2522] font-medium' : ''}`}>
-                Search
-              </Link>
-              <Link href="/titles" className={`hover:text-[#2C2522] transition-colors ${active === 'titles' ? 'text-[#2C2522] font-medium' : ''}`}>
+              <Link
+                href="/titles"
+                className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${
+                  active === 'titles' ? 'text-[#2C2522] font-medium' : ''
+                }`}
+              >
                 Titles
               </Link>
-              <Link href="/browse" className={`hover:text-[#2C2522] transition-colors ${active === 'browse' ? 'text-[#2C2522] font-medium' : ''}`}>
-                Browse
+              <Link
+                href="/quotes"
+                className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${
+                  active === 'quotes' ? 'text-[#2C2522] font-medium' : ''
+                }`}
+              >
+                Quotes
               </Link>
-              <Link href="/ruminations" className={`hover:text-[#2C2522] transition-colors ${active === 'ruminations' ? 'text-[#2C2522] font-medium' : ''}`}>
+              <Link
+                href="/search"
+                className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${
+                  active === 'search' ? 'text-[#2C2522] font-medium' : ''
+                }`}
+              >
+                Search
+              </Link>
+              <Link
+                href="/ruminations"
+                className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${
+                  active === 'ruminations' ? 'text-[#2C2522] font-medium' : ''
+                }`}
+              >
                 Ruminations
               </Link>
-              <Link href="/about" className={`hover:text-[#2C2522] transition-colors ${active === 'about' ? 'text-[#2C2522] font-medium' : ''}`}>
+              <Link
+                href="/browse"
+                className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${
+                  active === 'browse' ? 'text-[#2C2522] font-medium' : ''
+                }`}
+              >
+                Browse
+              </Link>
+              <Link
+                href="/about"
+                className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${
+                  active === 'about' ? 'text-[#2C2522] font-medium' : ''
+                }`}
+              >
                 About
               </Link>
             </div>
 
-            {/* Right side */}
-            <div className="z-10">
-              {isVerified ? (
+            {isVerified && (
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2 z-20">
                 <button
+                  type="button"
+                  onClick={() => openDesk()}
+                  className="flex flex-col items-center justify-center gap-0.5 w-[3.25rem] sm:w-[3.75rem] cursor-pointer group"
+                  title="Your desk"
+                >
+                  <Image
+                    src="/images/Desk.JPG"
+                    alt="Your desk"
+                    width={32}
+                    height={32}
+                    className="object-cover w-7 h-7 sm:w-8 sm:h-8 rounded-sm border border-[#C9BEB0]/80"
+                  />
+                  <span className="text-[7px] sm:text-[9px] leading-tight tracking-wide text-[#5C4A3A] text-center group-hover:text-[#2C2522]">
+                    Desk
+                  </span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => setIsOpen(true)}
-                  className="flex flex-col items-center group cursor-pointer"
+                  className="flex flex-col items-center justify-center gap-0.5 w-[4.25rem] sm:w-[5rem] cursor-pointer group"
                   title={userEmail ?? 'Special Collections'}
                 >
                   <Image
                     src="/doors-icon.png"
                     alt="Special Collections"
-                    width={28}
-                    height={28}
-                    className="object-contain sm:w-9 sm:h-9"
+                    width={32}
+                    height={32}
+                    className="object-contain w-7 h-7 sm:w-9 sm:h-9"
                   />
-                  <span className="text-[7px] sm:text-[9px] leading-none mt-0.5 tracking-wide text-[#5C4A3A]">
-                    Special Collections
+                  <span className="text-[7px] sm:text-[9px] leading-tight tracking-wide text-[#5C4A3A] text-center group-hover:text-[#2C2522]">
+                    Special
+                    <br />
+                    Collections
                   </span>
                 </button>
-              ) : (
-                <div className="w-9 sm:w-10" /> /* spacer so center stays true */
-              )}
-            </div>
+              </div>
+            )}
           </nav>
         </div>
       </header>
-      <EmailCapture
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-      />
+
+      <EmailCapture isOpen={isOpen} onClose={() => setIsOpen(false)} />
       <EmailCapture
         isOpen={isEmailCaptureOpen}
         onClose={() => setIsEmailCaptureOpen(false)}
@@ -156,6 +237,11 @@ export default function Header({ active = 'home' }: { active?: string }) {
         isOpen={isReepicheepOpen}
         onClose={() => setIsReepicheepOpen(false)}
         onRequestEmailCapture={() => setIsEmailCaptureOpen(true)}
+      />
+      <DeskOverlay
+        isOpen={isDeskOpen}
+        onClose={closeDesk}
+        context={deskContext}
       />
     </>
   )

@@ -4,27 +4,23 @@ import Link from 'next/link'
 import { cookies } from 'next/headers'
 import Header from '@/components/Header'
 import SaveTeachingButton from '@/components/SaveTeachingButton'
+import CheckMarginalia from '@/components/CheckMarginalia'
 import GaladrielsMirror from '@/components/GaladrielsMirror'
 import {
   getMembershipLevel,
   canAccess,
 } from '@/lib/membership'
-
 type Props = {
   params: Promise<{ id: string }>
 }
-
 export default async function TeachingPage({ params }: Props) {
   const { id: slugOrId } = await params
-
   const level = await getMembershipLevel()
   const allowAny = canAccess(level, 'read_any_teaching')
   const allowPrevNext = canAccess(level, 'previous_next')
   const allowGaladriel = canAccess(level, 'galadriels_mirror')
   const allowRuminations = canAccess(level, 'ruminations_full')
-
   const supabase = await createClient()
-
   // Prefer slug; fall back to teaching_number if the segment is purely numeric
   const isNumeric = /^\d+$/.test(slugOrId)
   const { data: teaching } = await supabase
@@ -32,13 +28,10 @@ export default async function TeachingPage({ params }: Props) {
     .select('*')
     .eq(isNumeric ? 'teaching_number' : 'slug', isNumeric ? parseInt(slugOrId, 10) : slugOrId)
     .single()
-
   if (!teaching) {
     notFound()
   }
-
   const teachingNumber = teaching.teaching_number as number
-
   // Anonymous may only open Teachings currently featured on the Main Room
   let allowThis = allowAny
   if (!allowAny) {
@@ -50,7 +43,6 @@ export default async function TeachingPage({ params }: Props) {
       .filter((n) => !Number.isNaN(n))
     allowThis = featured.includes(teachingNumber)
   }
-
   if (!allowThis) {
     return (
       <main className="min-h-screen bg-[#F7F4EF]">
@@ -78,7 +70,6 @@ export default async function TeachingPage({ params }: Props) {
       </main>
     )
   }
-
   let prevSlug: string | null = null
   let nextSlug: string | null = null
   if (allowPrevNext) {
@@ -97,7 +88,6 @@ export default async function TeachingPage({ params }: Props) {
       .maybeSingle()
     nextSlug = next?.slug ?? null
   }
-
   const { data: rumLinks } = await supabase
     .from('ruminations_teachings')
     .select(
@@ -113,11 +103,9 @@ export default async function TeachingPage({ params }: Props) {
     `
     )
     .eq('teaching_number', teachingNumber)
-
   const relatedRuminations = (rumLinks || [])
     .map((row: any) => row.ruminations)
     .filter(Boolean)
-
   const prevClass =
     allowPrevNext && prevSlug
       ? 'text-[#6B5E54] hover:text-[#7A3E3E]'
@@ -126,14 +114,13 @@ export default async function TeachingPage({ params }: Props) {
     allowPrevNext && nextSlug
       ? 'text-[#6B5E54] hover:text-[#7A3E3E]'
       : 'text-[#6B5E54] pointer-events-none opacity-30'
-
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
       <div className="sticky top-0 z-50 bg-[#F7F4EF] border-b border-[#C9BEB0]">
         <Header active="teachings" />
       </div>
       <div className="max-w-3xl mx-auto px-6 py-8">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-3">
           <Link
             href={prevSlug ? `/teachings/${prevSlug}` : '#'}
             className={prevClass}
@@ -141,10 +128,16 @@ export default async function TeachingPage({ params }: Props) {
           >
             ← Previous Teaching
           </Link>
-          <SaveTeachingButton
-            teachingNumber={teachingNumber}
-            teachingTitle={teaching.title}
-          />
+          <div className="flex flex-col items-center gap-1.5">
+            <SaveTeachingButton
+              teachingNumber={teachingNumber}
+              teachingTitle={teaching.title}
+            />
+                       <CheckMarginalia
+              teachingNumber={teachingNumber}
+              teachingTitle={teaching.title}
+            />
+          </div>
           <Link
             href={nextSlug ? `/teachings/${nextSlug}` : '#'}
             className={nextClass}
@@ -153,7 +146,7 @@ export default async function TeachingPage({ params }: Props) {
             Next Teaching →
           </Link>
         </div>
-        <div className="flex justify-between items-start mb-6">
+        <div className="flex justify-between items-start mb-6 mt-5">
           <div className="text-left w-36">
             <div className="text-sm text-[#6B5E54]">{teaching.date}</div>
             {teaching.start_time && (
