@@ -6,6 +6,7 @@ import Header from '@/components/Header'
 import SaveTeachingButton from '@/components/SaveTeachingButton'
 import CheckMarginalia from '@/components/CheckMarginalia'
 import GaladrielsMirror from '@/components/GaladrielsMirror'
+import AdminCategoryDialog from '@/components/AdminCategoryDialog'
 import {
   getMembershipLevel,
   canAccess,
@@ -129,15 +130,20 @@ export default async function TeachingPage({ params }: Props) {
             ← Previous Teaching
           </Link>
           <div className="flex flex-col items-center gap-1.5">
-            <SaveTeachingButton
-              teachingNumber={teachingNumber}
-              teachingTitle={teaching.title}
-            />
-                       <CheckMarginalia
-              teachingNumber={teachingNumber}
-              teachingTitle={teaching.title}
-            />
-          </div>
+  <SaveTeachingButton
+    teachingNumber={teachingNumber}
+    teachingTitle={teaching.title}
+  />
+  <CheckMarginalia
+    teachingNumber={teachingNumber}
+    teachingTitle={teaching.title}
+  />
+  <AdminCategoryDialog
+    teachingId={teaching.id}
+    teachingNumber={teachingNumber}
+    teachingTitle={teaching.title}
+  />
+</div>
           <Link
             href={nextSlug ? `/teachings/${nextSlug}` : '#'}
             className={nextClass}

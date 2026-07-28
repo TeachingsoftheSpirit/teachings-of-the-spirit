@@ -5,6 +5,7 @@ import Header from '@/components/Header'
 import { stripe } from '@/lib/stripe/server'
 import AdminMemberLookup from '@/components/AdminMemberLookup'
 import AdminLetters from '@/components/AdminLetters'
+import AdminCategories from '@/components/AdminCategories'
 
 const ADMIN_EMAIL = 'jprussell@protonmail.com'
 
@@ -39,7 +40,6 @@ export default async function AdminPage() {
     canceled: 0,
     magic: 0,
   }
-
   try {
     const admin = createServiceClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -48,7 +48,6 @@ export default async function AdminPage() {
     const { data, error } = await admin
       .from('profiles')
       .select('subscription_status')
-
     if (!error && data) {
       counts.total = data.length
       for (const row of data) {
@@ -99,8 +98,9 @@ export default async function AdminPage() {
           </p>
         </section>
 
-        <AdminLetters />
+        <AdminCategories />
 
+        <AdminLetters />
         <AdminMemberLookup />
 
         <section className="mb-12 p-6 rounded-xl border border-[#E5DFD3] bg-white/50">
@@ -118,6 +118,7 @@ export default async function AdminPage() {
         <div className="space-y-4 text-[15px] text-[#2C2522]">
           <p>Launch Admin baseline is in place:</p>
           <ul className="list-disc pl-5 space-y-1 text-[#6B5E54]">
+            <li>Category editor (assign / remove house categories on a Teaching)</li>
             <li>Letters to the house</li>
             <li>Member lookup + full list dropdown</li>
             <li>Manual tier override + note</li>

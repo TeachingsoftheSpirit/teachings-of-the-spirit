@@ -10,37 +10,42 @@ function setFeaturedCookie(ids: number[]) {
   document.cookie = `tos_featured=${ids.join(',')}; path=/; max-age=86400; SameSite=Lax`
 }
 
+type Circle = {
+  id: string          // category uuid
+  word: string        // category name
+  angle: number
+  size: number
+  top: number
+}
+
+const CIRCLE_LAYOUT = [
+  { angle: 10, size: 72, top: -42 },
+  { angle: 6, size: 80, top: -28 },
+  { angle: 3, size: 88, top: -14 },
+  { angle: 0, size: 96, top: 0 },
+  { angle: -3, size: 88, top: -14 },
+  { angle: -6, size: 80, top: -28 },
+  { angle: -10, size: 72, top: -42 },
+]
+
 export default function Home() {
   const supabase = createClient()
+
   const [featuredTeachings, setFeaturedTeachings] = useState<any[]>([])
   const [filteredTeachings, setFilteredTeachings] = useState<any[]>([])
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
-  const [hoveredId, setHoveredId] = useState<number | null>(null)
-  const [activatedId, setActivatedId] = useState<number | null>(null)
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [activatedId, setActivatedId] = useState<string | null>(null)
   const [isAnonymous, setIsAnonymous] = useState(true)
+  const [palantiri, setPalantiri] = useState<Circle[]>([])
   const [testEmail, setTestEmail] = useState('')
   const [testStatus, setTestStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [testMessage, setTestMessage] = useState('')
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const STORAGE_KEY = 'home-featured-ids'
-  const palantiri = [
-    { id: 1, topic: 'Death', word: 'Death', angle: 10, size: 72, top: -42 },
-    { id: 2, topic: 'Grace', word: 'Grace', angle: 6, size: 80, top: -28 },
-    { id: 3, topic: 'Soul', word: 'Soul', angle: 3, size: 88, top: -14 },
-    { id: 4, topic: 'Spirit', word: 'Spirit', angle: 0, size: 96, top: 0 },
-    { id: 5, topic: 'Eternal Life', word: 'Eternal Life', angle: -3, size: 88, top: -14 },
-    { id: 6, topic: 'Sin', word: 'Sin', angle: -6, size: 80, top: -28 },
-    { id: 7, topic: 'Forgiveness', word: 'Forgiveness', angle: -10, size: 72, top: -42 },
-  ]
-  const topicKeywords: Record<string, string[]> = {
-    Death: ['death', 'die', 'dying', 'grave'],
-    Grace: ['grace', 'gracious'],
-    Soul: ['soul'],
-    Spirit: ['spirit', 'holy spirit'],
-    'Eternal Life': ['eternal', 'everlasting', 'eternal life'],
-    Sin: ['sin'],
-    Forgiveness: ['forgive', 'forgiveness', 'mercy'],
-  }
+
+  const FEATURED_STORAGE_KEY = 'home-featured-ids'
+  const PALANTIRI_STORAGE_KEY = 'home-palantiri-ids'
+
   function getRandomSubset<T>(arr: T[], n: number): T[] {
     const copy = [...arr]
     for (let i = copy.length - 1; i > 0; i--) {
@@ -49,6 +54,8 @@ export default function Home() {
     }
     return copy.slice(0, n)
   }
+
+  // Auth state
   useEffect(() => {
     const apply = (user: { email?: string | null } | null) => {
       setIsAnonymous(!user)
@@ -63,9 +70,11 @@ export default function Home() {
     })
     return () => subscription.unsubscribe()
   }, [])
+
+  // Load featured teachings (unchanged logic)
   useEffect(() => {
     const loadFeatured = async () => {
-      const stored = sessionStorage.getItem(STORAGE_KEY)
+      const stored = sessionStorage.getItem(FEATURED_STORAGE_KEY)
       if (stored) {
         try {
           const ids: number[] = JSON.parse(stored)
@@ -95,44 +104,121 @@ export default function Home() {
         const selected = getRandomSubset(data, 7)
         const ids = selected.map((t) => t.teaching_number)
         setFeaturedTeachings(selected)
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(ids))
+        sessionStorage.setItem(FEATURED_STORAGE_KEY, JSON.stringify(ids))
         setFeaturedCookie(ids)
       }
     }
     loadFeatured()
   }, [])
-  const fetchForTopic = async (word: string) => {
-    const keywords = topicKeywords[word] || [word.toLowerCase()]
-    const orConditions = keywords
-      .map((k) => `title.ilike.%${k}%,full_text.ilike.%${k}%`)
-      .join(',')
+
+  // Load or generate the seven Palantíri circles from real categories
+  useEffect(() => {
+    const loadPalantiri = async () => {
+      const stored = sessionStorage.getItem(PALANTIRI_STORAGE_KEY)
+      if (stored) {
+        try {
+          const ids: string[] = JSON.parse(stored)
+          if (Array.isArray(ids) && ids.length === 7) {
+            const { data } = await supabase
+              .from('categories')
+              .select('id, name')
+              .in('id', ids)
+            if (data && data.length === 7) {
+              const ordered = ids
+                .map((id, index) => {
+                  const cat = data.find((c) => c.id === id)
+                  if (!cat) return null
+                  return {
+                    id: cat.id,
+                    word: cat.name,
+                    ...CIRCLE_LAYOUT[index],
+                  }
+                })
+                .filter(Boolean) as Circle[]
+              if (ordered.length === 7) {
+                setPalantiri(ordered)
+                return
+              }
+            }
+          }
+        } catch {
+          // fall through
+        }
+      }
+
+      // Generate new random set for this session
+      const { data } = await supabase
+        .from('categories')
+        .select('id, name')
+      if (data && data.length >= 7) {
+        const selected = getRandomSubset(data, 7)
+        const circles: Circle[] = selected.map((cat, index) => ({
+          id: cat.id,
+          word: cat.name,
+          ...CIRCLE_LAYOUT[index],
+        }))
+        setPalantiri(circles)
+        sessionStorage.setItem(
+          PALANTIRI_STORAGE_KEY,
+          JSON.stringify(selected.map((c) => c.id))
+        )
+      }
+    }
+    loadPalantiri()
+  }, [])
+
+  // Click a circle → fetch 7 random Teachings that belong to that category
+  const fetchForCategory = async (categoryId: string, categoryName: string) => {
     const { data } = await supabase
-      .from('teachings')
-      .select('teaching_number, title, date, slug')
-      .or(orConditions)
-      .limit(7)
-    setFilteredTeachings(data || [])
-    setActiveFilter(word)
+      .from('teaching_categories')
+      .select(
+        `
+        teachings (
+          teaching_number,
+          title,
+          date,
+          slug
+        )
+      `
+      )
+      .eq('category_id', categoryId)
+      .limit(40)
+
+    if (data && data.length > 0) {
+      const teachings = data
+        .map((row: any) => row.teachings)
+        .filter(Boolean)
+      const selected = getRandomSubset(teachings, 7)
+      setFilteredTeachings(selected)
+    } else {
+      setFilteredTeachings([])
+    }
+    setActiveFilter(categoryName)
     setActivatedId(null)
   }
+
   const clearFilter = () => {
     setActiveFilter(null)
     setFilteredTeachings([])
   }
-  const handleMouseEnter = (id: number) => {
+
+  const handleMouseEnter = (id: string) => {
     setHoveredId(id)
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
     timeoutRef.current = setTimeout(() => {
       setActivatedId(id)
     }, 375)
   }
+
   const handleMouseLeave = () => {
     setHoveredId(null)
   }
-  const handleWordClick = (word: string) => {
+
+  const handleWordClick = (circle: Circle) => {
     if (isAnonymous) return
-    fetchForTopic(word)
+    fetchForCategory(circle.id, circle.word)
   }
+
   const sendTestEmail = async () => {
     if (!testEmail.trim()) {
       setTestStatus('error')
@@ -158,7 +244,9 @@ export default function Home() {
       setTestMessage(err.message || 'Something went wrong')
     }
   }
+
   const teachingsToShow = activeFilter ? filteredTeachings : featuredTeachings
+
   return (
     <main className="min-h-screen bg-[#F7F4EF] text-[#2C2522]">
       <Header active="home" />
@@ -169,6 +257,7 @@ export default function Home() {
             A private library of spiritual teachings received over many years
           </p>
         </div>
+
         <div className="mb-16 pl-0 sm:pl-[280px]">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-medium tracking-tight">
@@ -202,10 +291,15 @@ export default function Home() {
                 </Link>
               ))
             ) : (
-              <div className="text-[#6B5E54] py-4">No teachings found for this topic yet.</div>
+              <div className="text-[#6B5E54] py-4">
+                {activeFilter
+                  ? 'No teachings found for this category yet.'
+                  : 'Loading…'}
+              </div>
             )}
           </div>
         </div>
+
         <div className="mt-8">
           <div className="text-center mb-1">
             <div className="text-[#6B5E54] text-sm">• Hover to Awaken •</div>
@@ -232,7 +326,7 @@ export default function Home() {
                   }}
                   onMouseEnter={() => handleMouseEnter(p.id)}
                   onMouseLeave={handleMouseLeave}
-                  onClick={() => handleWordClick(p.word)}
+                  onClick={() => handleWordClick(p)}
                 >
                   <div
                     className={`w-full h-full rounded-full relative overflow-hidden border transition-all duration-500
@@ -254,7 +348,7 @@ export default function Home() {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation()
-                            handleWordClick(p.word)
+                            handleWordClick(p)
                           }}
                           className={`px-4 py-1 text-center text-[10px] md:text-xs font-medium tracking-[1.5px] text-white/95 bg-black/40 backdrop-blur-md rounded-full border border-white/20 leading-tight ${
                             isAnonymous
@@ -277,6 +371,7 @@ export default function Home() {
             </div>
           </div>
         </div>
+
         <div className="mt-24 pt-12 border-t border-[#EDE8DF]">
           <div className="max-w-md mx-auto text-center">
             <h3 className="text-lg font-medium mb-2">Temporary Email Test</h3>
@@ -313,6 +408,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+
       <style jsx global>{`
         @keyframes vibrate {
           0%,

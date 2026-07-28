@@ -37,14 +37,17 @@ export default function Header({ active = 'home' }: { active?: string }) {
       setUserEmail(user?.email ?? null)
       setIsAdmin(user?.email === ADMIN_EMAIL)
     }
+
     supabase.auth.getUser().then(({ data: { user } }) => {
       applyUser(user)
     })
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       applyUser(session?.user ?? null)
     })
+
     const onVisible = () => {
       if (document.visibilityState === 'visible') {
         supabase.auth.getUser().then(({ data: { user } }) => {
@@ -88,43 +91,84 @@ export default function Header({ active = 'home' }: { active?: string }) {
 
   return (
     <>
-      <header className="w-full bg-[#F7F4EF] border-b border-[#E5DFD3]">
+      <header className="sticky top-0 z-50 w-full bg-[#F7F4EF] border-b border-[#E5DFD3]">
         <div className="max-w-6xl mx-auto px-3 sm:px-6">
           <nav className="relative flex items-center justify-center min-h-[3.85rem] sm:min-h-[4.35rem] text-[15px] sm:text-[16px] text-[#6B5E54]">
-            <button
-              type="button"
-              onClick={() => setIsReepicheepOpen(true)}
-              className="absolute left-0 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center gap-0.5 w-[4.5rem] sm:w-[5.5rem] cursor-pointer group z-20"
-              title="Further up and further in"
-            >
-              <Image
-                src="/images/reepicheep.jpg"
-                alt="Further up and further in"
-                width={36}
-                height={36}
-                className="object-contain w-8 h-8 sm:w-9 sm:h-9"
-              />
-              <span className="text-[7px] sm:text-[9px] leading-tight tracking-wide text-[#5C4A3A] text-center group-hover:text-[#2C2522]">
-                Further up
-                <br />
-                and further in
-              </span>
-              <div
-                className="pointer-events-none absolute left-0 top-full mt-1 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition duration-200 origin-top-left z-50"
-                aria-hidden
-              >
-                <div className="rounded-sm overflow-hidden shadow-xl border border-[#C9BEB0] bg-[#F7F4EF]">
-                  <Image
-                    src="/images/reepicheep.jpg"
-                    alt=""
-                    width={160}
-                    height={220}
-                    className="object-cover w-[7rem] h-[9.5rem] sm:w-[8rem] sm:h-[11rem]"
-                  />
-                </div>
-              </div>
-            </button>
+            
+            {/* Far left: Admin (only for admin) + Reepicheep */}
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center gap-1 z-20">
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="flex flex-col items-center justify-center gap-0.5 w-[2.75rem] sm:w-[3.25rem] cursor-pointer group"
+                  title="Admin"
+                >
+                  {/* Neat little squiggle */}
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    className="text-[#5C4A3A] group-hover:text-[#2C2522] transition-colors"
+                  >
+                    <path
+                      d="M4 14c2.5-3 4.5-3 7 0s4.5 3 7 0 4.5-3 7 0"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                    <path
+                      d="M4 10c2.5-3 4.5-3 7 0s4.5 3 7 0 4.5-3 7 0"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      fill="none"
+                      opacity="0.55"
+                    />
+                  </svg>
+                  <span className="text-[7px] sm:text-[9px] leading-tight tracking-wide text-[#5C4A3A] text-center group-hover:text-[#2C2522]">
+                    Admin
+                  </span>
+                </Link>
+              )}
 
+              <button
+                type="button"
+                onClick={() => setIsReepicheepOpen(true)}
+                className="flex flex-col items-center justify-center gap-0.5 w-[4.5rem] sm:w-[5.5rem] cursor-pointer group"
+                title="Further up and further in"
+              >
+                <Image
+                  src="/images/reepicheep.jpg"
+                  alt="Further up and further in"
+                  width={36}
+                  height={36}
+                  className="object-contain w-8 h-8 sm:w-9 sm:h-9"
+                />
+                <span className="text-[7px] sm:text-[9px] leading-tight tracking-wide text-[#5C4A3A] text-center group-hover:text-[#2C2522]">
+                  Further up
+                  <br />
+                  and further in
+                </span>
+                <div
+                  className="pointer-events-none absolute left-0 top-full mt-1 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition duration-200 origin-top-left z-50"
+                  aria-hidden
+                >
+                  <div className="rounded-sm overflow-hidden shadow-xl border border-[#C9BEB0] bg-[#F7F4EF]">
+                    <Image
+                      src="/images/reepicheep.jpg"
+                      alt=""
+                      width={160}
+                      height={220}
+                      className="object-cover w-[7rem] h-[9.5rem] sm:w-[8rem] sm:h-[11rem]"
+                    />
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Center navigation */}
             <div className="flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-5 gap-y-1 px-[4.75rem] sm:px-[6.75rem]">
               <Link
                 href="/"
@@ -184,22 +228,25 @@ export default function Header({ active = 'home' }: { active?: string }) {
               </Link>
             </div>
 
+            {/* Right side: Bibo's Desk + Special Collections */}
             {isVerified && (
               <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2 z-20">
                 <button
                   type="button"
                   onClick={() => openDesk()}
                   className="flex flex-col items-center justify-center gap-0.5 w-[3.25rem] sm:w-[3.75rem] cursor-pointer group"
-                  title="Your desk"
+                  title="Bibo's Desk"
                 >
                   <Image
                     src="/images/Desk.JPG"
-                    alt="Your desk"
+                    alt="Bibo's Desk"
                     width={32}
                     height={32}
                     className="object-cover w-7 h-7 sm:w-8 sm:h-8 rounded-sm border border-[#C9BEB0]/80"
                   />
                   <span className="text-[7px] sm:text-[9px] leading-tight tracking-wide text-[#5C4A3A] text-center group-hover:text-[#2C2522]">
+                    Bibo's
+                    <br />
                     Desk
                   </span>
                 </button>
