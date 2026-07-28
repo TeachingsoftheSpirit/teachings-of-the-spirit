@@ -57,10 +57,7 @@ function WelcomeContent() {
     e.preventDefault()
     setFormError('')
 
-    if (!username.trim()) {
-      setFormError('Please choose a username.')
-      return
-    }
+    
     if (password.length < 8) {
       setFormError('Password must be at least 8 characters.')
       return

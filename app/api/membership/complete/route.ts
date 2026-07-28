@@ -13,7 +13,8 @@ const supabaseAdmin = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    const { sessionId } = await req.json()
+    const body = await req.json()
+    const sessionId = body.session_id || body.sessionId
 
     if (!sessionId) {
       return NextResponse.json({ error: 'Missing sessionId' }, { status: 400 })
@@ -27,25 +28,47 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid session' }, { status: 400 })
     }
 
-    const customerId = typeof session.customer === 'string'
-      ? session.customer
-      : session.customer.id
+    const customerId =
+      typeof session.customer === 'string'
+        ? session.customer
+        : session.customer.id
 
-    const subscription = typeof session.subscription === 'string'
-      ? await stripe.subscriptions.retrieve(session.subscription)
-      : session.subscription
+    const subscription =
+      typeof session.subscription === 'string'
+        ? await stripe.subscriptions.retrieve(session.subscription)
+        : session.subscription
 
-    const email = session.customer_details?.email || session.customer_email
+    const email =
+      session.customer_details?.email || session.customer_email
 
     if (!email) {
-      return NextResponse.json({ error: 'No email found on session' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No email found on session' },
+        { status: 400 }
+      )
     }
 
-    // Determine billing interval
-    const interval = subscription.items.data[0]?.price?.recurring?.interval
+    const interval =
+      subscription.items.data[0]?.price?.recurring?.interval
     const billingInterval = interval === 'year' ? 'annual' : 'monthly'
 
-    // Find or create profile by email
+    // Detect tier from price nickname or product name
+    const price = subscription.items.data[0]?.price
+    const nickname = (price?.nickname || '').toLowerCase()
+    const productName =
+      typeof price?.product === 'object' && price.product && 'name' in price.product
+        ? String((price.product as any).name || '').toLowerCase()
+        : ''
+
+    let tier = 'house_brew'
+    if (
+      nickname.includes('private') ||
+      productName.includes('private')
+    ) {
+      tier = 'private_reserve'
+    }
+
+    // Update profile if it already exists
     const { data: existingProfile } = await supabaseAdmin
       .from('profiles')
       .select('id')
@@ -57,25 +80,26 @@ export async function POST(req: NextRequest) {
         .from('profiles')
         .update({
           stripe_customer_id: customerId,
-          subscription_status: 'house_brew',
+          subscription_status: tier,
           billing_interval: billingInterval,
           access_ends_at: null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', existingProfile.id)
-    } else {
-      // Profile will be created later when the user sets credentials
-      // Just store the customer ID mapping if needed
     }
 
     return NextResponse.json({
       success: true,
       email,
+      tier,
+      interval: billingInterval,
       customerId,
-      billingInterval,
     })
   } catch (err: any) {
     console.error('membership/complete error:', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }
