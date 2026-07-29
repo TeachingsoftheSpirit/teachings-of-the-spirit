@@ -48,12 +48,9 @@ type MarginNote = {
 
 const STORAGE_KEY = 'tot-desk-state'
 const DESK_OPEN_KEY = 'tot-desk-open'
-const DEFAULT_ACTIVE = 1
-const MIN_ACTIVE = 0.72
-const MAX_ACTIVE = 1.15
-const PARKED_SCALE = 0.52
-const MIN_PARK = 0.42
-const MAX_PARK = 0.65
+const DEFAULT_WIDTH = 720
+const MIN_WIDTH = 300
+const MAX_WIDTH = 960
 const BOOKS_PER_SHELF = 7
 
 const SPINE_PALETTE = [
@@ -73,8 +70,7 @@ const GARAMOND =
 type SavedDesk = {
   x: number
   y: number
-  parkedScale: number
-  activeScale: number
+  width: number
   mode: 'active' | 'parked'
   openId: string | null
 }
@@ -118,7 +114,6 @@ function formatWhen(iso: string) {
 export default function DeskOverlay({ isOpen, onClose, context }: Props) {
   const [handNumber, setHandNumber] = useState<number | null>(null)
   const [handTitle, setHandTitle] = useState<string | null>(null)
-
   const [categories, setCategories] = useState<Category[]>([])
   const [savedList, setSavedList] = useState<SavedItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -133,24 +128,22 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
   const [showNew, setShowNew] = useState(false)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   const [showSaved, setShowSaved] = useState(false)
-
   const [marginNum, setMarginNum] = useState<number | null>(null)
   const [marginTitle, setMarginTitle] = useState<string | null>(null)
   const [marginNotes, setMarginNotes] = useState<MarginNote[]>([])
   const [marginDraft, setMarginDraft] = useState('')
   const [marginLoading, setMarginLoading] = useState(false)
   const [marginSaving, setMarginSaving] = useState(false)
-
   const [mode, setMode] = useState<'active' | 'parked'>('active')
   const [position, setPosition] = useState({ x: 40, y: 40 })
-  const [parkedScale, setParkedScale] = useState(PARKED_SCALE)
-  const [activeScale, setActiveScale] = useState(DEFAULT_ACTIVE)
+  const [width, setWidth] = useState(DEFAULT_WIDTH)
   const [isDragging, setIsDragging] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
   const dragStart = useRef({ x: 0, y: 0 })
-  const resizeStart = useRef({ x: 0, scale: 1 })
+  const resizeStart = useRef({ x: 0, width: DEFAULT_WIDTH })
   const panelRef = useRef<HTMLDivElement>(null)
   const hydrated = useRef(false)
+  const lastWidth = useRef(DEFAULT_WIDTH)
 
   useEffect(() => {
     if (
@@ -176,20 +169,20 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
     const saved = loadSaved()
     if (saved) {
       setPosition({ x: saved.x, y: saved.y })
-      setParkedScale(
-        Math.min(MAX_PARK, Math.max(MIN_PARK, saved.parkedScale || PARKED_SCALE))
+      const w = Math.min(
+        MAX_WIDTH,
+        Math.max(MIN_WIDTH, saved.width || DEFAULT_WIDTH)
       )
-      setActiveScale(
-        Math.min(
-          MAX_ACTIVE,
-          Math.max(MIN_ACTIVE, saved.activeScale || DEFAULT_ACTIVE)
-        )
-      )
+      setWidth(w)
+      lastWidth.current = w
       setMode(saved.mode === 'parked' ? 'parked' : 'active')
       setOpenId(saved.openId)
     } else if (typeof window !== 'undefined') {
+      const w = Math.min(DEFAULT_WIDTH, window.innerWidth - 40)
+      setWidth(w)
+      lastWidth.current = w
       setPosition({
-        x: Math.max(24, window.innerWidth / 2 - 400),
+        x: Math.max(16, (window.innerWidth - w) / 2),
         y: Math.max(24, 64),
       })
       setMode('active')
@@ -204,12 +197,11 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
     saveState({
       x: position.x,
       y: position.y,
-      parkedScale,
-      activeScale,
+      width,
       mode,
       openId,
     })
-  }, [isOpen, position, parkedScale, activeScale, mode, openId])
+  }, [isOpen, position, width, mode, openId])
 
   useEffect(() => {
     if (!isOpen || !openId) return
@@ -218,22 +210,26 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
 
   useEffect(() => {
     if (!isOpen || mode !== 'active') return
-    const onDown = (e: MouseEvent) => {
+    const onPointerDown = (e: MouseEvent | TouchEvent) => {
       const el = panelRef.current
       if (!el) return
-      if (el.contains(e.target as Node)) return
+      const target = (e as MouseEvent).target || (e as TouchEvent).target
+      if (el.contains(target as Node)) return
+      lastWidth.current = width
       setMode('parked')
       setShowNew(false)
       setPendingDeleteId(null)
     }
     const t = window.setTimeout(() => {
-      document.addEventListener('mousedown', onDown)
+      document.addEventListener('mousedown', onPointerDown)
+      document.addEventListener('touchstart', onPointerDown, { passive: true })
     }, 0)
     return () => {
       window.clearTimeout(t)
-      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('touchstart', onPointerDown)
     }
-  }, [isOpen, mode])
+  }, [isOpen, mode, width])
 
   const loadCategories = async () => {
     setLoading(true)
@@ -299,61 +295,108 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
     }
   }
 
-  const beginDrag = (e: React.MouseEvent) => {
-    const t = e.target as HTMLElement
-    if (t.closest('[data-no-drag]')) return
-    if (mode === 'active' && !t.closest('[data-desk-drag]')) return
-    e.preventDefault()
-    e.stopPropagation()
+  const beginDragAt = (clientX: number, clientY: number) => {
     setIsDragging(true)
     dragStart.current = {
-      x: e.clientX - position.x,
-      y: e.clientY - position.y,
+      x: clientX - position.x,
+      y: clientY - position.y,
     }
   }
 
-  const beginResize = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+  const tryBeginDrag = (target: EventTarget | null, clientX: number, clientY: number) => {
+    const t = target as HTMLElement
+    if (!t) return
+    if (t.closest('[data-no-drag]')) return
+    if (mode === 'active' && !t.closest('[data-desk-drag]')) return
+    beginDragAt(clientX, clientY)
+  }
+
+  const beginResizeAt = (clientX: number) => {
     setIsResizing(true)
-    resizeStart.current = { x: e.clientX, scale: activeScale }
+    resizeStart.current = { x: clientX, width }
   }
 
   useEffect(() => {
     if (!isDragging) return
-    const onMove = (e: MouseEvent) => {
+    const onMove = (clientX: number, clientY: number) => {
       setPosition({
-        x: e.clientX - dragStart.current.x,
-        y: e.clientY - dragStart.current.y,
+        x: clientX - dragStart.current.x,
+        y: clientY - dragStart.current.y,
       })
     }
+    const onMouseMove = (e: MouseEvent) => onMove(e.clientX, e.clientY)
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches[0]) {
+        e.preventDefault()
+        onMove(e.touches[0].clientX, e.touches[0].clientY)
+      }
+    }
     const onUp = () => setIsDragging(false)
-    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onUp)
+    window.addEventListener('touchmove', onTouchMove, { passive: false })
+    window.addEventListener('touchend', onUp)
+    window.addEventListener('touchcancel', onUp)
     return () => {
-      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', onUp)
+      window.removeEventListener('touchmove', onTouchMove)
+      window.removeEventListener('touchend', onUp)
+      window.removeEventListener('touchcancel', onUp)
     }
   }, [isDragging])
 
   useEffect(() => {
     if (!isResizing) return
-    const onMove = (e: MouseEvent) => {
-      const dx = e.clientX - resizeStart.current.x
-      const next = resizeStart.current.scale + dx / 420
-      setActiveScale(Math.min(MAX_ACTIVE, Math.max(MIN_ACTIVE, next)))
+    const onMove = (clientX: number) => {
+      const dx = clientX - resizeStart.current.x
+      const next = Math.min(
+        MAX_WIDTH,
+        Math.max(MIN_WIDTH, resizeStart.current.width + dx)
+      )
+      setWidth(next)
+      lastWidth.current = next
+    }
+    const onMouseMove = (e: MouseEvent) => onMove(e.clientX)
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches[0]) {
+        e.preventDefault()
+        onMove(e.touches[0].clientX)
+      }
     }
     const onUp = () => setIsResizing(false)
-    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onUp)
+    window.addEventListener('touchmove', onTouchMove, { passive: false })
+    window.addEventListener('touchend', onUp)
+    window.addEventListener('touchcancel', onUp)
     return () => {
-      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', onUp)
+      window.removeEventListener('touchmove', onTouchMove)
+      window.removeEventListener('touchend', onUp)
+      window.removeEventListener('touchcancel', onUp)
     }
   }, [isResizing])
 
   const activate = () => {
-    if (mode === 'parked') setMode('active')
+    if (mode === 'parked') {
+      setWidth(lastWidth.current || DEFAULT_WIDTH)
+      setMode('active')
+    }
+  }
+
+  const toggleShrink = (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation()
+    if (mode === 'active') {
+      lastWidth.current = width
+      setMode('parked')
+      setShowNew(false)
+      setPendingDeleteId(null)
+    } else {
+      setWidth(lastWidth.current || DEFAULT_WIDTH)
+      setMode('active')
+    }
   }
 
   const handleClose = () => {
@@ -389,7 +432,7 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
   }
 
   const handleOpenVolume = async (id: string) => {
-    if (mode === 'parked') setMode('active')
+    if (mode === 'parked') activate()
     setPendingDeleteId(null)
     setShowSaved(false)
     setMarginNum(null)
@@ -526,26 +569,26 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
 
   if (!isOpen) return null
 
-  const scale = mode === 'active' ? activeScale : parkedScale
-  let opacity = 1
-  if (isDragging || isResizing) opacity = 0.45
-  else if (mode === 'parked') opacity = 0.62
-
+  const opacity = isDragging || isResizing ? 0.5 : mode === 'parked' ? 0.72 : 1
   const openVolume = categories.find((c) => c.id === openId) || null
   const shelfRows = chunk(categories, BOOKS_PER_SHELF)
   const pendingName =
     categories.find((c) => c.id === pendingDeleteId)?.name || 'this volume'
 
+  const panelWidth =
+    mode === 'parked'
+      ? Math.min(320, typeof window !== 'undefined' ? window.innerWidth - 24 : 320)
+      : Math.min(width, typeof window !== 'undefined' ? window.innerWidth - 16 : width)
+
   return (
     <div className="fixed inset-0 z-[60]" style={{ pointerEvents: 'none' }}>
       <div
         ref={panelRef}
-        className="absolute w-[min(860px,calc(100vw-20px))] rounded-sm shadow-2xl transition-[opacity] duration-150 overflow-hidden flex flex-col"
+        className="absolute rounded-sm shadow-2xl transition-[opacity] duration-150 overflow-hidden flex flex-col"
         style={{
           left: position.x,
           top: position.y,
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
+          width: panelWidth,
           opacity,
           pointerEvents: 'auto',
           cursor: isDragging ? 'grabbing' : mode === 'parked' ? 'grab' : 'default',
@@ -554,18 +597,28 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
           boxShadow:
             '0 28px 56px rgba(26,22,18,0.35), 0 0 0 1px rgba(201,168,124,0.25) inset',
           maxHeight: mode === 'active' ? 'min(640px, 84vh)' : undefined,
+          touchAction: 'none',
         }}
         onMouseDown={(e) => {
-          if (mode === 'parked') beginDrag(e)
+          if (mode === 'parked') {
+            e.preventDefault()
+            tryBeginDrag(e.target, e.clientX, e.clientY)
+          }
+        }}
+        onTouchStart={(e) => {
+          if (mode === 'parked' && e.touches[0]) {
+            tryBeginDrag(e.target, e.touches[0].clientX, e.touches[0].clientY)
+          }
         }}
         onClick={(e) => {
           e.stopPropagation()
           if (mode === 'parked' && !isDragging) activate()
         }}
       >
+        {/* Header — drag rail */}
         <div
           data-desk-drag
-          className="flex items-center justify-between gap-3 px-4 py-2.5 shrink-0"
+          className="flex items-center justify-between gap-3 px-4 py-2.5 shrink-0 touch-none"
           style={{
             cursor: isDragging ? 'grabbing' : 'grab',
             background:
@@ -574,10 +627,20 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
             boxShadow: 'inset 0 1px 0 rgba(201,168,124,0.2)',
           }}
           onMouseDown={(e) => {
-            if (mode === 'active') beginDrag(e)
+            e.preventDefault()
+            tryBeginDrag(e.target, e.clientX, e.clientY)
+          }}
+          onTouchStart={(e) => {
+            if (e.touches[0]) {
+              tryBeginDrag(
+                e.target,
+                e.touches[0].clientX,
+                e.touches[0].clientY
+              )
+            }
           }}
         >
-          <div className="min-w-0">
+          <div className="min-w-0 pointer-events-none">
             <div
               className="text-[17px] font-medium tracking-wide"
               style={{ fontFamily: GARAMOND, color: '#F5F0E6' }}
@@ -586,41 +649,19 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
             </div>
             <div className="text-[11px]" style={{ color: '#C9BDA8' }}>
               {mode === 'parked'
-                ? 'Click to work · drag the rail to move'
-                : 'Volumes organize · the desktop holds what you are working on'}
+                ? 'Tap to open · drag to move'
+                : 'Drag this bar to move · corner to resize'}
             </div>
           </div>
           <div className="flex items-center gap-1 shrink-0" data-no-drag>
-            {mode === 'parked' && (
-              <>
-                <button
-                  type="button"
-                  title="Smaller"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setParkedScale((s) =>
-                      Math.max(MIN_PARK, +(s - 0.05).toFixed(2))
-                    )
-                  }}
-                  className="w-7 h-7 rounded-sm border border-[#C9A87C]/50 text-[#F5F0E6] text-sm hover:bg-white/10"
-                >
-                  −
-                </button>
-                <button
-                  type="button"
-                  title="Larger"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setParkedScale((s) =>
-                      Math.min(MAX_PARK, +(s + 0.05).toFixed(2))
-                    )
-                  }}
-                  className="w-7 h-7 rounded-sm border border-[#C9A87C]/50 text-[#F5F0E6] text-sm hover:bg-white/10"
-                >
-                  +
-                </button>
-              </>
-            )}
+            <button
+              type="button"
+              title={mode === 'active' ? 'Shrink to bar' : 'Restore desk'}
+              onClick={toggleShrink}
+              className="w-7 h-7 rounded-sm border border-[#C9A87C]/50 text-[#F5F0E6] text-sm hover:bg-white/10"
+            >
+              {mode === 'active' ? '▾' : '▴'}
+            </button>
             <button
               type="button"
               title="Close"
@@ -637,10 +678,11 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
 
         {mode === 'active' ? (
           <div
-            className="grid grid-cols-1 sm:grid-cols-[minmax(214px,256px)_1fr] min-h-0 flex-1"
-            style={{ height: 'min(540px, 72vh)' }}
+            className="grid grid-cols-1 sm:grid-cols-[minmax(200px,240px)_1fr] min-h-0 flex-1"
+            style={{ height: 'min(520px, 70vh)' }}
             data-no-drag
             onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
           >
             <aside
               className="relative flex flex-col min-h-0 min-w-0 overflow-hidden"
@@ -667,7 +709,6 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
                   Personal Volumes
                 </span>
               </div>
-
               <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-2.5 py-2.5">
                 {loading ? (
                   <p className="text-[11px] text-[#C9BDA8]/80 px-1">Loading…</p>
@@ -769,7 +810,6 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
                   </div>
                 )}
               </div>
-
               <div
                 className="shrink-0 p-2 border-t border-[#1a1614]"
                 style={{
@@ -929,7 +969,6 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
                         </button>
                       </div>
                     </div>
-
                     <div
                       className="rounded-sm"
                       style={{
@@ -952,9 +991,12 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
                               key={item.id}
                               className="flex items-start gap-2 px-2.5 py-2"
                             >
-                                                            <Link
+                              <Link
                                 href={`/teachings/${item.teaching_number}`}
-                                onClick={() => setMode('parked')}
+                                onClick={() => {
+                                  lastWidth.current = width
+                                  setMode('parked')
+                                }}
                                 className="flex-1 min-w-0 group"
                               >
                                 <div
@@ -984,7 +1026,6 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
                         </ul>
                       )}
                     </div>
-
                     <div className="mt-3">
                       <button
                         type="button"
@@ -1083,8 +1124,7 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
                                   </span>
                                 )}
                               </div>
-
-                                                            {marginOpen && (
+                              {marginOpen && (
                                 <div className="mt-2 space-y-2 pl-0.5 border-t border-[#EDE8DF] pt-2">
                                   <div
                                     className="text-[12px] font-semibold text-[#2C2522]"
@@ -1177,9 +1217,19 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
 
               <div
                 data-no-drag
-                onMouseDown={beginResize}
-                title="Drag to resize"
-                className="absolute bottom-0 right-0 w-8 h-8 cursor-se-resize flex items-end justify-end p-1.5 text-[#8A735A]"
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  beginResizeAt(e.clientX)
+                }}
+                onTouchStart={(e) => {
+                  const t = e.touches[0]
+                  if (!t) return
+                  e.stopPropagation()
+                  beginResizeAt(t.clientX)
+                }}
+                title="Drag to change width"
+                className="absolute bottom-0 right-0 w-10 h-10 cursor-ew-resize flex items-end justify-end p-2 text-[#8A735A] touch-none"
               >
                 <svg width="12" height="12" viewBox="0 0 14 14">
                   <path
@@ -1194,10 +1244,11 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
           </div>
         ) : (
           <div
-            className="px-4 py-3 text-[12px] shrink-0"
+            className="px-4 py-2.5 text-[12px] shrink-0"
             style={{ color: '#5C4A3A', background: '#EDE6DC' }}
             data-no-drag
             onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
           >
             {handNumber != null ? (
               <span>
@@ -1209,7 +1260,7 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
             ) : (
               <span>
                 {categories.length} volume
-                {categories.length === 1 ? '' : 's'} · click to open
+                {categories.length === 1 ? '' : 's'} · tap ▴ or bar to open
               </span>
             )}
           </div>
