@@ -7,13 +7,19 @@ import SaveTeachingButton from '@/components/SaveTeachingButton'
 import CheckMarginalia from '@/components/CheckMarginalia'
 import GaladrielsMirror from '@/components/GaladrielsMirror'
 import AdminCategoryDialog from '@/components/AdminCategoryDialog'
+import ReadingControls from '@/components/ReadingControls'
+import SelectionToMargin from '@/components/SelectionToMargin'
+import PrintTeaching from '@/components/PrintTeaching'
+import ListenTeaching from '@/components/ListenTeaching'
 import {
   getMembershipLevel,
   canAccess,
 } from '@/lib/membership'
+
 type Props = {
   params: Promise<{ id: string }>
 }
+
 export default async function TeachingPage({ params }: Props) {
   const { id: slugOrId } = await params
   const level = await getMembershipLevel()
@@ -22,18 +28,20 @@ export default async function TeachingPage({ params }: Props) {
   const allowGaladriel = canAccess(level, 'galadriels_mirror')
   const allowRuminations = canAccess(level, 'ruminations_full')
   const supabase = await createClient()
-  // Prefer slug; fall back to teaching_number if the segment is purely numeric
+
   const isNumeric = /^\d+$/.test(slugOrId)
   const { data: teaching } = await supabase
     .from('teachings')
     .select('*')
     .eq(isNumeric ? 'teaching_number' : 'slug', isNumeric ? parseInt(slugOrId, 10) : slugOrId)
     .single()
+
   if (!teaching) {
     notFound()
   }
+
   const teachingNumber = teaching.teaching_number as number
-  // Anonymous may only open Teachings currently featured on the Main Room
+
   let allowThis = allowAny
   if (!allowAny) {
     const cookieStore = await cookies()
@@ -44,6 +52,7 @@ export default async function TeachingPage({ params }: Props) {
       .filter((n) => !Number.isNaN(n))
     allowThis = featured.includes(teachingNumber)
   }
+
   if (!allowThis) {
     return (
       <main className="min-h-screen bg-[#F7F4EF]">
@@ -51,9 +60,7 @@ export default async function TeachingPage({ params }: Props) {
           <Header active="teachings" />
         </div>
         <div className="max-w-lg mx-auto px-6 pt-24 pb-24 text-center">
-          <h1 className="text-2xl font-medium text-[#2C2522] mb-3">
-            Further in
-          </h1>
+          <h1 className="text-2xl font-medium text-[#2C2522] mb-3">Further in</h1>
           <p className="text-[#6B5E54] text-[17px] leading-relaxed mb-2">
             This Teaching is not among those open at the threshold.
           </p>
@@ -71,6 +78,7 @@ export default async function TeachingPage({ params }: Props) {
       </main>
     )
   }
+
   let prevSlug: string | null = null
   let nextSlug: string | null = null
   if (allowPrevNext) {
@@ -89,6 +97,7 @@ export default async function TeachingPage({ params }: Props) {
       .maybeSingle()
     nextSlug = next?.slug ?? null
   }
+
   const { data: rumLinks } = await supabase
     .from('ruminations_teachings')
     .select(
@@ -104,107 +113,145 @@ export default async function TeachingPage({ params }: Props) {
     `
     )
     .eq('teaching_number', teachingNumber)
+
   const relatedRuminations = (rumLinks || [])
     .map((row: any) => row.ruminations)
     .filter(Boolean)
-  const prevClass =
-    allowPrevNext && prevSlug
-      ? 'text-[#6B5E54] hover:text-[#7A3E3E]'
-      : 'text-[#6B5E54] pointer-events-none opacity-30'
-  const nextClass =
-    allowPrevNext && nextSlug
-      ? 'text-[#6B5E54] hover:text-[#7A3E3E]'
-      : 'text-[#6B5E54] pointer-events-none opacity-30'
+
+  const navLink =
+    'text-[13px] text-[#6B5E54] hover:text-[#7A3E3E] transition-colors'
+  const navLinkDisabled =
+    'text-[13px] text-[#6B5E54] pointer-events-none opacity-30'
+
   return (
-    <main className="min-h-screen bg-[#F7F4EF]">
-      <div className="sticky top-0 z-50 bg-[#F7F4EF] border-b border-[#C9BEB0]">
-        <Header active="teachings" />
+    <main id="reading-root" className="min-h-screen bg-[#F7F4EF]">
+      <SelectionToMargin />
+
+      <div className="sticky top-0 z-50 bg-[#F7F4EF]">
+        <div className="border-b border-[#C9BEB0]">
+          <Header active="teachings" />
+        </div>
+
+        <div className="reading-chrome">
+          <div className="max-w-3xl mx-auto px-6 py-3">
+            <div className="mb-3">
+              <ReadingControls
+                leftExtra={
+                  <>
+                    <CheckMarginalia
+                      teachingNumber={teachingNumber}
+                      teachingTitle={teaching.title}
+                    />
+                    <PrintTeaching />
+                    <ListenTeaching />
+                  </>
+                }
+                rightExtra={
+                  <AdminCategoryDialog
+                    teachingId={teaching.id}
+                    teachingNumber={teachingNumber}
+                    teachingTitle={teaching.title}
+                  />
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <Link
+                href={prevSlug ? `/teachings/${prevSlug}` : '#'}
+                className={prevSlug ? navLink : navLinkDisabled}
+                aria-disabled={!prevSlug}
+              >
+                ← Previous
+              </Link>
+              <SaveTeachingButton
+                teachingNumber={teachingNumber}
+                teachingTitle={teaching.title}
+              />
+              <Link
+                href={nextSlug ? `/teachings/${nextSlug}` : '#'}
+                className={nextSlug ? navLink : navLinkDisabled}
+                aria-disabled={!nextSlug}
+              >
+                Next →
+              </Link>
+            </div>
+
+            <div className="flex justify-between items-start gap-3">
+              <div className="text-left w-28 shrink-0 pt-1">
+                <div className="text-[11px] text-[#6B5E54] leading-snug">{teaching.date}</div>
+                {teaching.start_time && (
+                  <div className="text-[11px] text-[#6B5E54] leading-snug">{teaching.start_time}</div>
+                )}
+              </div>
+              <h1 className="text-2xl sm:text-[1.65rem] font-medium tracking-tight text-[#2C2522] text-center flex-1 px-2 leading-snug">
+                {teaching.title}
+              </h1>
+              <div className="text-right w-28 shrink-0 pt-1">
+                {teaching.location1 && (
+                  <div className="text-[11px] text-[#6B5E54] leading-snug">{teaching.location1}</div>
+                )}
+                {teaching.location2 && (
+                  <div className="text-[11px] text-[#6B5E54] leading-snug">{teaching.location2}</div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="mx-8 sm:mx-12 md:mx-16 lg:mx-24 border-b border-[#E5DFD3]" />
+        </div>
       </div>
-      <div className="max-w-3xl mx-auto px-6 py-8">
-        <div className="flex justify-between items-center mb-3">
-          <Link
-            href={prevSlug ? `/teachings/${prevSlug}` : '#'}
-            className={prevClass}
-            aria-disabled={!prevSlug}
-          >
-            ← Previous Teaching
-          </Link>
-          <div className="flex flex-col items-center gap-1.5">
-  <SaveTeachingButton
-    teachingNumber={teachingNumber}
-    teachingTitle={teaching.title}
-  />
-  <CheckMarginalia
-    teachingNumber={teachingNumber}
-    teachingTitle={teaching.title}
-  />
-  <AdminCategoryDialog
-    teachingId={teaching.id}
-    teachingNumber={teachingNumber}
-    teachingTitle={teaching.title}
-  />
-</div>
-          <Link
-            href={nextSlug ? `/teachings/${nextSlug}` : '#'}
-            className={nextClass}
-            aria-disabled={!nextSlug}
-          >
-            Next Teaching →
-          </Link>
-        </div>
-        <div className="flex justify-between items-start mb-6 mt-5">
-          <div className="text-left w-36">
-            <div className="text-sm text-[#6B5E54]">{teaching.date}</div>
-            {teaching.start_time && (
-              <div className="text-sm text-[#6B5E54]">{teaching.start_time}</div>
-            )}
+
+      <div className="max-w-3xl mx-auto px-6 pt-8 pb-8 print-sheet">
+        <div className="print-sheet-header print-header">
+          <div className="print-meta">
+            <div>{teaching.date}</div>
+            {teaching.start_time && <div>{teaching.start_time}</div>}
           </div>
-          <h1 className="text-3xl font-medium tracking-tight text-[#2C2522] text-center flex-1 px-4">
-            {teaching.title}
-          </h1>
-          <div className="text-right w-36">
-            {teaching.location1 && (
-              <div className="text-sm text-[#6B5E54]">{teaching.location1}</div>
-            )}
-            {teaching.location2 && (
-              <div className="text-sm text-[#6B5E54]">{teaching.location2}</div>
-            )}
+          <div className="print-title">{teaching.title}</div>
+          <div className="print-meta right">
+            {teaching.location1 && <div>{teaching.location1}</div>}
+            {teaching.location2 && <div>{teaching.location2}</div>}
           </div>
         </div>
+
         {teaching.video_url && allowGaladriel && (
-          <div className="text-center mb-8">
-            <GaladrielsMirror
-              videoUrl={teaching.video_url}
-              title={teaching.title}
-            />
+          <div className="text-center mb-8" data-print-hide>
+            <GaladrielsMirror videoUrl={teaching.video_url} title={teaching.title} />
           </div>
         )}
         {teaching.video_url && !allowGaladriel && (
-          <div className="text-center mb-8">
+          <div className="text-center mb-8" data-print-hide>
             <div className="inline-block px-5 py-3 rounded-sm border border-[#D4CBBF] bg-white/50 text-[13px] text-[#8A7B65]">
               Galadriel’s Mirror opens with the Private Reserve
             </div>
           </div>
         )}
+
         <article>
-          <div className="text-[#2C2522] leading-[1.85] text-[1.12rem] space-y-5">
+          <div
+            id="teaching-body"
+            className="text-[#2C2522] leading-[1.85] text-[1.12rem] space-y-5"
+          >
             {teaching.full_text.split(/\n\n+/).map((para: string, i: number) => (
               <p key={i}>{para}</p>
             ))}
           </div>
         </article>
+
         {(teaching.closing_phrase || teaching.end_time) && (
-          <div className="mt-12 text-right">
+          <div className="mt-12 text-right print-closing">
             {teaching.closing_phrase && (
-              <div className="italic text-[#2C2522]">{teaching.closing_phrase}</div>
+              <div className="italic text-[#2C2522] phrase">{teaching.closing_phrase}</div>
             )}
             {teaching.end_time && (
-              <div className="text-sm text-[#6B5E54] mt-1">{teaching.end_time}</div>
+              <div className="text-sm text-[#6B5E54] mt-1 time">{teaching.end_time}</div>
             )}
           </div>
         )}
+
         {relatedRuminations.length > 0 && allowRuminations && (
-          <div className="mt-16 pt-8 border-t border-[#E5DFD3]">
+          <div className="mt-16 pt-8 border-t border-[#E5DFD3]" data-print-hide>
             <p className="text-[13px] text-[#8A7B65] text-center mb-5">
               This Teaching was also referenced in
             </p>
@@ -233,8 +280,9 @@ export default async function TeachingPage({ params }: Props) {
             </ul>
           </div>
         )}
+
         {relatedRuminations.length > 0 && !allowRuminations && (
-          <div className="mt-16 pt-8 border-t border-[#E5DFD3] text-center">
+          <div className="mt-16 pt-8 border-t border-[#E5DFD3] text-center" data-print-hide>
             <p className="text-[13px] text-[#8A7B65]">
               This Teaching is also referenced in Russell’s Ruminations
             </p>
@@ -243,18 +291,23 @@ export default async function TeachingPage({ params }: Props) {
             </p>
           </div>
         )}
+
+        <div className="print-copyright">
+          © Teachings of the Spirit · For personal study · Not for redistribution
+        </div>
       </div>
-      <div className="max-w-3xl mx-auto px-6 pb-12 flex justify-between text-sm border-t border-[#C9BEB0] pt-6">
+
+      <div className="reading-chrome max-w-3xl mx-auto px-6 pb-12 flex justify-between text-sm border-t border-[#C9BEB0] pt-6">
         <Link
           href={prevSlug ? `/teachings/${prevSlug}` : '#'}
-          className={prevClass}
+          className={prevSlug ? navLink : navLinkDisabled}
           aria-disabled={!prevSlug}
         >
           ← Previous Teaching
         </Link>
         <Link
           href={nextSlug ? `/teachings/${nextSlug}` : '#'}
-          className={nextClass}
+          className={nextSlug ? navLink : navLinkDisabled}
           aria-disabled={!nextSlug}
         >
           Next Teaching →

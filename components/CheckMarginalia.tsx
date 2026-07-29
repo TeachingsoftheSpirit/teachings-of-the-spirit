@@ -34,6 +34,18 @@ function formatWhen(iso: string) {
   }
 }
 
+function splitQuoteAndComment(body: string): {
+  quote: string | null
+  comment: string
+} {
+  const trimmed = body.trim()
+  const m = trimmed.match(/^[“"]([\s\S]*?)[”"]\s*([\s\S]*)$/)
+  if (m) {
+    return { quote: m[1].trim() || null, comment: m[2].trim() }
+  }
+  return { quote: null, comment: trimmed }
+}
+
 export default function CheckMarginalia({
   teachingNumber,
   teachingTitle,
@@ -47,6 +59,20 @@ export default function CheckMarginalia({
   const [error, setError] = useState('')
   const [draft, setDraft] = useState('')
   const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmId, setConfirmId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { quote?: string } | undefined
+      const quote = (detail?.quote || '').trim()
+      if (quote) setDraft(`“${quote}”\n\n`)
+      setScope(teachingNumber != null ? 'this' : 'all')
+      setOpen(true)
+    }
+    window.addEventListener('tos-open-marginalia', handler)
+    return () => window.removeEventListener('tos-open-marginalia', handler)
+  }, [teachingNumber])
 
   const load = async (currentScope: 'this' | 'all') => {
     setLoading(true)
@@ -102,6 +128,27 @@ export default function CheckMarginalia({
       setError(err.message || 'Could not save')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const deleteNote = async (id: string) => {
+    if (deletingId) return
+    setDeletingId(id)
+    setError('')
+    try {
+      const res = await fetch('/api/marginalia', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Could not delete')
+      setNotes((prev) => prev.filter((n) => n.id !== id))
+      setConfirmId(null)
+    } catch (err: any) {
+      setError(err.message || 'Could not delete')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -212,42 +259,84 @@ export default function CheckMarginalia({
                     const href = note.teachings?.slug
                       ? `/teachings/${note.teachings.slug}`
                       : `/teachings/${note.teaching_number}`
+                    const { quote, comment } = splitQuoteAndComment(note.body)
+                    const confirming = confirmId === note.id
                     return (
                       <li
                         key={note.id}
                         className="pb-3 border-b border-[#E5DFD3] last:border-0"
                       >
-                        {(scope === 'all' || teachingNumber == null) && (
-                          <Link
-                            href={href}
-                            onClick={() => setOpen(false)}
-                            className="text-[14px] font-semibold text-[#2C2522] hover:underline"
-                            style={{ fontFamily: GARAMOND }}
-                          >
-                            {note.teachings?.title ||
-                              `Teaching ${note.teaching_number}`}
-                          </Link>
-                        )}
-                        {note.teachings?.date && (
-                          <div className="text-[11px] text-[#6B5E54] mt-0.5">
-                            Teaching · {note.teachings.date}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            {(scope === 'all' || teachingNumber == null) && (
+                              <Link
+                                href={href}
+                                onClick={() => setOpen(false)}
+                                className="text-[14px] font-semibold text-[#2C2522] hover:underline"
+                                style={{ fontFamily: GARAMOND }}
+                              >
+                                {note.teachings?.title ||
+                                  `Teaching ${note.teaching_number}`}
+                              </Link>
+                            )}
+                            {note.teachings?.date && (
+                              <div className="text-[11px] text-[#6B5E54] mt-0.5">
+                                Teaching · {note.teachings.date}
+                              </div>
+                            )}
+                            <div className="text-[10px] text-[#8A7B65] mt-0.5">
+                              Noted · {formatWhen(note.created_at)}
+                            </div>
                           </div>
-                        )}
-                        <div className="text-[10px] text-[#8A7B65] mt-0.5">
-                          Noted · {formatWhen(note.created_at)}
+
+                          {!confirming ? (
+                            <button
+                              type="button"
+                              onClick={() => setConfirmId(note.id)}
+                              className="text-[11px] text-[#8A7B65] hover:text-[#7A3E3E] shrink-0 transition-colors"
+                            >
+                              Remove
+                            </button>
+                          ) : (
+                            <div className="flex items-center gap-2 shrink-0 text-[11px]">
+                              <span className="text-[#8A7B65]">Remove?</span>
+                              <button
+                                type="button"
+                                onClick={() => deleteNote(note.id)}
+                                disabled={deletingId === note.id}
+                                className="text-[#7A3E3E] hover:underline disabled:opacity-50"
+                              >
+                                {deletingId === note.id ? '…' : 'Yes'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setConfirmId(null)}
+                                className="text-[#8A7B65] hover:text-[#2C2522]"
+                              >
+                                No
+                              </button>
+                            </div>
+                          )}
                         </div>
-                        <p
-                          className="mt-1.5 text-[13px] text-[#3F362E] leading-relaxed italic"
+
+                        <div
+                          className="mt-1.5 text-[13px] text-[#3F362E] leading-relaxed"
                           style={{ fontFamily: GARAMOND }}
                         >
-                          {note.body}
-                        </p>
+                          {quote && (
+                            <p className="font-semibold mb-1.5">“{quote}”</p>
+                          )}
+                          {comment && (
+                            <p className={quote ? 'font-normal' : 'italic'}>
+                              {comment}
+                            </p>
+                          )}
+                        </div>
                       </li>
                     )
                   })}
                 </ul>
               )}
-
               {error && notes.length > 0 && (
                 <p className="text-[12px] text-[#7A3E3E]">{error}</p>
               )}
@@ -277,7 +366,7 @@ export default function CheckMarginalia({
                 <textarea
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  rows={3}
+                  rows={4}
                   maxLength={4000}
                   placeholder="Agreements, differences, a brief critical comment…"
                   className="w-full px-2 py-1.5 rounded-sm border border-[#C9BEB0] bg-white text-[13px] text-[#2C2522] placeholder:text-[#8A7B65] focus:outline-none resize-none"

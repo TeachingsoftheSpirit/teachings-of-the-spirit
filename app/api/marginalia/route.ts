@@ -8,19 +8,16 @@ export async function GET(request: Request) {
       data: { user },
       error: authError,
     } = await supabase.auth.getUser()
-
     if (authError || !user?.email) {
       return NextResponse.json({ error: 'You must be signed in' }, { status: 401 })
     }
-
     const cleanEmail = user.email.trim().toLowerCase()
     const { searchParams } = new URL(request.url)
     const teachingNumberParam = searchParams.get('teaching_number')
     const volumeId = searchParams.get('volume_id')
-    const since = searchParams.get('since') // ISO date string optional
+    const since = searchParams.get('since')
 
     let teachingFilter: number[] | null = null
-
     if (teachingNumberParam) {
       const n = parseInt(teachingNumberParam, 10)
       if (!Number.isFinite(n)) {
@@ -32,7 +29,6 @@ export async function GET(request: Request) {
         .from('category_items')
         .select('teaching_number')
         .eq('category_id', volumeId)
-
       if (volErr) {
         console.error('Volume items error:', volErr)
         return NextResponse.json({ error: volErr.message }, { status: 500 })
@@ -58,12 +54,10 @@ export async function GET(request: Request) {
     }
 
     const { data: notes, error } = await query
-
     if (error) {
       console.error('Marginalia fetch error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
-
     if (!notes || notes.length === 0) {
       return NextResponse.json({ notes: [] })
     }
@@ -104,13 +98,11 @@ export async function POST(request: Request) {
       data: { user },
       error: authError,
     } = await supabase.auth.getUser()
-
     if (authError || !user?.email) {
       return NextResponse.json({ error: 'You must be signed in' }, { status: 401 })
     }
 
     const { teaching_number, body } = await request.json()
-
     if (!teaching_number || typeof teaching_number !== 'number') {
       return NextResponse.json(
         { error: 'teaching_number is required' },
@@ -122,7 +114,6 @@ export async function POST(request: Request) {
     }
 
     const cleanEmail = user.email.trim().toLowerCase()
-
     const { data, error } = await supabase
       .from('marginalia')
       .insert({
@@ -138,10 +129,49 @@ export async function POST(request: Request) {
       console.error('Marginalia insert error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
-
     return NextResponse.json({ success: true, note: data })
   } catch (err: any) {
     console.error('Unexpected marginalia POST error:', err)
+    return NextResponse.json(
+      { error: err.message || 'Something went wrong' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+    if (authError || !user?.email) {
+      return NextResponse.json({ error: 'You must be signed in' }, { status: 401 })
+    }
+
+    const { id } = await request.json()
+    if (!id || typeof id !== 'string') {
+      return NextResponse.json({ error: 'id is required' }, { status: 400 })
+    }
+
+    const cleanEmail = user.email.trim().toLowerCase()
+
+    // Only delete notes that belong to this user
+    const { error } = await supabase
+      .from('marginalia')
+      .delete()
+      .eq('id', id)
+      .eq('email', cleanEmail)
+
+    if (error) {
+      console.error('Marginalia delete error:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (err: any) {
+    console.error('Unexpected marginalia DELETE error:', err)
     return NextResponse.json(
       { error: err.message || 'Something went wrong' },
       { status: 500 }

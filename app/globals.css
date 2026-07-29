@@ -3,7 +3,6 @@
 /* ============================================
    Teachings of the Spirit - Aesthetic
    ============================================ */
-
 :root {
   --bg-main: #F7F4EF;
   --bg-secondary: #F0E9DF;
@@ -21,13 +20,11 @@ body {
   color: var(--text-primary);
 }
 
-/* Subtle texture for content areas */
 .content-area {
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-warm);
 }
 
-/* Sticky Navigation */
 nav.sticky-nav {
   background-color: var(--nav-bg);
   border-top: 1px solid var(--border-warm);
@@ -35,13 +32,11 @@ nav.sticky-nav {
   box-shadow: 0 2px 10px rgba(44, 37, 34, 0.07);
 }
 
-/* Headings */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-garamond), Georgia, serif;
   font-weight: 500;
 }
 
-/* Links */
 a {
   color: var(--accent);
   transition: color 0.2s ease;
@@ -49,4 +44,205 @@ a {
 
 a:hover {
   color: var(--accent-hover);
+}
+
+/* ── Reading Room preferences ───────────────────────── */
+#reading-root.reading-dark {
+  background: #1a1816;
+  color: #e8e2d9;
+}
+#reading-root.reading-dark .text-\[\#2C2522\],
+#reading-root.reading-dark .text-\[\#2C2522\] * {
+  color: #e8e2d9 !important;
+}
+#reading-root.reading-dark .text-\[\#6B5E54\] {
+  color: #a89f94 !important;
+}
+#reading-root.reading-dark .border-\[\#C9BEB0\],
+#reading-root.reading-dark .border-\[\#E5DFD3\] {
+  border-color: #3d3832 !important;
+}
+#reading-root.reading-dark .reading-controls button {
+  color: #a89f94;
+}
+#reading-root.reading-dark .reading-controls button:hover {
+  color: #e8e2d9;
+  background: #2c2824;
+}
+
+body.reading-focus header,
+body.reading-focus .reading-chrome {
+  opacity: 0.18;
+  transition: opacity 0.35s ease;
+}
+body.reading-focus:has(header:hover) header,
+body.reading-focus:has(header:hover) .reading-chrome,
+body.reading-focus:has(.reading-chrome:hover) header,
+body.reading-focus:has(.reading-chrome:hover) .reading-chrome {
+  opacity: 1;
+}
+
+.print-sheet-header,
+.print-header,
+.print-copyright {
+  display: none;
+}
+
+/* ── Print: one Teaching, clean type on patron paper ─── */
+@media print {
+  @page {
+    size: letter;
+    margin: 0.75in 0.75in 0.25in 0.75in; /* top right bottom left */
+  }
+
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    background: white !important;
+    color: #1a1512 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    font-family: var(--font-garamond), "EB Garamond", Garamond, "Palatino Linotype", Palatino, Georgia, serif !important;
+  }
+
+  header,
+  nav,
+  footer,
+  button,
+  .sticky,
+  .reading-chrome,
+  .reading-controls,
+  [data-print-hide],
+  a[href*="membership"],
+  a[href*="portal"],
+  [class*="membership"],
+  [class*="Membership"] {
+    display: none !important;
+  }
+
+  /* Kill every border / line on the printed page */
+  #reading-root,
+  #reading-root *,
+  .print-sheet,
+  .print-sheet * {
+    border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background: transparent !important;
+  }
+
+  #reading-root {
+    color: #1a1512 !important;
+    min-height: auto !important;
+    font-family: var(--font-garamond), "EB Garamond", Garamond, "Palatino Linotype", Palatino, Georgia, serif !important;
+  }
+
+  .print-sheet {
+    display: block !important;
+    position: relative !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  .print-sheet,
+  .print-sheet * {
+    font-family: var(--font-garamond), "EB Garamond", Garamond, "Palatino Linotype", Palatino, Georgia, serif !important;
+    color: #1a1512 !important;
+    text-shadow: none !important;
+  }
+
+  .print-sheet-header,
+  .print-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+    margin: 0 0 0.85rem 0 !important;
+    padding: 0 !important;
+  }
+
+  .print-header .print-meta {
+    width: 22% !important;
+    font-size: 16pt !important;
+    line-height: 1.25 !important;
+    font-weight: 400 !important;
+  }
+
+  .print-header .print-meta.right {
+    text-align: right !important;
+  }
+
+  .print-header .print-title {
+    flex: 1 !important;
+    text-align: center !important;
+    font-size: 20pt !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.03em !important;
+    text-transform: uppercase !important;
+    line-height: 1.2 !important;
+  }
+
+  #teaching-body {
+    font-size: 16pt !important;
+    line-height: 1.35 !important;
+    text-align: justify !important;
+  }
+
+  #teaching-body p {
+    margin: 0 0 0.5em 0 !important;
+    text-indent: 0.25in !important;
+    text-align: justify !important;
+    font-size: 16pt !important;
+    font-weight: 400 !important;
+  }
+
+  /* Valediction + time — force right, no indent */
+  .print-closing {
+    display: block !important;
+    width: 100% !important;
+    margin-top: 0.85rem !important;
+    text-align: right !important;
+    text-indent: 0 !important;
+  }
+
+  .print-closing .phrase,
+  .print-closing .time,
+  .print-closing div,
+  .print-closing p {
+    display: block !important;
+    width: 100% !important;
+    text-align: right !important;
+    text-indent: 0 !important;
+    margin: 0 !important;
+    margin-left: auto !important;
+    padding: 0 !important;
+    font-size: 16pt !important;
+  }
+
+  .print-closing .phrase {
+    font-style: italic !important;
+  }
+
+  .print-closing .time {
+    margin-top: 0.15rem !important;
+    font-style: normal !important;
+  }
+
+  .print-copyright {
+    display: block !important;
+    text-align: center !important;
+    font-size: 8pt !important;
+    color: #5c534a !important;
+    font-weight: 400 !important;
+    margin-top: 1.25rem !important;
+  }
 }

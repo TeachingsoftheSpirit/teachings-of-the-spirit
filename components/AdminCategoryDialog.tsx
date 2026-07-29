@@ -31,28 +31,23 @@ export default function AdminCategoryDialog({
 }: Props) {
   const supabase = createClient()
   const router = useRouter()
-
   const [isAdmin, setIsAdmin] = useState(false)
   const [open, setOpen] = useState(false)
-
   const [current, setCurrent] = useState<TeachingInfo>({
     id: teachingId,
     teaching_number: teachingNumber,
     title: teachingTitle,
   })
-
   const [allCategories, setAllCategories] = useState<Category[]>([])
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
 
-  // Drag
   const [pos, setPos] = useState({ x: 80, y: 80 })
   const dragging = useRef(false)
   const dragOffset = useRef({ x: 0, y: 0 })
 
-  // Check admin + auto-reopen if we just navigated from the dialog
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setIsAdmin(user?.email === ADMIN_EMAIL)
@@ -62,8 +57,6 @@ export default function AdminCategoryDialog({
     } = supabase.auth.onAuthStateChange((_e, session) => {
       setIsAdmin(session?.user?.email === ADMIN_EMAIL)
     })
-
-    // If the previous page asked us to reopen
     try {
       if (sessionStorage.getItem(REOPEN_KEY) === '1') {
         sessionStorage.removeItem(REOPEN_KEY)
@@ -72,11 +65,9 @@ export default function AdminCategoryDialog({
     } catch {
       /* ignore */
     }
-
     return () => subscription.unsubscribe()
   }, [])
 
-  // Keep current in sync with the page
   useEffect(() => {
     setCurrent({
       id: teachingId,
@@ -85,15 +76,12 @@ export default function AdminCategoryDialog({
     })
   }, [teachingId, teachingNumber, teachingTitle])
 
-  // Load categories when opened or Teaching changes
   useEffect(() => {
     if (!open) return
     let cancelled = false
-
     const load = async () => {
       setLoading(true)
       setMessage('')
-
       if (allCategories.length === 0) {
         const { data: cats } = await supabase
           .from('categories')
@@ -101,25 +89,21 @@ export default function AdminCategoryDialog({
           .order('name')
         if (!cancelled) setAllCategories(cats || [])
       }
-
       const { data: links } = await supabase
         .from('teaching_categories')
         .select('category_id')
         .eq('teaching_id', current.id)
-
       if (!cancelled) {
         setSelectedIds(new Set((links || []).map((l) => l.category_id)))
         setLoading(false)
       }
     }
-
     load()
     return () => {
       cancelled = true
     }
   }, [open, current.id])
 
-  // Drag handlers
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
       if (!dragging.current) return
@@ -159,12 +143,10 @@ export default function AdminCategoryDialog({
   const save = async () => {
     setSaving(true)
     setMessage('')
-
     await supabase
       .from('teaching_categories')
       .delete()
       .eq('teaching_id', current.id)
-
     if (selectedIds.size > 0) {
       const rows = Array.from(selectedIds).map((category_id) => ({
         teaching_id: current.id,
@@ -179,7 +161,6 @@ export default function AdminCategoryDialog({
         return
       }
     }
-
     setSaving(false)
     setMessage('Saved')
   }
@@ -189,32 +170,24 @@ export default function AdminCategoryDialog({
       direction === 'prev'
         ? current.teaching_number - 1
         : current.teaching_number + 1
-
     if (targetNumber < 1) return
-
     setLoading(true)
     setMessage('')
-
     const { data } = await supabase
       .from('teachings')
       .select('id, teaching_number, title, slug')
       .eq('teaching_number', targetNumber)
       .maybeSingle()
-
     if (!data) {
       setMessage(direction === 'prev' ? 'No previous Teaching' : 'No next Teaching')
       setLoading(false)
       return
     }
-
-    // Tell the next page to reopen the dialog
     try {
       sessionStorage.setItem(REOPEN_KEY, '1')
     } catch {
       /* ignore */
     }
-
-    // Navigate the main page
     const path = data.slug
       ? `/teachings/${data.slug}`
       : `/teachings/${data.teaching_number}`
@@ -228,7 +201,7 @@ export default function AdminCategoryDialog({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="text-[11px] tracking-wide text-[#8A7B65] hover:text-[#2C2522] border border-[#D4CBBF] rounded-sm px-2.5 py-1 transition-colors"
+        className="text-[12px] text-[#6B5E54] hover:text-[#2C2522] underline underline-offset-2 transition-colors"
         title="Edit categories for this Teaching"
       >
         Categories
@@ -247,7 +220,6 @@ export default function AdminCategoryDialog({
             overflow: 'hidden',
           }}
         >
-          {/* Draggable header */}
           <div
             onMouseDown={startDrag}
             className="flex items-start justify-between gap-3 px-4 pt-3 pb-2 border-b border-[#E5DFD3] cursor-move select-none bg-[#EDE8DF]/60"
@@ -269,7 +241,6 @@ export default function AdminCategoryDialog({
             </button>
           </div>
 
-          {/* Prev / Next */}
           <div className="flex items-center justify-between px-4 py-1.5 border-b border-[#E5DFD3] text-[12px]">
             <button
               type="button"
@@ -289,7 +260,6 @@ export default function AdminCategoryDialog({
             </button>
           </div>
 
-          {/* Body */}
           <div className="flex-1 overflow-y-auto px-4 py-3">
             {loading ? (
               <div className="text-sm text-[#8A7B65]">Loading…</div>
@@ -313,7 +283,6 @@ export default function AdminCategoryDialog({
             )}
           </div>
 
-          {/* Footer */}
           <div className="flex items-center gap-3 px-4 py-2.5 border-t border-[#E5DFD3]">
             <button
               type="button"
