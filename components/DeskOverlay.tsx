@@ -1,5 +1,4 @@
 'use client'
-
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 
@@ -51,6 +50,9 @@ const DESK_OPEN_KEY = 'tot-desk-open'
 const DEFAULT_WIDTH = 720
 const MIN_WIDTH = 300
 const MAX_WIDTH = 960
+const DEFAULT_HEIGHT = 560
+const MIN_HEIGHT = 320
+const MAX_HEIGHT = 900
 const BOOKS_PER_SHELF = 7
 
 const SPINE_PALETTE = [
@@ -71,6 +73,7 @@ type SavedDesk = {
   x: number
   y: number
   width: number
+  height: number
   mode: 'active' | 'parked'
   openId: string | null
 }
@@ -137,13 +140,20 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
   const [mode, setMode] = useState<'active' | 'parked'>('active')
   const [position, setPosition] = useState({ x: 40, y: 40 })
   const [width, setWidth] = useState(DEFAULT_WIDTH)
+  const [height, setHeight] = useState(DEFAULT_HEIGHT)
   const [isDragging, setIsDragging] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
   const dragStart = useRef({ x: 0, y: 0 })
-  const resizeStart = useRef({ x: 0, width: DEFAULT_WIDTH })
+  const resizeStart = useRef({
+    x: 0,
+    y: 0,
+    width: DEFAULT_WIDTH,
+    height: DEFAULT_HEIGHT,
+  })
   const panelRef = useRef<HTMLDivElement>(null)
   const hydrated = useRef(false)
   const lastWidth = useRef(DEFAULT_WIDTH)
+  const lastHeight = useRef(DEFAULT_HEIGHT)
 
   useEffect(() => {
     if (
@@ -173,14 +183,23 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
         MAX_WIDTH,
         Math.max(MIN_WIDTH, saved.width || DEFAULT_WIDTH)
       )
+      const h = Math.min(
+        MAX_HEIGHT,
+        Math.max(MIN_HEIGHT, saved.height || DEFAULT_HEIGHT)
+      )
       setWidth(w)
+      setHeight(h)
       lastWidth.current = w
+      lastHeight.current = h
       setMode(saved.mode === 'parked' ? 'parked' : 'active')
       setOpenId(saved.openId)
     } else if (typeof window !== 'undefined') {
       const w = Math.min(DEFAULT_WIDTH, window.innerWidth - 40)
+      const h = Math.min(DEFAULT_HEIGHT, window.innerHeight - 80)
       setWidth(w)
+      setHeight(h)
       lastWidth.current = w
+      lastHeight.current = h
       setPosition({
         x: Math.max(16, (window.innerWidth - w) / 2),
         y: Math.max(24, 64),
@@ -198,10 +217,11 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
       x: position.x,
       y: position.y,
       width,
+      height,
       mode,
       openId,
     })
-  }, [isOpen, position, width, mode, openId])
+  }, [isOpen, position, width, height, mode, openId])
 
   useEffect(() => {
     if (!isOpen || !openId) return
@@ -216,6 +236,7 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
       const target = (e as MouseEvent).target || (e as TouchEvent).target
       if (el.contains(target as Node)) return
       lastWidth.current = width
+      lastHeight.current = height
       setMode('parked')
       setShowNew(false)
       setPendingDeleteId(null)
@@ -229,7 +250,7 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
       document.removeEventListener('mousedown', onPointerDown)
       document.removeEventListener('touchstart', onPointerDown)
     }
-  }, [isOpen, mode, width])
+  }, [isOpen, mode, width, height])
 
   const loadCategories = async () => {
     setLoading(true)
@@ -303,7 +324,11 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
     }
   }
 
-  const tryBeginDrag = (target: EventTarget | null, clientX: number, clientY: number) => {
+  const tryBeginDrag = (
+    target: EventTarget | null,
+    clientX: number,
+    clientY: number
+  ) => {
     const t = target as HTMLElement
     if (!t) return
     if (t.closest('[data-no-drag]')) return
@@ -311,9 +336,9 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
     beginDragAt(clientX, clientY)
   }
 
-  const beginResizeAt = (clientX: number) => {
+  const beginResizeAt = (clientX: number, clientY: number) => {
     setIsResizing(true)
-    resizeStart.current = { x: clientX, width }
+    resizeStart.current = { x: clientX, y: clientY, width, height }
   }
 
   useEffect(() => {
@@ -348,20 +373,27 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
 
   useEffect(() => {
     if (!isResizing) return
-    const onMove = (clientX: number) => {
+    const onMove = (clientX: number, clientY: number) => {
       const dx = clientX - resizeStart.current.x
-      const next = Math.min(
+      const dy = clientY - resizeStart.current.y
+      const nextW = Math.min(
         MAX_WIDTH,
         Math.max(MIN_WIDTH, resizeStart.current.width + dx)
       )
-      setWidth(next)
-      lastWidth.current = next
+      const nextH = Math.min(
+        MAX_HEIGHT,
+        Math.max(MIN_HEIGHT, resizeStart.current.height + dy)
+      )
+      setWidth(nextW)
+      setHeight(nextH)
+      lastWidth.current = nextW
+      lastHeight.current = nextH
     }
-    const onMouseMove = (e: MouseEvent) => onMove(e.clientX)
+    const onMouseMove = (e: MouseEvent) => onMove(e.clientX, e.clientY)
     const onTouchMove = (e: TouchEvent) => {
       if (e.touches[0]) {
         e.preventDefault()
-        onMove(e.touches[0].clientX)
+        onMove(e.touches[0].clientX, e.touches[0].clientY)
       }
     }
     const onUp = () => setIsResizing(false)
@@ -382,6 +414,7 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
   const activate = () => {
     if (mode === 'parked') {
       setWidth(lastWidth.current || DEFAULT_WIDTH)
+      setHeight(lastHeight.current || DEFAULT_HEIGHT)
       setMode('active')
     }
   }
@@ -390,11 +423,13 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
     e.stopPropagation()
     if (mode === 'active') {
       lastWidth.current = width
+      lastHeight.current = height
       setMode('parked')
       setShowNew(false)
       setPendingDeleteId(null)
     } else {
       setWidth(lastWidth.current || DEFAULT_WIDTH)
+      setHeight(lastHeight.current || DEFAULT_HEIGHT)
       setMode('active')
     }
   }
@@ -574,11 +609,13 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
   const shelfRows = chunk(categories, BOOKS_PER_SHELF)
   const pendingName =
     categories.find((c) => c.id === pendingDeleteId)?.name || 'this volume'
-
   const panelWidth =
     mode === 'parked'
       ? Math.min(320, typeof window !== 'undefined' ? window.innerWidth - 24 : 320)
-      : Math.min(width, typeof window !== 'undefined' ? window.innerWidth - 16 : width)
+      : Math.min(
+          width,
+          typeof window !== 'undefined' ? window.innerWidth - 16 : width
+        )
 
   return (
     <div className="fixed inset-0 z-[60]" style={{ pointerEvents: 'none' }}>
@@ -589,6 +626,8 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
           left: position.x,
           top: position.y,
           width: panelWidth,
+          height: mode === 'active' ? height : undefined,
+          maxHeight: mode === 'active' ? '90vh' : undefined,
           opacity,
           pointerEvents: 'auto',
           cursor: isDragging ? 'grabbing' : mode === 'parked' ? 'grab' : 'default',
@@ -596,7 +635,6 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
           border: '1px solid #8A735A',
           boxShadow:
             '0 28px 56px rgba(26,22,18,0.35), 0 0 0 1px rgba(201,168,124,0.25) inset',
-          maxHeight: mode === 'active' ? 'min(640px, 84vh)' : undefined,
           touchAction: 'none',
         }}
         onMouseDown={(e) => {
@@ -679,7 +717,7 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
         {mode === 'active' ? (
           <div
             className="grid grid-cols-1 sm:grid-cols-[minmax(200px,240px)_1fr] min-h-0 flex-1"
-            style={{ height: 'min(520px, 70vh)' }}
+            style={{ height: '100%' }}
             data-no-drag
             onMouseDown={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
@@ -995,6 +1033,7 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
                                 href={`/teachings/${item.teaching_number}`}
                                 onClick={() => {
                                   lastWidth.current = width
+                                  lastHeight.current = height
                                   setMode('parked')
                                 }}
                                 className="flex-1 min-w-0 group"
@@ -1220,16 +1259,16 @@ export default function DeskOverlay({ isOpen, onClose, context }: Props) {
                 onMouseDown={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
-                  beginResizeAt(e.clientX)
+                  beginResizeAt(e.clientX, e.clientY)
                 }}
                 onTouchStart={(e) => {
                   const t = e.touches[0]
                   if (!t) return
                   e.stopPropagation()
-                  beginResizeAt(t.clientX)
+                  beginResizeAt(t.clientX, t.clientY)
                 }}
-                title="Drag to change width"
-                className="absolute bottom-0 right-0 w-10 h-10 cursor-ew-resize flex items-end justify-end p-2 text-[#8A735A] touch-none"
+                title="Drag to resize"
+                className="absolute bottom-0 right-0 w-10 h-10 cursor-se-resize flex items-end justify-end p-2 text-[#8A735A] touch-none"
               >
                 <svg width="12" height="12" viewBox="0 0 14 14">
                   <path

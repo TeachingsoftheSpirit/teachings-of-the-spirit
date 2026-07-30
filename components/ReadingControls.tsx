@@ -82,10 +82,49 @@ export default function ReadingControls({ leftExtra, rightExtra }: Props) {
     }
   }, [focus, ready])
 
+  // Invisible keyboard shortcuts
+  useEffect(() => {
+    if (!ready) return
+
+    const onKey = (e: KeyboardEvent) => {
+      // Ignore when typing in an input, textarea, or contenteditable
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) {
+        return
+      }
+
+      const key = e.key.toLowerCase()
+
+      if (key === '+' || key === '=') {
+        e.preventDefault()
+        setFont((current) => {
+          const i = cycle.indexOf(current)
+          return i < cycle.length - 1 ? cycle[i + 1] : current
+        })
+      } else if (key === '-') {
+        e.preventDefault()
+        setFont((current) => {
+          const i = cycle.indexOf(current)
+          return i > 0 ? cycle[i - 1] : current
+        })
+      } else if (key === 'f') {
+        e.preventDefault()
+        setFocus((v) => !v)
+      } else if (key === 'd') {
+        e.preventDefault()
+        setDark((v) => !v)
+      }
+    }
+
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [ready])
+
   const smaller = () => {
     const i = cycle.indexOf(font)
     if (i > 0) setFont(cycle[i - 1])
   }
+
   const larger = () => {
     const i = cycle.indexOf(font)
     if (i < cycle.length - 1) setFont(cycle[i + 1])

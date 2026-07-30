@@ -3,6 +3,7 @@
 /* ============================================
    Teachings of the Spirit - Aesthetic
    ============================================ */
+
 :root {
   --bg-main: #F7F4EF;
   --bg-secondary: #F0E9DF;
@@ -47,24 +48,30 @@ a:hover {
 }
 
 /* ── Reading Room preferences ───────────────────────── */
+
 #reading-root.reading-dark {
   background: #1a1816;
   color: #e8e2d9;
 }
+
 #reading-root.reading-dark .text-\[\#2C2522\],
 #reading-root.reading-dark .text-\[\#2C2522\] * {
   color: #e8e2d9 !important;
 }
+
 #reading-root.reading-dark .text-\[\#6B5E54\] {
   color: #a89f94 !important;
 }
+
 #reading-root.reading-dark .border-\[\#C9BEB0\],
 #reading-root.reading-dark .border-\[\#E5DFD3\] {
   border-color: #3d3832 !important;
 }
+
 #reading-root.reading-dark .reading-controls button {
   color: #a89f94;
 }
+
 #reading-root.reading-dark .reading-controls button:hover {
   color: #e8e2d9;
   background: #2c2824;
@@ -75,6 +82,7 @@ body.reading-focus .reading-chrome {
   opacity: 0.18;
   transition: opacity 0.35s ease;
 }
+
 body.reading-focus:has(header:hover) header,
 body.reading-focus:has(header:hover) .reading-chrome,
 body.reading-focus:has(.reading-chrome:hover) header,
@@ -172,7 +180,7 @@ body.reading-focus:has(.reading-chrome:hover) .reading-chrome {
 
   .print-header .print-meta {
     width: 22% !important;
-    font-size: 16pt !important;
+    font-size: 11pt !important;
     line-height: 1.25 !important;
     font-weight: 400 !important;
   }
@@ -184,7 +192,7 @@ body.reading-focus:has(.reading-chrome:hover) .reading-chrome {
   .print-header .print-title {
     flex: 1 !important;
     text-align: center !important;
-    font-size: 20pt !important;
+    font-size: 16pt !important;
     font-weight: 700 !important;
     letter-spacing: 0.03em !important;
     text-transform: uppercase !important;
@@ -192,7 +200,7 @@ body.reading-focus:has(.reading-chrome:hover) .reading-chrome {
   }
 
   #teaching-body {
-    font-size: 16pt !important;
+    font-size: 11pt !important;
     line-height: 1.35 !important;
     text-align: justify !important;
   }
@@ -201,7 +209,7 @@ body.reading-focus:has(.reading-chrome:hover) .reading-chrome {
     margin: 0 0 0.5em 0 !important;
     text-indent: 0.25in !important;
     text-align: justify !important;
-    font-size: 16pt !important;
+    font-size: 11pt !important;
     font-weight: 400 !important;
   }
 
@@ -224,17 +232,21 @@ body.reading-focus:has(.reading-chrome:hover) .reading-chrome {
     text-indent: 0 !important;
     margin: 0 !important;
     margin-left: auto !important;
+    margin-right: 0 !important;
     padding: 0 !important;
-    font-size: 16pt !important;
+    font-size: 11pt !important;
+    float: none !important;
   }
 
   .print-closing .phrase {
-    font-style: italic !important;
+    font-style: normal !important;
+    text-align: right !important;
   }
 
   .print-closing .time {
     margin-top: 0.15rem !important;
     font-style: normal !important;
+    text-align: right !important;
   }
 
   .print-copyright {

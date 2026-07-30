@@ -11,8 +11,8 @@ function setFeaturedCookie(ids: number[]) {
 }
 
 type Circle = {
-  id: string          // category uuid
-  word: string        // category name
+  id: string // category uuid
+  word: string // category name
   angle: number
   size: number
   top: number
@@ -30,7 +30,6 @@ const CIRCLE_LAYOUT = [
 
 export default function Home() {
   const supabase = createClient()
-
   const [featuredTeachings, setFeaturedTeachings] = useState<any[]>([])
   const [filteredTeachings, setFilteredTeachings] = useState<any[]>([])
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
@@ -38,9 +37,6 @@ export default function Home() {
   const [activatedId, setActivatedId] = useState<string | null>(null)
   const [isAnonymous, setIsAnonymous] = useState(true)
   const [palantiri, setPalantiri] = useState<Circle[]>([])
-  const [testEmail, setTestEmail] = useState('')
-  const [testStatus, setTestStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
-  const [testMessage, setTestMessage] = useState('')
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const FEATURED_STORAGE_KEY = 'home-featured-ids'
@@ -145,7 +141,6 @@ export default function Home() {
           // fall through
         }
       }
-
       // Generate new random set for this session
       const { data } = await supabase
         .from('categories')
@@ -183,7 +178,6 @@ export default function Home() {
       )
       .eq('category_id', categoryId)
       .limit(40)
-
     if (data && data.length > 0) {
       const teachings = data
         .map((row: any) => row.teachings)
@@ -217,32 +211,6 @@ export default function Home() {
   const handleWordClick = (circle: Circle) => {
     if (isAnonymous) return
     fetchForCategory(circle.id, circle.word)
-  }
-
-  const sendTestEmail = async () => {
-    if (!testEmail.trim()) {
-      setTestStatus('error')
-      setTestMessage('Please enter an email address')
-      return
-    }
-    setTestStatus('sending')
-    setTestMessage('Sending...')
-    try {
-      const res = await fetch('/api/welcome-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: testEmail, source: 'home-test' }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to send')
-      }
-      setTestStatus('success')
-      setTestMessage('Email sent successfully! Check your inbox (and spam folder).')
-    } catch (err: any) {
-      setTestStatus('error')
-      setTestMessage(err.message || 'Something went wrong')
-    }
   }
 
   const teachingsToShow = activeFilter ? filteredTeachings : featuredTeachings
@@ -369,42 +337,6 @@ export default function Home() {
             <div className="text-[#2C2522] text-[15px] font-medium tracking-tight">
               The Palantíri Circles
             </div>
-          </div>
-        </div>
-
-        <div className="mt-24 pt-12 border-t border-[#EDE8DF]">
-          <div className="max-w-md mx-auto text-center">
-            <h3 className="text-lg font-medium mb-2">Temporary Email Test</h3>
-            <p className="text-sm text-[#6B5E54] mb-6">
-              Enter an email address to receive the “A Day’s Advice” welcome gift.
-            </p>
-            <input
-              type="email"
-              value={testEmail}
-              onChange={(e) => setTestEmail(e.target.value)}
-              placeholder="your@email.com"
-              className="w-full px-4 py-2.5 rounded border border-[#D4CBBF] bg-white text-[#2C2522] focus:outline-none focus:border-[#7A3E3E] mb-4"
-            />
-            <button
-              onClick={sendTestEmail}
-              disabled={testStatus === 'sending'}
-              className="px-6 py-2.5 bg-[#2C2522] text-[#F7F4EF] rounded hover:bg-[#4A3F38] transition-colors disabled:opacity-50"
-            >
-              {testStatus === 'sending' ? 'Sending…' : 'Send Welcome Email'}
-            </button>
-            {testMessage && (
-              <p
-                className={`mt-4 text-sm ${
-                  testStatus === 'success'
-                    ? 'text-green-700'
-                    : testStatus === 'error'
-                      ? 'text-red-700'
-                      : 'text-[#6B5E54]'
-                }`}
-              >
-                {testMessage}
-              </p>
-            )}
           </div>
         </div>
       </div>

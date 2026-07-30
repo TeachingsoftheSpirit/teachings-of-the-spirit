@@ -1,0 +1,89 @@
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import Header from '@/components/Header'
+import Link from 'next/link'
+import { levelFromProfile, type ProfileRow } from '@/lib/membership'
+
+export default async function ManageMembershipPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user?.email) {
+    redirect('/login')
+  }
+
+  const cleanEmail = user.email.trim().toLowerCase()
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('email, subscription_status, billing_interval, access_ends_at, username')
+    .eq('email', cleanEmail)
+    .maybeSingle()
+
+  const level = levelFromProfile(profile as ProfileRow | null, true)
+
+  if (level !== 'house_brew' && level !== 'private_reserve') {
+    redirect('/membership')
+  }
+
+  const tierLabel =
+    level === 'private_reserve' ? 'Private Reserve' : 'House Brew'
+  const intervalLabel =
+    profile?.billing_interval === 'annual'
+      ? 'Annual'
+      : profile?.billing_interval === 'monthly'
+        ? 'Monthly'
+        : null
+
+  return (
+    <main className="min-h-screen bg-[#F7F4EF]">
+      <Header />
+      <div className="max-w-xl mx-auto px-6 pt-16 pb-24">
+        <h1 className="text-3xl font-medium text-[#2C2522] mb-3">
+          Further up and further in
+        </h1>
+        <p className="text-[#6B5E54] text-[16px] leading-relaxed mb-10">
+          You are currently a member of the {tierLabel}
+          {intervalLabel ? ` (${intervalLabel})` : ''}.
+          <br />
+          From here you may go deeper, or you may leave when you wish.
+        </p>
+
+        <div className="space-y-4">
+          {level === 'house_brew' && (
+            <Link
+              href="/membership"
+              className="block w-full text-center py-3 rounded-lg bg-[#2C2522] text-[#F7F4EF] text-[15px] hover:bg-[#3d342f] transition-colors"
+            >
+              Upgrade to the Private Reserve
+            </Link>
+          )}
+
+          <form action="/api/membership/portal" method="post">
+            <button
+              type="submit"
+              className="block w-full text-center py-3 rounded-lg border border-[#C9BEB0] text-[#2C2522] text-[15px] hover:bg-[#F0EBE3] transition-colors"
+            >
+              Cancel membership
+            </button>
+          </form>
+        </div>
+
+        <p className="mt-10 text-[13px] text-[#8A7B65] leading-relaxed">
+          Cancellation is handled gently. You keep access until the end of the
+          current period. The threshold remains open.
+        </p>
+
+        <div className="mt-12">
+          <Link
+            href="/"
+            className="text-sm text-[#6B5E54] hover:text-[#2C2522] underline underline-offset-2"
+          >
+            Return to the house
+          </Link>
+        </div>
+      </div>
+    </main>
+  )
+}
