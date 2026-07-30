@@ -1,5 +1,4 @@
 'use client'
-
 import { useState } from 'react'
 import EmailCapture from './EmailCapture'
 import { createClient } from '@/lib/supabase/client'
@@ -27,7 +26,6 @@ export default function SaveTeachingButton({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ teaching_number: teachingNumber }),
       })
-      // 200 = newly saved or already saved — either way it belongs on the desk
       if (!res.ok && res.status !== 401) {
         const data = await res.json().catch(() => ({}))
         throw new Error(data.error || 'Could not save')
@@ -54,13 +52,10 @@ export default function SaveTeachingButton({
     const {
       data: { user },
     } = await supabase.auth.getUser()
-
     if (!user) {
-      // Door only — not Special Collections as the save destination
       setAuthOpen(true)
       return
     }
-
     await saveAndOpenDesk()
   }
 
@@ -92,10 +87,10 @@ export default function SaveTeachingButton({
           <span className="text-xs text-red-700">{message}</span>
         )}
       </div>
-
       <EmailCapture
         isOpen={authOpen}
         onClose={() => setAuthOpen(false)}
+        intent="save"
         teachingNumber={teachingNumber}
         teachingTitle={teachingTitle}
         onSuccess={() => {

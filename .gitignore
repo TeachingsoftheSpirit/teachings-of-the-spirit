@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local working copies — not part of the app
+*.tsx.txt
+vol-*-pages/
+vol-21-no-3-pages/
+convert_batch.py
+convert_rumination.py
+extract_vol2.py
+teachings-export.csv
+update_vol2no2.sql

@@ -1,5 +1,4 @@
 'use client'
-
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
@@ -8,6 +7,7 @@ import { openDesk } from './DeskOverlay'
 type Props = {
   isOpen: boolean
   onClose: () => void
+  intent?: 'save' | 'general'
   teachingNumber?: number
   teachingTitle?: string
   onSuccess?: (email: string) => void
@@ -35,6 +35,7 @@ function kindLabel(kind: string) {
 export default function EmailCapture({
   isOpen,
   onClose,
+  intent = 'general',
   onSuccess,
 }: Props) {
   const [email, setEmail] = useState('')
@@ -131,7 +132,6 @@ export default function EmailCapture({
       }
       return
     }
-
     const checkSession = async () => {
       setCheckingSession(true)
       const supabase = createClient()
@@ -307,7 +307,6 @@ export default function EmailCapture({
 
   const panelClass =
     'bg-[#E8DFD0]/72 border border-[#B8A990]/80 rounded-sm shadow-xl flex flex-col h-full overflow-hidden backdrop-blur-[2px]'
-
   const linkBtn =
     'text-[12px] text-[#2A241C] hover:text-[#1a1614] underline underline-offset-2 transition-colors'
 
@@ -372,7 +371,6 @@ export default function EmailCapture({
                   ✕
                 </button>
               </div>
-
               <div
                 className="px-4 py-4 overflow-y-auto flex-1 text-[13px] text-[#2A241C]"
                 data-no-drag
@@ -410,8 +408,6 @@ export default function EmailCapture({
                         {savedEmail}
                       </span>
                     </p>
-
-                    {/* Manage actions */}
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                       <button
                         type="button"
@@ -430,11 +426,7 @@ export default function EmailCapture({
                         </button>
                       )}
                     </div>
-
-                    {/* Separator */}
                     <div className="border-t border-[#A89880]/70" />
-
-                    {/* Notes from the house */}
                     <div className="space-y-2">
                       <div className="flex items-baseline justify-between gap-2">
                         <div className="text-[13px] font-medium text-[#2A241C]">
@@ -512,7 +504,6 @@ export default function EmailCapture({
                         )}
                       </div>
                     </div>
-
                     <button
                       onClick={onClose}
                       className="w-full py-2 mt-1 border border-[#B8A990] text-[#2A241C] text-[14px] rounded-sm hover:bg-[#E8DFD0]/70 transition-colors"
@@ -540,9 +531,23 @@ export default function EmailCapture({
                 ) : (
                   <div>
                     <p className="text-center leading-relaxed text-[#2A241C] mb-5">
-                      Enter your email to open a quiet room in your name. No
-                      password and no payment — only a short confirmation by
-                      email. You can then save Teachings to your desk.
+                      {intent === 'save' ? (
+                        <>
+                          To Save this Teaching, you'll need your own desk.  Please enter an email address to get one.
+                          <br />
+                          No password and no payment required.
+                          <br />
+                          You'll very shortly receive an email.
+<br />
+  Click on the "Confirm" button and your desk will automatically appear here.
+                        </>
+                      ) : (
+                        <>
+                          Enter your email to open a quiet room in your name. No
+                          password and no payment — only a short confirmation by
+                          email. You can then save Teachings to your desk.
+                        </>
+                      )}
                     </p>
                     <form onSubmit={handleSubmit}>
                       <input
