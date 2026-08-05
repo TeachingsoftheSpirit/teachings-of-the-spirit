@@ -19,25 +19,21 @@ export async function POST(request: Request) {
 
     const cleanEmail = email.trim().toLowerCase()
 
-    // Store the email in profiles
-    const { error: dbError } = await supabase
-      .from('profiles')
-      .upsert(
-        {
-          email: cleanEmail,
-          source,
-          last_seen_at: new Date().toISOString(),
-        },
-        { onConflict: 'email' }
-      )
+    const { error: dbError } = await supabase.from('profiles').upsert(
+      {
+        email: cleanEmail,
+        source,
+        last_seen_at: new Date().toISOString(),
+      },
+      { onConflict: 'email' }
+    )
 
     if (dbError) {
       console.error('Database error:', dbError)
     }
 
-    // Send the welcome email
     const { data, error } = await resend.emails.send({
-      from: 'The Rooms <onboarding@resend.dev>',
+      from: 'Teachings of the Spirit <hello@teachingsofthespirit.com>',
       to: [cleanEmail],
       subject: "A Day's Advice",
       html: `
@@ -89,6 +85,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, id: data?.id })
   } catch (err: any) {
     console.error('Unexpected error:', err)
-    return NextResponse.json({ error: err.message || 'Something went wrong' }, { status: 500 })
+    return NextResponse.json(
+      { error: err.message || 'Something went wrong' },
+      { status: 500 }
+    )
   }
 }

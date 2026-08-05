@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import { Resend } from 'resend'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-06-24.dahlia',
@@ -10,6 +11,54 @@ const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
+
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null
+
+function tierLabel(tier: string) {
+  if (tier === 'private_reserve') return 'Private Reserve'
+  return 'House Brew'
+}
+
+function buildSubscribeHtml(opts: {
+  tier: string
+  billingInterval: string
+}) {
+  const tierName = tierLabel(opts.tier)
+  const intervalName =
+    opts.billingInterval === 'annual' ? 'Annual' : 'Monthly'
+  const printBlock =
+    opts.billingInterval === 'annual'
+      ? `<p style="margin: 0 0 1em; line-height: 1.55;">As an annual member, you may print Teachings from the Reading Room for personal study.</p>`
+      : `<p style="margin: 0 0 1em; line-height: 1.55;">Print in the Reading Room is available with an annual membership.</p>`
+  return `
+<!DOCTYPE html>
+<html>
+<body style="margin:0; padding:0; background:#F7F4EF; font-family: Georgia, 'Times New Roman', serif;">
+  <div style="max-width:520px; margin:0 auto; padding:40px 24px; color:#2C2522;">
+    <p style="margin:0 0 1.25em; font-size:18px; letter-spacing:0.02em;">Welcome</p>
+    <p style="margin:0 0 1em; line-height:1.55;">
+      Your place in the house is open. You are on the
+      <strong>${tierName}</strong> · <strong>${intervalName}</strong>.
+    </p>
+    <p style="margin:0 0 1em; line-height:1.55;">
+      What that means in practice: the library doors that match your membership
+      are unlocked — Titles, Browse, and the deeper rooms that belong to your tier.
+      Special Collections holds your desk and notes from the house.
+    </p>
+    ${printBlock}
+    <p style="margin:0 0 1em; line-height:1.55;">
+      There is no hurry. Come when you wish. The threshold remains open.
+    </p>
+    <p style="margin:1.5em 0 0; font-size:14px; color:#6B5E54;">
+      Teachings of the Spirit
+    </p>
+  </div>
+</body>
+</html>
+`.trim()
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,7 +73,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
-
     if (password.length < 8) {
       return NextResponse.json(
         { error: 'Password must be at least 8 characters' },
@@ -32,14 +80,11 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Resolve email + tier from the Stripe session
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ['subscription'],
     })
-
     const email =
       session.customer_details?.email || session.customer_email
-
     if (!email) {
       return NextResponse.json(
         { error: 'No email found on session' },
@@ -61,14 +106,12 @@ export async function POST(req: NextRequest) {
     let tier = 'house_brew'
     if (nickname.includes('private')) tier = 'private_reserve'
 
-    // Username uniqueness (if provided)
     if (username) {
       const { data: taken } = await supabaseAdmin
         .from('profiles')
         .select('id')
         .eq('username', username)
         .maybeSingle()
-
       if (taken) {
         return NextResponse.json(
           { error: 'That username is already taken' },
@@ -77,16 +120,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Does an auth user already exist for this email?
     const { data: listData } = await supabaseAdmin.auth.admin.listUsers()
     const existingUser = listData?.users?.find(
       (u) => u.email?.toLowerCase() === email.toLowerCase()
     )
 
     let userId: string
-
     if (existingUser) {
-      // Update password on existing user
       const { error: updateError } =
         await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
           password,
@@ -100,7 +140,6 @@ export async function POST(req: NextRequest) {
       }
       userId = existingUser.id
     } else {
-      // Create new auth user
       const { data: authData, error: authError } =
         await supabaseAdmin.auth.admin.createUser({
           email,
@@ -116,7 +155,6 @@ export async function POST(req: NextRequest) {
       userId = authData.user.id
     }
 
-    // Upsert profile — email is the durable key
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .upsert(
@@ -138,6 +176,20 @@ export async function POST(req: NextRequest) {
         { error: profileError.message },
         { status: 500 }
       )
+    }
+
+    // Affirming letter — never fail the join if mail fails
+    if (resend) {
+      try {
+        await resend.emails.send({
+          from: 'Teachings of the Spirit <hello@teachingsofthespirit.com>',
+          to: email,
+          subject: 'Welcome — your place in the house',
+          html: buildSubscribeHtml({ tier, billingInterval }),
+        })
+      } catch (mailErr) {
+        console.error('Subscribe affirming email failed:', mailErr)
+      }
     }
 
     return NextResponse.json({ success: true, email, userId })

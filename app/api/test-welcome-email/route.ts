@@ -6,7 +6,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 export async function GET() {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: 'Teachings of the Spirit <hello@teachingsofthespirit.com>',
       to: ['jprussell@protonmail.com'],
       subject: "A Day's Advice",
       html: `
@@ -27,7 +27,6 @@ export async function GET() {
                       <h1 style="font-size: 28px; margin: 0 0 30px 0; font-weight: normal; text-decoration: underline;">
                         A Day's Advice
                       </h1>
-
                       <p style="font-size: 17px; line-height: 1.8; margin: 0 0 8px 0;">
                         Renew acquaintances made in other years.<br>
                         Seek out new people.<br>
@@ -54,6 +53,9 @@ export async function GET() {
 
     return NextResponse.json({ success: true, data })
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to send email' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to send email' },
+      { status: 500 }
+    )
   }
 }
