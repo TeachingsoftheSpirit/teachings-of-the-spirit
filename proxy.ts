@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 const WINDOW_SEC = 60
-const MAX_TEACHING = 45
-const MAX_API = 20
+/** Reading + Titles prefetch needs headroom; 45 was too tight. */
+const MAX_TEACHING = 120
+const MAX_API = 30
 
 export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
@@ -31,7 +32,6 @@ function rateLimit(
 ) {
   const now = Math.floor(Date.now() / 1000)
   const raw = request.cookies.get(cookieName)?.value
-
   let start = now
   let count = 0
 
