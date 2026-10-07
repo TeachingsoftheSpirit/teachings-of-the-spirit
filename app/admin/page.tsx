@@ -6,11 +6,11 @@ import AdminMemberLookup from '@/components/AdminMemberLookup'
 import AdminLetters from '@/components/AdminLetters'
 import AdminCategories from '@/components/AdminCategories'
 import AdminPeople from '@/components/AdminPeople'
+import AdminTeachingEditor from '@/components/AdminTeachingEditor'
 import { getMembership, isCriticalAdmin } from '@/lib/membership'
 
 export default async function AdminPage() {
   const { adminLevel } = await getMembership()
-
   if (!isCriticalAdmin(adminLevel)) {
     redirect('/')
   }
@@ -89,8 +89,8 @@ export default async function AdminPage() {
           </p>
         </section>
 
+        <AdminTeachingEditor />
         <AdminPeople />
-
         <AdminCategories />
         <AdminLetters />
         <AdminMemberLookup />
