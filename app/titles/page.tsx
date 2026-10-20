@@ -6,7 +6,6 @@ import { getMembershipLevel, canAccess } from '@/lib/membership'
 export default async function TitlesPage() {
   const level = await getMembershipLevel()
   const allowOpen = canAccess(level, 'titles_open')
-
   const supabase = await createClient()
   const { data: teachings } = await supabase
     .from('teachings')
@@ -23,14 +22,19 @@ export default async function TitlesPage() {
         <p className="mt-2 text-lg text-[#6B5E54] italic">
           Scroll through every teaching title in order
         </p>
+
         {!allowOpen && (
-          <p className="mt-4 text-[14px] text-[#8A7B65] max-w-md mx-auto leading-relaxed">
-            Every title is here to read at a glance. Opening a Teaching — and the
-            rest of these rooms — begins with clicking on “Further up and further
-            in!”
-          </p>
+          <div className="mt-6 mx-auto max-w-md rounded-xl border border-[#C9BEB0] bg-white/70 px-5 py-4 text-left">
+            <p className="text-[15px] text-[#2C2522] leading-relaxed">
+              You can read every title here. Opening a Teaching — and the rest of these rooms — begins with the Reepicheep button at the top left.
+            </p>
+            <p className="mt-2 text-[14px] text-[#6B5E54] leading-relaxed">
+              Tap “Further up and further in” to receive a free guest pass by email. Once you have it, the titles become doors.
+            </p>
+          </div>
         )}
       </div>
+
       <div className="max-w-3xl mx-auto px-6 pb-16 content-area rounded-xl p-8">
         {teachings && teachings.length > 0 ? (
           <TitlesList teachings={teachings} allowOpen={allowOpen} />
