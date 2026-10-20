@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import Link from 'next/link'
 
 type Teaching = {
   teaching_number: number
@@ -139,12 +138,13 @@ export default function TitlesList({
                   <span className="text-[#6B5E54] text-sm tabular-nums w-12 shrink-0">
                     {t.teaching_number}
                   </span>
-                  <Link
+                  <a
                     href={hrefFor(t)}
-                    className="text-[#2C2522] group-hover:text-[#7A3E3E] text-[1.05rem] leading-snug"
+                    className="text-[#2C2522] group-hover:text-[#7A3E3E] text-[1.05rem] leading-snug cursor-pointer"
+                    style={{ touchAction: 'manipulation' }}
                   >
                     {t.title}
-                  </Link>
+                  </a>
                   {hasRelated && (
                     <button
                       onClick={() => toggle(t.teaching_number)}
@@ -165,10 +165,11 @@ export default function TitlesList({
               {isOpen && related.length > 0 && (
                 <div className="ml-16 pl-4 border-l border-[#E5DFD5]/80 mb-2 mt-0.5 space-y-0">
                   {related.map((r) => (
-                    <Link
+                    <a
                       key={r.teaching_number}
                       href={hrefFor(r)}
-                      className="flex items-baseline justify-between gap-4 py-1 text-[0.9rem] text-[#5C534A] hover:text-[#7A3E3E] transition-colors"
+                      className="flex items-baseline justify-between gap-4 py-1 text-[0.9rem] text-[#5C534A] hover:text-[#7A3E3E] transition-colors cursor-pointer"
+                      style={{ touchAction: 'manipulation' }}
                     >
                       <div className="flex items-baseline gap-3 min-w-0">
                         <span className="text-[#6B5E54]/80 text-xs tabular-nums w-10 shrink-0">
@@ -181,7 +182,7 @@ export default function TitlesList({
                           {r.date}
                         </span>
                       )}
-                    </Link>
+                    </a>
                   ))}
                 </div>
               )}
