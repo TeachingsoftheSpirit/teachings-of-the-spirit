@@ -1,5 +1,4 @@
 'use client'
-
 import { useState } from 'react'
 import Link from 'next/link'
 
@@ -109,11 +108,13 @@ export default function TitlesList({
           Date{getSortIndicator('date')}
         </button>
       </div>
+
       <div className="space-y-0.5">
         {sortedTeachings.map((t) => {
           const themes = getThemes(t.title)
           const hasRelated = themes.length > 0
           const isOpen = expanded[t.teaching_number]
+
           let related: Teaching[] = []
           if (isOpen && hasRelated) {
             const seen = new Set<number>()
@@ -130,27 +131,20 @@ export default function TitlesList({
             }
             related.sort((a, b) => a.teaching_number - b.teaching_number)
           }
-          const titleClass = allowOpen
-            ? 'text-[#2C2522] group-hover:text-[#7A3E3E] text-[1.05rem] leading-snug'
-            : 'text-[#2C2522]/70 text-[1.05rem] leading-snug cursor-default'
+
           return (
             <div key={t.teaching_number}>
-              <div
-                className={`group flex items-baseline justify-between gap-3 py-2.5 px-2 -mx-2 rounded-md transition-colors ${
-                  allowOpen ? 'hover:bg-[#EDE7DC]' : 'opacity-70'
-                }`}
-              >
+              <div className="group flex items-baseline justify-between gap-3 py-2.5 px-2 -mx-2 rounded-md transition-colors hover:bg-[#EDE7DC]">
                 <div className="flex items-baseline gap-4 min-w-0 flex-1">
                   <span className="text-[#6B5E54] text-sm tabular-nums w-12 shrink-0">
                     {t.teaching_number}
                   </span>
-                  {allowOpen ? (
-                    <Link href={hrefFor(t)} className={titleClass}>
-                      {t.title}
-                    </Link>
-                  ) : (
-                    <span className={titleClass}>{t.title}</span>
-                  )}
+                  <Link
+                    href={hrefFor(t)}
+                    className="text-[#2C2522] group-hover:text-[#7A3E3E] text-[1.05rem] leading-snug"
+                  >
+                    {t.title}
+                  </Link>
                   {hasRelated && (
                     <button
                       onClick={() => toggle(t.teaching_number)}
@@ -167,46 +161,28 @@ export default function TitlesList({
                   </span>
                 )}
               </div>
+
               {isOpen && related.length > 0 && (
                 <div className="ml-16 pl-4 border-l border-[#E5DFD5]/80 mb-2 mt-0.5 space-y-0">
-                  {related.map((r) =>
-                    allowOpen ? (
-                      <Link
-                        key={r.teaching_number}
-                        href={hrefFor(r)}
-                        className="flex items-baseline justify-between gap-4 py-1 text-[0.9rem] text-[#5C534A] hover:text-[#7A3E3E] transition-colors"
-                      >
-                        <div className="flex items-baseline gap-3 min-w-0">
-                          <span className="text-[#6B5E54]/80 text-xs tabular-nums w-10 shrink-0">
-                            {r.teaching_number}
-                          </span>
-                          <span className="leading-snug">{r.title}</span>
-                        </div>
-                        {r.date && (
-                          <span className="text-[#6B5E54]/80 text-xs shrink-0 tabular-nums">
-                            {r.date}
-                          </span>
-                        )}
-                      </Link>
-                    ) : (
-                      <div
-                        key={r.teaching_number}
-                        className="flex items-baseline justify-between gap-4 py-1 text-[0.9rem] text-[#5C534A]/80 cursor-default"
-                      >
-                        <div className="flex items-baseline gap-3 min-w-0">
-                          <span className="text-[#6B5E54]/80 text-xs tabular-nums w-10 shrink-0">
-                            {r.teaching_number}
-                          </span>
-                          <span className="leading-snug">{r.title}</span>
-                        </div>
-                        {r.date && (
-                          <span className="text-[#6B5E54]/80 text-xs shrink-0 tabular-nums">
-                            {r.date}
-                          </span>
-                        )}
+                  {related.map((r) => (
+                    <Link
+                      key={r.teaching_number}
+                      href={hrefFor(r)}
+                      className="flex items-baseline justify-between gap-4 py-1 text-[0.9rem] text-[#5C534A] hover:text-[#7A3E3E] transition-colors"
+                    >
+                      <div className="flex items-baseline gap-3 min-w-0">
+                        <span className="text-[#6B5E54]/80 text-xs tabular-nums w-10 shrink-0">
+                          {r.teaching_number}
+                        </span>
+                        <span className="leading-snug">{r.title}</span>
                       </div>
-                    )
-                  )}
+                      {r.date && (
+                        <span className="text-[#6B5E54]/80 text-xs shrink-0 tabular-nums">
+                          {r.date}
+                        </span>
+                      )}
+                    </Link>
+                  ))}
                 </div>
               )}
             </div>
