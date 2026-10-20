@@ -111,6 +111,30 @@ export default function AboutPage() {
               Bob took this literally, and he added an office off the main bedroom of their new house being built at 946 Casanueva Place in Stanford California – an office that he named, ‘The Sanctuary’. And he would begin most days by going there, and giving God the first hour of his day.
             </p>
 
+            <p>
+              This was not a passive prayer ritual. It was an active engagement. He would quiet his mind with prayer, then engage with the thoughts coming to his mind and he would pen a brief essay on a subject of interest, with a focus on the spiritual bent of the subject. An exercise in theological thought.
+            </p>
+
+            <p>
+              But as often happens to a young man with a good thing going… a monkey wrench appeared.
+            </p>
+
+            <p>
+              Within the year, Stanford announced they were closing the department where Bob was a young professor, and he would have to find employment elsewhere. A fork in the road; a dark and stormy night.
+            </p>
+
+            <p>
+              But just as he had done in the mountains of the San Bernardino, he used his own experience, and his much more mature faith, and courted the new opportunities available to him: an offer from Columbia University; and another from a growing state university in Illinois. An offer from the City of San Francisco as a public health professional; and from a Colorado Medical Center to become a private-sector health consultant. At the young age of 39 he faced a significant life change. So he “hit his knees” again, and asked the Lord for guidance. In his own words, “Lord, give me direction on what I’m supposed to do.”
+            </p>
+
+            <p>
+              Within 15 minutes the phone rang, and it was a call from the Department Chair at Southern Illinois University at Carbondale, offering him a tenure track position in the fledgling new Department of Health Education.
+            </p>
+
+            <p>
+              In the upheaval that accompanied moving a large family two thousand miles across the continent, and beginning a brand new job, he discontinued the “first hour of the day” sessions.
+            </p>
+
             <h2>The Teachings Begin</h2>
 
             <p>
@@ -156,8 +180,15 @@ export default function AboutPage() {
             </p>
 
             <p>
-              But ten days later, things took an unexpected turn. On May 20th at 5:50 am… when he sat down to begin the ritual… the words he wrote were not his own. He “heard” a voice coming from within his own soul, and the voice dictated a title, “Read the Messages.” The voice continued to dictate an entire essay.
+              But ten days later, things took an unexpected turn. On May 20th at 5:50 am… when he sat down to begin the ritual… the words he wrote were not his own. He “heard” a voice coming from within his own soul, and the voice dictated a title, “Read the Messages.” The voice continued to dictate an entire essay, which contained, among other things:
             </p>
+
+            <blockquote className="border-l-4 border-[#C9BEB0] pl-4 italic">
+              “Instruction is for your edification and for the building up of your self and spirit.”<br />
+              “You are not to edit nor to polish these lines, for they come as they are meant to be. This is new and fresh, my son… an update of the Lord’s thoughts… a new quickening of the Holy Spirit.”<br />
+              “The trend of the times is to seek ‘scientific’ answers to human questions. Thou art one who has been called to a ministry of sorts – one of matching truths from the Spirit with those of the world.”<br />
+              “For I am God, I am the Spirit, I am the Christ.”
+            </blockquote>
 
             <p>
               And so it began. Bob finished the remaining 20 day commitment to God, with each day being one of listening and writing what was being spoken to him. He then committed to 30 days more, and on each of those days the Spirit spoke and Bob wrote. By the time these 60 days were complete, this most unique Spirit-to-spirit liturgy had been established, and it lasted the rest of Bob Russell’s life.
@@ -178,11 +209,23 @@ export default function AboutPage() {
             </p>
 
             <p>
-              The Curriculum Vitae of that career is 44 pages long. It begins with a record of his Classes and Teaching. It then notes that he directed 67 Master’s theses and 78 Ph.D. dissertations.
+              The Curriculum Vitae of that career is 44 pages long. It begins with a record of his Classes and Teaching, which says a lot: the most important things always go first on a CV.
             </p>
 
             <p>
-              Not listed in the CV are the 3349 Teachings he wrote from 1979 through 2003.
+              It then notes that he directed 67 Master’s theses and 78 Ph.D. dissertations.
+            </p>
+
+            <p>
+              Then come many pages of personal interaction: consultancies, workshops, conference presentations, editorial evaluations.
+            </p>
+
+            <p>
+              Finally, after 33 pages – in the last section of the CV – comes the list of the academic work: 11 books, scores of articles, book chapters, reviews.
+            </p>
+
+            <p>
+              Not listed in the CV are the 3349 Teachings he wrote from 1979 through 2003, or the 70 essays titled “Russell’s Ruminations”. Each of these “Ruminations” is a 7-to-10 page “deep dive” on “Issues of Interest to the Holy Spirit” and to his professional colleagues.
             </p>
 
             <p>
@@ -190,17 +233,20 @@ export default function AboutPage() {
             </p>
 
             <p className="mt-8">
-              <strong>John Patrick Russell</strong> is Dr. Russell’s 3rd son. He is organizing and compiling the Teachings into books such as this one.
+              <strong>John Patrick Russell</strong> is Dr. Russell’s 3rd son. He is organizing and compiling the Teachings into books on particular subject matter, and has now moved all the Teachings and the Ruminations to this website.
             </p>
 
             <p className="mt-6 text-center italic text-[#6B5E54]">
               He recommends a deep-dive into the Teachings themselves.
             </p>
 
-            <p className="mt-10 text-sm text-[#6B5E54] italic text-center">
-              Like C.S. Lewis, Dr. Russell kept a photograph of the Shroud of Turin on his wall for most of his adult life — a quiet reminder of the face of Christ.
+            <p className="mt-6 text-center">
+              Please visit: <a href="https://www.teachingsofthespirit.com" className="text-[#7A3E3E] hover:underline">www.TeachingsoftheSpirit.com</a>
             </p>
 
+            <p className="mt-10 text-sm text-[#6B5E54] italic text-center">
+              
+            </p>
           </div>
         </div>
       </div>
