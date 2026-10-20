@@ -1,5 +1,4 @@
 'use client'
-
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -22,14 +21,9 @@ export default function Header({ active = 'home' }: { active?: string }) {
   const [deskContext, setDeskContext] = useState<DeskContext | null>(null)
 
   useEffect(() => {
-    // Restore desk across page navigations
-    try {
-      if (sessionStorage.getItem(DESK_OPEN_KEY) === '1') {
-        setIsDeskOpen(true)
-      }
-    } catch {
-      /* ignore */
-    }
+    // Intentionally do NOT restore the desk from sessionStorage.
+    // The previous auto-restore was covering page content on iPhone
+    // after navigation and killing clicks.
 
     const supabase = createClient()
     const applyUser = (user: any) => {
@@ -103,7 +97,6 @@ export default function Header({ active = 'home' }: { active?: string }) {
                   className="flex flex-col items-center justify-center gap-0.5 w-[2.75rem] sm:w-[3.25rem] cursor-pointer group"
                   title="Admin"
                 >
-                  {/* Neat little squiggle */}
                   <svg
                     width="22"
                     height="22"
@@ -132,7 +125,6 @@ export default function Header({ active = 'home' }: { active?: string }) {
                   </span>
                 </Link>
               )}
-
               <button
                 type="button"
                 onClick={() => setIsReepicheepOpen(true)}
@@ -170,60 +162,25 @@ export default function Header({ active = 'home' }: { active?: string }) {
 
             {/* Center navigation */}
             <div className="flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-5 gap-y-1 px-[4.75rem] sm:px-[6.75rem]">
-              <Link
-                href="/"
-                className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${
-                  active === 'home' ? 'text-[#2C2522] font-medium' : ''
-                }`}
-              >
+              <Link href="/" className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${active === 'home' ? 'text-[#2C2522] font-medium' : ''}`}>
                 Home
               </Link>
-              <Link
-                href="/titles"
-                className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${
-                  active === 'titles' ? 'text-[#2C2522] font-medium' : ''
-                }`}
-              >
+              <Link href="/titles" className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${active === 'titles' ? 'text-[#2C2522] font-medium' : ''}`}>
                 Titles
               </Link>
-              <Link
-                href="/quotes"
-                className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${
-                  active === 'quotes' ? 'text-[#2C2522] font-medium' : ''
-                }`}
-              >
+              <Link href="/quotes" className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${active === 'quotes' ? 'text-[#2C2522] font-medium' : ''}`}>
                 Quotes
               </Link>
-              <Link
-                href="/search"
-                className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${
-                  active === 'search' ? 'text-[#2C2522] font-medium' : ''
-                }`}
-              >
+              <Link href="/search" className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${active === 'search' ? 'text-[#2C2522] font-medium' : ''}`}>
                 Search
               </Link>
-              <Link
-                href="/ruminations"
-                className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${
-                  active === 'ruminations' ? 'text-[#2C2522] font-medium' : ''
-                }`}
-              >
+              <Link href="/ruminations" className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${active === 'ruminations' ? 'text-[#2C2522] font-medium' : ''}`}>
                 Ruminations
               </Link>
-              <Link
-                href="/browse"
-                className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${
-                  active === 'browse' ? 'text-[#2C2522] font-medium' : ''
-                }`}
-              >
+              <Link href="/browse" className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${active === 'browse' ? 'text-[#2C2522] font-medium' : ''}`}>
                 Browse
               </Link>
-              <Link
-                href="/about"
-                className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${
-                  active === 'about' ? 'text-[#2C2522] font-medium' : ''
-                }`}
-              >
+              <Link href="/about" className={`hover:text-[#2C2522] transition-colors whitespace-nowrap ${active === 'about' ? 'text-[#2C2522] font-medium' : ''}`}>
                 About
               </Link>
             </div>
